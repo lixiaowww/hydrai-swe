@@ -1,0 +1,42 @@
+batch_size: 16
+data_dir: /home/sean/hydrai_swe/src/neuralhydrology/data
+dataset: generic
+device: cpu
+dynamic_inputs:
+- snow_depth_mm
+- snow_fall_mm
+- snow_water_equivalent_mm
+- day_of_year
+- month
+- year
+epochs: 5
+experiment_name: hydrai_swe_cv_fold4
+forcings:
+- snow_depth_mm
+- snow_fall_mm
+- snow_water_equivalent_mm
+- day_of_year
+- month
+- year
+head: regression
+hidden_size: 64
+initial_forget_bias: 3.0
+learning_rate: 0.001
+loss: MSE
+model: lstm
+optimizer: Adam
+predict_last_n: 1
+run_dir: runs/{experiment_name}_{start_time}
+seq_length: 30
+target_noise_std: 0.0
+target_variables:
+- streamflow_m3s
+test_basin_file: /home/sean/hydrai_swe/src/neuralhydrology/data/basins.txt
+test_end_date: 19/10/2024
+test_start_date: 31/10/2023
+train_basin_file: /home/sean/hydrai_swe/src/neuralhydrology/data/basins.txt
+train_end_date: 30/10/2023
+train_start_date: 10/10/2020
+validation_basin_file: /home/sean/hydrai_swe/src/neuralhydrology/data/basins.txt
+validation_end_date: 31/10/2023
+validation_start_date: 31/10/2023

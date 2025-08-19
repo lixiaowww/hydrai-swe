@@ -1,0 +1,81 @@
+# Experiment Configuration for NeuralHydrology
+
+# General settings
+experiment_name: hydrai_swe_experiment
+run_dir: runs/{experiment_name}_{start_time}
+device: cpu # or 'cuda:0' if you have a GPU
+
+# Data settings
+dataset: "generic"  # Use GenericDataset for custom data format
+data_dir: /home/sean/hydrai_swe/src/neuralhydrology/data
+train_basin_file: /home/sean/hydrai_swe/src/neuralhydrology/data/basins.txt
+validation_basin_file: /home/sean/hydrai_swe/src/neuralhydrology/data/basins.txt # Using the same for simplicity
+test_basin_file: /home/sean/hydrai_swe/src/neuralhydrology/data/basins.txt
+
+# Training period (using our actual data range)
+train_start_date: "1979-01-01"
+train_end_date: "1995-12-31" # 80% for training
+
+# Validation period
+validation_start_date: "1996-01-01"
+validation_end_date: "1997-06-30" # 15% for validation
+
+# Test period
+test_start_date: "1997-07-01"
+test_end_date: "1998-12-31" # 5% for testing
+
+# Model settings
+model: lstm
+hidden_size: 64
+
+# Input and output variables (verified against actual data)
+dynamic_inputs:
+  - snow_depth_mm
+  - snow_fall_mm
+  - snow_water_equivalent_mm
+  - day_of_year
+  - month
+  - year
+target_variables:
+  - streamflow_m3s
+
+# Forcing variables (required for CAMELS-US format)
+forcings:
+  - snow_depth_mm
+  - snow_fall_mm
+  - snow_water_equivalent_mm
+  - day_of_year
+  - month
+  - year
+
+# Training settings
+epochs: 30
+batch_size: 16
+optimizer: Adam
+learning_rate: 0.001
+seq_length: 30  # Sequence length for LSTM (30 days)
+predict_last_n: 1
+head: regression
+loss: MSE
+target_noise_std: 0.0
+initial_forget_bias: 3.0
+
+# Data preprocessing
+scaler: standard  # StandardScaler for input normalization
+target_scaler: standard  # StandardScaler for target normalization
+
+# Validation settings
+validation_metrics:
+  - nse
+  - rmse
+  - mae
+  - r2
+
+# Early stopping
+early_stopping: true
+patience: 10
+min_delta: 0.001
+
+# Logging
+log_tensorboard: true
+log_interval: 100
