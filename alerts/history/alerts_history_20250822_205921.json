@@ -1,0 +1,47 @@
+[
+  {
+    "id": "alert_1755914361_0",
+    "timestamp": "2025-08-22 20:59:21.587097",
+    "level": "info",
+    "category": "test",
+    "message": "测试信息告警",
+    "details": {
+      "test_value": 50,
+      "timestamp": "2025-08-22T20:59:21.587060"
+    },
+    "acknowledged": true,
+    "resolved": true,
+    "acknowledged_by": "test_user",
+    "resolved_by": "test_user"
+  },
+  {
+    "id": "alert_1755914361_1",
+    "timestamp": "2025-08-22 20:59:21.587858",
+    "level": "warning",
+    "category": "test",
+    "message": "测试警告告警",
+    "details": {
+      "test_value": 150,
+      "timestamp": "2025-08-22T20:59:21.587827"
+    },
+    "acknowledged": false,
+    "resolved": false,
+    "acknowledged_by": null,
+    "resolved_by": null
+  },
+  {
+    "id": "alert_1755914361_2",
+    "timestamp": "2025-08-22 20:59:21.590424",
+    "level": "critical",
+    "category": "test",
+    "message": "测试严重告警",
+    "details": {
+      "test_value": 200,
+      "timestamp": "2025-08-22T20:59:21.590397"
+    },
+    "acknowledged": false,
+    "resolved": false,
+    "acknowledged_by": null,
+    "resolved_by": null
+  }
+]

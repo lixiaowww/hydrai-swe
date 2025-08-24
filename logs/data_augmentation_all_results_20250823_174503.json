@@ -1,0 +1,73 @@
+[
+  {
+    "experiment": 1,
+    "name": "无增强",
+    "description": "原始数据，无任何增强",
+    "config": {},
+    "val_loss": 0.003227398048150925,
+    "training_time": 513.9227452278137,
+    "data_size": 7281
+  },
+  {
+    "experiment": 2,
+    "name": "噪声增强",
+    "description": "添加高斯噪声增强",
+    "config": {
+      "noise": true,
+      "noise_factor": 0.01
+    },
+    "val_loss": 0.0028585068321901196,
+    "training_time": 492.5352427959442,
+    "data_size": 7281
+  },
+  {
+    "experiment": 3,
+    "name": "时间偏移",
+    "description": "随机时间偏移±3天",
+    "config": {
+      "time_shift": true,
+      "shift_range": 3
+    },
+    "val_loss": 0.014326804627974829,
+    "training_time": 176.83914756774902,
+    "data_size": 7281
+  },
+  {
+    "experiment": 4,
+    "name": "掩码增强",
+    "description": "随机掩码10%的特征值",
+    "config": {
+      "masking": true,
+      "mask_prob": 0.1
+    },
+    "val_loss": 0.0075608093389555025,
+    "training_time": 494.77566266059875,
+    "data_size": 7281
+  },
+  {
+    "experiment": 5,
+    "name": "Mixup增强",
+    "description": "样本混合增强",
+    "config": {
+      "mixup": true,
+      "alpha": 0.2
+    },
+    "val_loss": 0.0018210047820231697,
+    "training_time": 2843.1317842006683,
+    "data_size": 7281
+  },
+  {
+    "experiment": 7,
+    "name": "噪声+时间偏移",
+    "description": "噪声增强 + 时间偏移增强",
+    "config": {
+      "noise": true,
+      "time_shift": true,
+      "noise_factor": 0.01,
+      "shift_range": 3
+    },
+    "val_loss": 0.001567386605944321,
+    "training_time": 515.8921356201172,
+    "data_size": 7281
+  }
+]

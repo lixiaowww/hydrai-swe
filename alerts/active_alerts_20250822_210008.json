@@ -1,0 +1,17 @@
+[
+  {
+    "id": "alert_1755914393_0",
+    "timestamp": "2025-08-22 20:59:53.746301",
+    "level": "critical",
+    "category": "system",
+    "message": "CPU使用率过高: 100.0%",
+    "details": {
+      "component": "cpu",
+      "timestamp": "2025-08-22T20:59:53.746280"
+    },
+    "acknowledged": false,
+    "resolved": false,
+    "acknowledged_by": null,
+    "resolved_by": null
+  }
+]

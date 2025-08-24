@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HydrAI-SWE Classic</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin:0; padding:16px; background:#ffffff; color:#111827; }
+    .container { max-width: 860px; margin: 0 auto; }
+    h1 { font-size: 20px; margin: 0 0 12px; }
+    .panel { border:1px solid #e5e7eb; border-radius:8px; padding:12px; margin-bottom:12px; }
+    label { display:block; margin:8px 0 4px; font-weight:600; }
+    input, select, button { padding:8px 10px; font-size:14px; }
+    input, select { width:100%; box-sizing:border-box; border:1px solid #d1d5db; border-radius:6px; }
+    button { background:#2563eb; color:#fff; border:none; border-radius:6px; cursor:pointer; margin-top:10px; }
+    button:disabled { background:#9ca3af; cursor:not-allowed; }
+    .status { margin-top:10px; font-size:14px; color:#374151; }
+    .result { margin-top:10px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:13px; background:#f9fafb; border:1px solid #e5e7eb; border-radius:6px; padding:10px; white-space:pre-wrap; }
+    .links { font-size:13px; margin-top:12px; }
+    .links a { color:#2563eb; text-decoration:none; margin-right:10px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>HydrAI-SWE 经典版（单栏·零依赖）</h1>
+    <div class="panel">
+      <label for="mode">预测模式</label>
+      <select id="mode">
+        <option value="nowcast">Nowcast</option>
+        <option value="scenario">Scenario</option>
+      </select>
+
+      <label for="scenarioYear">情景年份</label>
+      <input type="number" id="scenarioYear" min="1979" max="2024" value="2023" />
+
+      <label for="start">开始日期</label>
+      <input type="date" id="start" />
+
+      <label for="end">结束日期</label>
+      <input type="date" id="end" />
+
+      <button id="btnFetch">获取预测</button>
+      <div id="status" class="status">就绪</div>
+      <div id="result" class="result" style="display:none;"></div>
+      <div class="links">
+        <a href="/ui/legacy" target="_blank">查看两栏旧版</a>
+        <a href="/ui/optimized" target="_blank">查看优化版</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 仅设置默认日期，不引入任何第三方库
+    (function init() {
+      const today = new Date();
+      const nextWeek = new Date(today.getTime() + 7*24*60*60*1000);
+      document.getElementById('start').value = today.toISOString().slice(0,10);
+      document.getElementById('end').value = nextWeek.toISOString().slice(0,10);
+    })();
+
+    document.getElementById('btnFetch').addEventListener('click', async function () {
+      const status = document.getElementById('status');
+      const result = document.getElementById('result');
+      const mode = document.getElementById('mode').value;
+      const startDate = document.getElementById('start').value;
+      const endDate = document.getElementById('end').value;
+      const scenarioYear = document.getElementById('scenarioYear').value;
+
+      if (!startDate || !endDate) { alert('请选择开始和结束日期'); return; }
+
+      status.textContent = '请求中...';
+      result.style.display = 'none';
+      try {
+        const params = new URLSearchParams({
+          station_id: '05OC001',
+          start_date: startDate,
+          end_date: endDate,
+          mode
+        });
+        if (mode === 'scenario') params.append('scenario_year', scenarioYear);
+
+        const resp = await fetch(`/api/v1/runoff-forecast?${params.toString()}`);
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const data = await resp.json();
+        status.textContent = '完成';
+        result.style.display = 'block';
+        result.textContent = JSON.stringify(data, null, 2);
+      } catch (e) {
+        status.textContent = '失败: ' + e.message;
+        result.style.display = 'block';
+        result.textContent = '';
+      }
+    });
+  </script>
+</body>
+</html>
+
+

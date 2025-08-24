@@ -161,6 +161,25 @@ class NeuralHydrologyPredictor:
             current += timedelta(days=1)
         
         return predictions
+
+    def predict_daily(self, station_id: str, start_date: str, end_date: str) -> list:
+        """Public API used by router: generate daily forecasts between dates.
+        Currently uses pseudo-prediction with flat values to guarantee fast response when no model is loaded.
+        """
+        start = datetime.strptime(start_date, "%Y-%m-%d")
+        end = datetime.strptime(end_date, "%Y-%m-%d")
+        num_days = (end - start).days + 1
+        forecasts: list[dict] = []
+        current = start
+        for _ in range(num_days):
+            # Use a very light deterministic number to avoid heavy CPU when data is missing
+            result = self.predict(snow_depth_mm=0, temperature_c=0, precipitation_mm=0)
+            forecasts.append({
+                "date": current.strftime("%Y-%m-%d"),
+                "streamflow_m3s": float(result.get("streamflow_m3s", 1000.0)),
+            })
+            current += timedelta(days=1)
+        return forecasts
     
     def get_model_status(self):
         """获取模型状态"""

@@ -1,0 +1,14 @@
+{
+  "evaluation_date": "2025-08-23T01:31:51.160268",
+  "cross_validation": {
+    "status": "failed",
+    "message": "交叉验证评估失败"
+  },
+  "baseline_models": {
+    "status": "success",
+    "message": "基线模型评估完成"
+  },
+  "recommendations": [
+    "基线模型评估成功，但交叉验证失败"
+  ]
+}

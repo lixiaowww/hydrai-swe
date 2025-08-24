@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HydrAI-SWE Minimal</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin:0; padding:16px; background:#ffffff; color:#111827; }
+    .container { max-width: 920px; margin: 0 auto; }
+    h1 { font-size: 18px; margin: 0 0 12px; }
+    .panel { border:1px solid #e5e7eb; border-radius:8px; padding:12px; margin-bottom:12px; }
+    label { display:block; margin:8px 0 4px; font-weight:600; }
+    input, select, button { padding:8px 10px; font-size:14px; }
+    input, select { width:100%; box-sizing:border-box; border:1px solid #d1d5db; border-radius:6px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    button { background:#2563eb; color:#fff; border:none; border-radius:6px; cursor:pointer; margin-top:10px; }
+    button:disabled { background:#9ca3af; cursor:not-allowed; }
+    .status { margin-top:8px; font-size:13px; color:#374151; }
+    .chart { border:1px solid #e5e7eb; border-radius:8px; padding:8px; }
+    .hint { font-size:12px; color:#6b7280; margin-top:4px; }
+    .links { font-size:12px; margin-top:10px; }
+    .links a { color:#2563eb; text-decoration:none; margin-right:10px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>HydrAI-SWE 极简版（单栏·原生SVG）</h1>
+    <div class="panel">
+      <div class="row">
+        <div>
+          <label for="mode">预测模式</label>
+          <select id="mode">
+            <option value="nowcast">Nowcast</option>
+            <option value="scenario">Scenario</option>
+          </select>
+        </div>
+        <div>
+          <label for="scenarioYear">情景年份</label>
+          <input type="number" id="scenarioYear" min="1979" max="2024" value="2023" />
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label for="start">开始日期</label>
+          <input type="date" id="start" />
+        </div>
+        <div>
+          <label for="end">结束日期</label>
+          <input type="date" id="end" />
+        </div>
+      </div>
+      <button id="btnFetch">获取预测并绘图</button>
+      <div id="status" class="status">就绪</div>
+      <div class="hint">说明：本页不加载任何第三方图表库，使用原生 SVG 绘制折线，避免卡顿。</div>
+      <div class="links">当前版本（极简）：/ui</div>
+    </div>
+
+    <div class="panel chart">
+      <div id="chartContainer" style="width:100%; height:420px;"></div>
+    </div>
+  </div>
+
+  <script>
+    (function initDefaults() {
+      const today = new Date();
+      const nextWeek = new Date(today.getTime() + 7*24*60*60*1000);
+      document.getElementById('start').value = today.toISOString().slice(0,10);
+      document.getElementById('end').value = nextWeek.toISOString().slice(0,10);
+    })();
+
+    document.getElementById('btnFetch').addEventListener('click', onFetch);
+
+    async function onFetch() {
+      const status = document.getElementById('status');
+      status.textContent = '请求中...';
+      const mode = document.getElementById('mode').value;
+      const startDate = document.getElementById('start').value;
+      const endDate = document.getElementById('end').value;
+      const scenarioYear = document.getElementById('scenarioYear').value;
+      if (!startDate || !endDate) { alert('请选择开始/结束日期'); return; }
+      try {
+        const qs = new URLSearchParams({ station_id: '05OC001', start_date: startDate, end_date: endDate, mode });
+        if (mode === 'scenario') qs.append('scenario_year', scenarioYear);
+        const resp = await fetch(`/api/v1/runoff-forecast?${qs}`);
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const data = await resp.json();
+        const series = (data && Array.isArray(data.forecasts)) ? data.forecasts : [];
+        await drawChart(series);
+        status.textContent = `完成：${series.length} 条`;
+      } catch (e) {
+        status.textContent = '失败: ' + e.message;
+        await drawChart([]);
+      }
+    }
+
+    async function drawChart(points) {
+      // Lazy-load uPlot for ultra-fast charting
+      if (!window.uPlot) {
+        await loadUPlot();
+      }
+      const el = document.getElementById('chartContainer');
+      el.innerHTML = '';
+      const width = el.clientWidth || 900;
+      const height = 380;
+
+      // Prepare data arrays: x as indices, y as flows
+      const flows = (points || []).map(p => Number(p.streamflow_m3s ?? p.predicted_flow ?? 0)).filter(v => isFinite(v));
+      if (flows.length === 0) {
+        el.textContent = '无数据';
+        return;
+      }
+      const x = flows.map((_, i) => i);
+      const y = flows;
+
+      const opts = {
+        width, height,
+        series: [
+          { label: 'idx' },
+          { label: '径流 (m³/s)', stroke: '#2563eb', width: 2 }
+        ],
+        axes: [
+          { grid: { show: true } },
+          { grid: { show: true } },
+        ],
+      };
+      const u = new uPlot(opts, [x, y], el);
+      // Handle resize
+      new ResizeObserver(() => { u.setSize({ width: el.clientWidth || width, height }); }).observe(el);
+    }
+
+    function loadUPlot() {
+      return new Promise((resolve, reject) => {
+        const css = document.createElement('link');
+        css.rel = 'stylesheet';
+        css.href = 'https://unpkg.com/uplot/dist/uPlot.min.css';
+        document.head.appendChild(css);
+        const s = document.createElement('script');
+        s.src = 'https://unpkg.com/uplot/dist/uPlot.iife.min.js';
+        s.onload = () => resolve();
+        s.onerror = () => reject(new Error('uPlot加载失败'));
+        document.head.appendChild(s);
+      });
+    }
+  </script>
+</body>
+</html>
+
+

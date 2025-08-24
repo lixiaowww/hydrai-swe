@@ -1,0 +1,53 @@
+{
+  "optimization_start": "2025-08-21T10:24:58.655037",
+  "models": {
+    "swe_model": {
+      "model_type": "SWE Prediction",
+      "best_params": {
+        "hidden_size": 32,
+        "num_layers": 2,
+        "dropout": 0.22028561630388424,
+        "learning_rate": 0.0026070539133464764,
+        "batch_size": 128,
+        "sequence_length": 30,
+        "patience": 18,
+        "min_delta": 8.444301492763903e-05
+      },
+      "best_value": 0.30956666045983183,
+      "n_trials": 30,
+      "optimization_time": "2025-08-21T10:25:04.741989"
+    },
+    "agriculture_model": {
+      "model_type": "Agriculture Model",
+      "best_params": {
+        "hidden_size": 32,
+        "num_layers": 2,
+        "dropout": 0.22028561630388424,
+        "learning_rate": 0.0026070539133464764,
+        "batch_size": 128,
+        "sequence_length": 30,
+        "patience": 18,
+        "min_delta": 8.444301492763903e-05
+      },
+      "best_value": 0.30956666045983183,
+      "n_trials": 20,
+      "optimization_time": "2025-08-21T10:25:08.396245"
+    },
+    "flood_warning_model": {
+      "model_type": "Flood Warning",
+      "best_params": {
+        "n_estimators": 137,
+        "max_depth": 10,
+        "min_samples_split": 7,
+        "min_samples_leaf": 1,
+        "max_features": "sqrt",
+        "bootstrap": false
+      },
+      "best_value": 0.05293280957157449,
+      "n_trials": 15,
+      "optimization_time": "2025-08-21T10:25:10.716382"
+    }
+  },
+  "optimization_duration": 12.061615,
+  "optimization_end": "2025-08-21T10:25:10.716652"
+}

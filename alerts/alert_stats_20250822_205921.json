@@ -1,0 +1,10 @@
+{
+  "total_alerts": 3,
+  "critical_alerts": 1,
+  "warning_alerts": 1,
+  "info_alerts": 1,
+  "acknowledged_alerts": 1,
+  "resolved_alerts": 1,
+  "active_alerts": 2,
+  "timestamp": "2025-08-22T20:59:21.599265"
+}

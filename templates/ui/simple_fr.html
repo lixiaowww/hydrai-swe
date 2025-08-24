@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Système HydrAI-SWE - Prédiction de l'Équivalent en Eau de Neige</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .logo i {
+            font-size: 2rem;
+            color: #4A90E2;
+        }
+
+        .logo h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .logo .subtitle {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            font-weight: normal;
+            margin-left: 0.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #555;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            background: #f8f9fa;
+            color: #4A90E2;
+        }
+
+        .language-selector {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .language-selector select {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f8f9fa;
+        }
+
+        .card-header i {
+            font-size: 1.5rem;
+            color: #4A90E2;
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .main-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .main-tab {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.8);
+            color: #666;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .main-tab:hover {
+            background: rgba(255, 255, 255, 0.95);
+            transform: translateY(-2px);
+        }
+
+        .main-tab.active {
+            background: #4A90E2;
+            color: white;
+            box-shadow: 0 4px 20px rgba(74, 144, 226, 0.3);
+        }
+
+        .main-content {
+            display: none;
+        }
+
+        .main-content.active {
+            display: block;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin: 1rem 0;
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            font-size: 1.1rem;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .metric-item {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(74, 144, 226, 0.1);
+            border-radius: 12px;
+            border: 1px solid rgba(74, 144, 226, 0.2);
+        }
+
+        .metric-value {
+            display: block;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #4A90E2;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .date-range-selector {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 1.5rem 0;
+            flex-wrap: wrap;
+        }
+
+        .date-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .date-group label {
+            font-size: 0.9rem;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .date-input {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .date-presets {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .preset-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .preset-btn:hover {
+            background: #f8f9fa;
+            border-color: #4A90E2;
+        }
+
+        .preset-btn.active {
+            background: #4A90E2;
+            color: white;
+            border-color: #4A90E2;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            background: #4A90E2;
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #357abd;
+            transform: translateY(-1px);
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-left: auto;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .status-blue {
+            background: #4A90E2;
+        }
+
+        .status-green {
+            background: #27ae60;
+        }
+
+        .footer {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 2rem;
+            margin-top: 4rem;
+            text-align: center;
+            color: #666;
+        }
+
+        .footer-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .footer-content a {
+            color: #4A90E2;
+            text-decoration: none;
+        }
+
+        .footer-content a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .main-tabs {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .date-range-selector {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-snowflake"></i>
+                <div>
+                    <h1>HydrAI-SWE</h1>
+                    <div class="subtitle">Système Amélioré</div>
+                </div>
+            </div>
+            
+            <div class="nav-links">
+                <a href="/applications">
+                    <i class="fas fa-water"></i> Applications
+                </a>
+                <a href="/model">
+                    <i class="fas fa-brain"></i> Formation du Modèle
+                </a>
+                <a href="/guides" target="_blank">
+                    <i class="fas fa-book-open"></i> Guide Utilisateur
+                </a>
+                <a href="/docs" target="_blank">
+                    <i class="fas fa-code"></i> Référence API
+                </a>
+            </div>
+            
+            <div class="language-selector">
+                <select onchange="switchLanguage(this.value)">
+                    <option value="en">🇺🇸 English</option>
+                    <option value="fr" selected>🇫🇷 Français</option>
+                    <option value="cr">🇨🇦 ᓀᐦᐃᔭᐍᐏᐣ (Cree)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Navigation Tabs -->
+    <div class="main-tabs">
+        <button class="main-tab active" onclick="showMainTab('historical')">
+            <i class="fas fa-chart-line"></i> Analyse Historique
+        </button>
+        <button class="main-tab" onclick="showMainTab('forecast')">
+            <i class="fas fa-crystal-ball"></i> Prévisions Futures
+        </button>
+    </div>
+
+    <div class="container">
+        <!-- Historical Analysis Section -->
+        <div id="historical-content" class="main-content active">
+            <div class="content-grid">
+                <!-- Regional Overview -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-map"></i>
+                        <div class="card-title">Vue d'ensemble Régionale - Données Historiques</div>
+                        <div class="status-indicator">
+                            <div class="status-dot status-blue"></div>
+                            <span>Mis à jour quotidiennement</span>
+                        </div>
+                    </div>
+
+                    <div class="date-range-selector">
+                        <div class="date-group">
+                            <label>De:</label>
+                            <input type="date" id="start-date" class="date-input" value="2020-01-01">
+                        </div>
+                        <div class="date-group">
+                            <label>À:</label>
+                            <input type="date" id="end-date" class="date-input" value="2024-08-20">
+                        </div>
+                        <div class="date-presets">
+                            <button class="preset-btn" onclick="setDatePreset('1year')">Dernière Année</button>
+                            <button class="preset-btn" onclick="setDatePreset('3years')">3 Dernières Années</button>
+                            <button class="preset-btn active" onclick="setDatePreset('5years')">5 Dernières Années</button>
+                            <button class="preset-btn" onclick="setDatePreset('all')">Toutes Données</button>
+                        </div>
+                        <button class="btn" onclick="updateHistoricalChart()">Mettre à Jour</button>
+                    </div>
+
+                    <div class="chart-container">
+                        <div>📊 Chart Area - Historical Data Visualization</div>
+                    </div>
+                </div>
+
+                <!-- Current Season Summary -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-snowflake"></i>
+                        <div class="card-title">Résumé de la Saison Actuelle</div>
+                    </div>
+                    
+                    <div class="metrics-grid">
+                        <div class="metric-item">
+                            <span class="metric-value">2 847 mm</span>
+                            <div class="metric-label">Accumulation Totale de Neige</div>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-value">112%</span>
+                            <div class="metric-label">vs Moyenne Historique</div>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-value">15 mars</span>
+                            <div class="metric-label">Date de Pic EEN</div>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-value">1 247</span>
+                            <div class="metric-label">Stations Actives</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Forecast Section -->
+        <div id="forecast-content" class="main-content">
+            <div class="content-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-crystal-ball"></i>
+                        <div class="card-title">Prévisions sur 30 Jours</div>
+                        <div class="status-indicator">
+                            <div class="status-dot status-green"></div>
+                            <span>Il y a 6 heures</span>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <div>🔮 Chart Area - 30-Day Forecast Visualization</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="footer-content">
+            <div class="copyright">
+                © 2025 Système HydrAI-SWE Amélioré. Tous droits réservés.
+            </div>
+            <div class="author-info">
+                Créé par <strong>Sean Li</strong> 
+                (<a href="mailto:li-x55@webmail.uwinnipeg.ca">li-x55@webmail.uwinnipeg.ca</a> | 
+                <a href="mailto:lixiaowww@gmail.com">lixiaowww@gmail.com</a>)
+            </div>
+            <div class="system-info">
+                <i class="fas fa-server"></i> Système de Prédiction de l'Équivalent en Eau de Neige
+                <br>
+                <i class="fas fa-code"></i> Apprentissage Automatique Avancé pour la Prévision Hydrologique
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple tab switching functionality
+        function showMainTab(tabName) {
+            // Hide all main content sections
+            document.querySelectorAll('.main-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all main tabs
+            document.querySelectorAll('.main-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected content
+            document.getElementById(tabName + '-content').classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        // Date preset functionality
+        function setDatePreset(preset) {
+            const today = new Date();
+            let startDate = new Date();
+            
+            // Remove active class from all preset buttons
+            document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            switch(preset) {
+                case '1year':
+                    startDate.setFullYear(today.getFullYear() - 1);
+                    break;
+                case '3years':
+                    startDate.setFullYear(today.getFullYear() - 3);
+                    break;
+                case '5years':
+                    startDate.setFullYear(today.getFullYear() - 5);
+                    break;
+                case 'all':
+                    startDate = new Date(1990, 0, 1);
+                    break;
+            }
+            
+            document.getElementById('start-date').value = startDate.toISOString().split('T')[0];
+        }
+
+        // Simple language switching
+        function switchLanguage(lang) {
+            if (lang === 'en') {
+                window.location.href = '/ui/enhanced_en';
+            } else if (lang === 'cr') {
+                window.location.href = '/ui/cree';
+            }
+            // If French is selected, stay on current page
+        }
+
+        // Initialize on DOM ready
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('HydrAI-SWE French System initialized');
+        });
+    </script>
+</body>
+</html>

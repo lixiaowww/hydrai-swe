@@ -1,0 +1,102 @@
+[
+  {
+    "name": "CPU使用率过高",
+    "condition": "cpu_percent > 90",
+    "threshold": 90.0,
+    "level": "critical",
+    "category": "system",
+    "enabled": true,
+    "cooldown_minutes": 5,
+    "actions": null
+  },
+  {
+    "name": "CPU使用率较高",
+    "condition": "cpu_percent > 70",
+    "threshold": 70.0,
+    "level": "warning",
+    "category": "system",
+    "enabled": true,
+    "cooldown_minutes": 10,
+    "actions": null
+  },
+  {
+    "name": "内存使用率过高",
+    "condition": "memory_percent > 95",
+    "threshold": 95.0,
+    "level": "critical",
+    "category": "system",
+    "enabled": true,
+    "cooldown_minutes": 5,
+    "actions": null
+  },
+  {
+    "name": "内存使用率较高",
+    "condition": "memory_percent > 80",
+    "threshold": 80.0,
+    "level": "warning",
+    "category": "system",
+    "enabled": true,
+    "cooldown_minutes": 10,
+    "actions": null
+  },
+  {
+    "name": "磁盘使用率过高",
+    "condition": "disk_percent > 95",
+    "threshold": 95.0,
+    "level": "critical",
+    "category": "system",
+    "enabled": true,
+    "cooldown_minutes": 5,
+    "actions": null
+  },
+  {
+    "name": "磁盘使用率较高",
+    "condition": "disk_percent > 85",
+    "threshold": 85.0,
+    "level": "warning",
+    "category": "system",
+    "enabled": true,
+    "cooldown_minutes": 10,
+    "actions": null
+  },
+  {
+    "name": "API响应时间过长",
+    "condition": "response_time > 2000",
+    "threshold": 2000.0,
+    "level": "warning",
+    "category": "api",
+    "enabled": true,
+    "cooldown_minutes": 5,
+    "actions": null
+  },
+  {
+    "name": "API错误率过高",
+    "condition": "error_rate > 20",
+    "threshold": 20.0,
+    "level": "critical",
+    "category": "api",
+    "enabled": true,
+    "cooldown_minutes": 5,
+    "actions": null
+  },
+  {
+    "name": "系统负载过高",
+    "condition": "load_average > 5",
+    "threshold": 5.0,
+    "level": "critical",
+    "category": "system",
+    "enabled": true,
+    "cooldown_minutes": 5,
+    "actions": null
+  },
+  {
+    "name": "磁盘IO过高",
+    "condition": "disk_io > 100",
+    "threshold": 100.0,
+    "level": "warning",
+    "category": "system",
+    "enabled": true,
+    "cooldown_minutes": 10,
+    "actions": null
+  }
+]

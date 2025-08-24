@@ -1,0 +1,126 @@
+{
+  "timestamp": "2025-08-22T20:59:47.437245",
+  "current_metrics": {
+    "cpu_percent": {
+      "value": 99.0,
+      "unit": "%",
+      "category": "system",
+      "timestamp": "2025-08-22T20:59:45.702034"
+    },
+    "memory_percent": {
+      "value": 77.6,
+      "unit": "%",
+      "category": "system",
+      "timestamp": "2025-08-22T20:59:45.702034"
+    },
+    "memory_available_gb": {
+      "value": 3.4817733764648438,
+      "unit": "GB",
+      "category": "system",
+      "timestamp": "2025-08-22T20:59:45.702034"
+    },
+    "disk_percent": {
+      "value": 88.6,
+      "unit": "%",
+      "category": "system",
+      "timestamp": "2025-08-22T20:59:45.702034"
+    },
+    "disk_free_gb": {
+      "value": 44.41826629638672,
+      "unit": "GB",
+      "category": "system",
+      "timestamp": "2025-08-22T20:59:45.702034"
+    },
+    "network_sent_mbps": {
+      "value": 71.96638595263163,
+      "unit": "MB/s",
+      "category": "network",
+      "timestamp": "2025-08-22T20:59:45.702034"
+    },
+    "network_recv_mbps": {
+      "value": 44.65280005137126,
+      "unit": "MB/s",
+      "category": "network",
+      "timestamp": "2025-08-22T20:59:45.702034"
+    },
+    "process_count": {
+      "value": 338,
+      "unit": "count",
+      "category": "system",
+      "timestamp": "2025-08-22T20:59:45.702034"
+    }
+  },
+  "trend_analysis": {
+    "cpu_percent": {
+      "metric_name": "cpu_percent",
+      "trend": "insufficient_data",
+      "slope": 0.0,
+      "confidence": 0.0,
+      "prediction_24h": 0.0,
+      "recommendation": "数据不足，无法分析趋势"
+    },
+    "memory_percent": {
+      "metric_name": "memory_percent",
+      "trend": "insufficient_data",
+      "slope": 0.0,
+      "confidence": 0.0,
+      "prediction_24h": 0.0,
+      "recommendation": "数据不足，无法分析趋势"
+    },
+    "disk_percent": {
+      "metric_name": "disk_percent",
+      "trend": "insufficient_data",
+      "slope": 0.0,
+      "confidence": 0.0,
+      "prediction_24h": 0.0,
+      "recommendation": "数据不足，无法分析趋势"
+    },
+    "process_count": {
+      "metric_name": "process_count",
+      "trend": "insufficient_data",
+      "slope": 0.0,
+      "confidence": 0.0,
+      "prediction_24h": 0.0,
+      "recommendation": "数据不足，无法分析趋势"
+    }
+  },
+  "capacity_forecasts": {
+    "cpu_percent": {
+      "resource_type": "cpu_percent",
+      "current_usage": 99.0,
+      "predicted_usage_24h": 0.0,
+      "predicted_usage_7d": 0.0,
+      "capacity_limit": 100.0,
+      "days_to_limit": Infinity,
+      "risk_level": "low"
+    },
+    "memory_percent": {
+      "resource_type": "memory_percent",
+      "current_usage": 77.6,
+      "predicted_usage_24h": 0.0,
+      "predicted_usage_7d": 0.0,
+      "capacity_limit": 100.0,
+      "days_to_limit": Infinity,
+      "risk_level": "low"
+    },
+    "disk_percent": {
+      "resource_type": "disk_percent",
+      "current_usage": 88.6,
+      "predicted_usage_24h": 0.0,
+      "predicted_usage_7d": 0.0,
+      "capacity_limit": 100.0,
+      "days_to_limit": Infinity,
+      "risk_level": "low"
+    },
+    "process_count": {
+      "resource_type": "process_count",
+      "current_usage": 338,
+      "predicted_usage_24h": 0.0,
+      "predicted_usage_7d": 0.0,
+      "capacity_limit": 1000,
+      "days_to_limit": Infinity,
+      "risk_level": "low"
+    }
+  },
+  "recommendations": []
+}

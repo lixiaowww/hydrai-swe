@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HydrAI-SWE 应用</title>
+  <style>
+    :root { --bg:#fff; --fg:#0f172a; --muted:#64748b; --bd:#e5e7eb; --accent:#2563eb; }
+    @media (prefers-color-scheme: dark){ :root{ --bg:#0b1220; --fg:#e2e8f0; --muted:#94a3b8; --bd:#475569; --accent:#60a5fa; } }
+    body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Noto Sans SC,Microsoft YaHei,Arial,sans-serif}
+    .container{max-width:1000px;margin:0 auto;padding:16px}
+    h1{font-size:20px;margin:0 0 6px}
+    .small{color:var(--muted)}
+    .card{border:1px solid var(--bd);border-radius:10px;padding:12px;margin-top:12px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    label{display:block;font-weight:600;margin:6px 0 4px}
+    input,select,button,textarea{width:100%;box-sizing:border-box;padding:10px;border:1px solid var(--bd);border-radius:8px;background:transparent;color:var(--fg)}
+    input[aria-invalid="true"]{border-color:#ef4444}
+    button{cursor:pointer;background:var(--accent);color:#fff;border:none}
+    button[disabled]{opacity:.6;cursor:not-allowed}
+    .hint{font-size:12px;color:var(--muted)}
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    .chart{margin-top:10px;border:1px solid var(--bd);border-radius:10px;min-height:320px;padding:8px}
+    .section-title{margin:0 0 6px;font-size:16px}
+    .status{margin-top:8px;padding:8px;border:1px dashed var(--bd);border-radius:8px;color:var(--muted)}
+  </style>
+</head>
+<body>
+  <main class="container">
+    <h1>HydrAI-SWE 应用</h1>
+    <p class="small">SWE/径流预测 · 洪水预警 · 交叉验证（轻量、稳定、按需加载）。</p>
+
+    <!-- 预测面板 -->
+    <section class="card" id="forecastCard">
+      <h2 class="section-title">预测</h2>
+      <div class="grid">
+        <div>
+          <label for="station">站点</label>
+          <input id="station" list="stationList" placeholder="05OC001" />
+          <datalist id="stationList"></datalist>
+        </div>
+        <div>
+          <label for="mode">模式</label>
+          <select id="mode">
+            <option value="nowcast">Nowcast</option>
+            <option value="scenario">Scenario</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top:8px">
+        <div>
+          <label for="year">情景年份</label>
+          <input id="year" type="number" min="1979" max="2024" value="2023" />
+          <div class="hint">Scenario 使用该年份，越界将自动夹逼到 1979-2024。</div>
+        </div>
+        <div>
+          <label for="range">智能选择</label>
+          <select id="range">
+            <option value="auto">Auto（推荐）</option>
+            <option value="recent">Recent</option>
+            <option value="historical">Historical</option>
+            <option value="mixed">Mixed</option>
+          </select>
+          <div class="hint" id="rangeHint">Auto：优先近年数据（2020-2024）</div>
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top:8px">
+        <div>
+          <label for="start">开始</label>
+          <input id="start" type="date" />
+          <input id="startMD" type="text" placeholder="MM-DD" pattern="^[0-1][0-9]-[0-3][0-9]$" style="display:none" />
+          <div class="hint" id="startHint">YYYY-MM-DD</div>
+        </div>
+        <div>
+          <label for="end">结束</label>
+          <input id="end" type="date" />
+          <input id="endMD" type="text" placeholder="MM-DD" pattern="^[0-1][0-9]-[0-3][0-9]$" style="display:none" />
+          <div class="hint" id="endHint">YYYY-MM-DD</div>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:8px">
+        <button id="btnFetch" disabled>获取预测并绘图</button>
+        <button id="btnCSV" disabled>导出 CSV</button>
+        <button id="btnPNG" disabled>导出 PNG</button>
+      </div>
+      <div class="status" id="forecastStatus">就绪</div>
+      <div id="chart" class="chart" aria-label="预测图表"></div>
+    </section>
+
+    <!-- 洪水预警 -->
+    <section class="card" id="floodCard">
+      <h2 class="section-title">洪水预警</h2>
+      <div class="grid">
+        <div>
+          <label for="curFlow">当前流量 (m³/s)</label>
+          <input id="curFlow" type="number" step="0.01" />
+        </div>
+        <div>
+          <label for="hours">预测小时(逗号)</label>
+          <input id="hours" placeholder="6,12,18,24" />
+        </div>
+      </div>
+      <div class="grid" style="margin-top:8px">
+        <div>
+          <label for="flows">预测流量(逗号,m³/s)</label>
+          <input id="flows" placeholder="160,180,220,280" />
+        </div>
+        <div>
+          <label>&nbsp;</label>
+          <button id="btnAssess">评估风险</button>
+        </div>
+      </div>
+      <pre id="floodResult" class="status" style="white-space:pre-wrap"></pre>
+    </section>
+
+    <!-- 交叉验证（快速） -->
+    <section class="card" id="cvCard">
+      <h2 class="section-title">交叉验证（快速）</h2>
+      <div class="grid">
+        <div>
+          <label for="cvStart">开始日期</label>
+          <input id="cvStart" type="date" />
+        </div>
+        <div>
+          <label for="cvEnd">结束日期</label>
+          <input id="cvEnd" type="date" />
+        </div>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <button id="btnCV">执行快速验证</button>
+      </div>
+      <pre id="cvResult" class="status" style="white-space:pre-wrap"></pre>
+    </section>
+
+    <section class="card small">
+      <div>旧版入口（仅保留最早版本）：<a href="/ui/legacy">/ui/legacy</a></div>
+    </section>
+  </main>
+
+  <script>
+    (function(){
+      const $ = id => document.getElementById(id);
+      const station = $('station'), stationList = $('stationList');
+      const mode = $('mode'), year = $('year');
+      const start = $('start'), end = $('end'), startMD=$('startMD'), endMD=$('endMD');
+      const startHint=$('startHint'), endHint=$('endHint');
+      const range=$('range'), rangeHint=$('rangeHint');
+      const btnFetch=$('btnFetch'), statusEl=$('forecastStatus');
+      const btnCSV=$('btnCSV'), btnPNG=$('btnPNG');
+      const chartHost=$('chart');
+
+      const curFlow=$('curFlow'), hours=$('hours'), flows=$('flows'), btnAssess=$('btnAssess'), floodResult=$('floodResult');
+      const cvStart=$('cvStart'), cvEnd=$('cvEnd'), btnCV=$('btnCV'), cvResult=$('cvResult');
+
+      function iso(d){return d.toISOString().slice(0,10)}
+      function clampYear(y){y=y|0; if(isNaN(y)) y=2023; return Math.min(2024, Math.max(1979, y));}
+      function validMMDD(s){return /^([0][1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/.test(s)}
+
+      // 初始化默认
+      (function init(){
+        const t=new Date(), n=new Date(t.getTime()+7*864e5);
+        start.value=iso(t); end.value=iso(n); cvStart.value=iso(t); cvEnd.value=iso(n);
+        fetchStations();
+        validate();
+      })();
+
+      async function fetchStations(){
+        try{
+          const r = await fetch('/api/v1/flood/flood-risk-assessment/stations');
+          if(!r.ok) return; const j = await r.json();
+          if(j && j.available_stations){
+            stationList.innerHTML=''; Object.keys(j.available_stations).slice(0,200).forEach(id=>{const o=document.createElement('option'); o.value=id; stationList.appendChild(o)})
+          }
+        }catch{}
+      }
+
+      function setScenario(){
+        year.value=clampYear(year.value);
+        start.style.display=end.style.display='none'; startMD.style.display=endMD.style.display='';
+        startHint.textContent=endHint.textContent='MM-DD（提交时与情景年份拼接）';
+        if(!startMD.value) startMD.value='03-15'; if(!endMD.value) endMD.value='05-15';
+      }
+      function setNowcast(){
+        start.style.display=end.style.display=''; startMD.style.display=endMD.style.display='none';
+        startHint.textContent=endHint.textContent='YYYY-MM-DD';
+      }
+      mode.addEventListener('change', ()=>{ mode.value==='scenario'? setScenario(): setNowcast(); validate(); });
+      year.addEventListener('change', ()=>{ year.value=clampYear(year.value); validate(); });
+      [station,start,end,startMD,endMD].forEach(e=>e.addEventListener('input', validate));
+
+      const RANGE_HINTS={auto:'自动：优先2020-2024，必要时补历史', recent:'近期优先：2020-2024', historical:'历史优先：1979-1998', mixed:'混合：1979-2024'};
+      range.addEventListener('change',()=>{ rangeHint.textContent=RANGE_HINTS[range.value]||RANGE_HINTS.auto; });
+
+      $('btnFetch').addEventListener('click', async (e)=>{ e.preventDefault(); await runForecast(); });
+      btnCSV.addEventListener('click', exportCSV);
+      btnPNG.addEventListener('click', exportPNG);
+
+      $('btnAssess').addEventListener('click', async (e)=>{ e.preventDefault(); await runAssess(); });
+      $('btnCV').addEventListener('click', async (e)=>{ e.preventDefault(); await runCV(); });
+
+      function validate(){
+        let ok = !!(station.value||'').trim();
+        if(mode.value==='scenario'){
+          const a=validMMDD(startMD.value), b=validMMDD(endMD.value);
+          startMD.setAttribute('aria-invalid', !a); endMD.setAttribute('aria-invalid', !b);
+          ok = ok && a && b;
+        }else{
+          ok = ok && !!start.value && !!end.value;
+        }
+        btnFetch.disabled = !ok; btnCSV.disabled=true; btnPNG.disabled=true;
+        return ok;
+      }
+
+      function toReqDates(){
+        if(mode.value!=='scenario') return {s:start.value,e:end.value,y:null};
+        const y=clampYear(year.value); const md=s=> (s||'01-01').slice(0,5);
+        return {s:`${y}-${md(startMD.value)}`, e:`${y}-${md(endMD.value)}`, y};
+      }
+
+      function fetchJson(url, ms=3000){
+        const ctrl=new AbortController(); const t=setTimeout(()=>ctrl.abort(), ms);
+        return fetch(url,{signal:ctrl.signal}).then(r=>{clearTimeout(t); if(!r.ok) throw new Error('HTTP '+r.status); return r.json();});
+      }
+
+      async function runForecast(){
+        if(!validate()){ statusEl.textContent='请先修正表单'; return; }
+        const {s,e,y} = toReqDates(); const params=new URLSearchParams({station_id:(station.value||'05OC001').trim(), start_date:s, end_date:e, mode:mode.value}); if(y) params.append('scenario_year', String(y));
+        const url=`/api/v1/runoff-forecast?${params}`;
+        btnFetch.disabled=true; statusEl.textContent='请求中...';
+        try{
+          const data = await fetchJson(url,3000);
+          const forecasts = Array.isArray(data?.forecasts)? data.forecasts: [];
+          drawLine(forecasts);
+          const flows = forecasts.map(p=>Number(p.streamflow_m3s ?? p.predicted_flow ?? 0)).filter(Number.isFinite);
+          const min=Math.min(...flows), max=Math.max(...flows), mean=flows.reduce((a,b)=>a+b,0)/Math.max(1,flows.length);
+          statusEl.textContent = `完成 · 条数 ${forecasts.length} · 最小 ${isFinite(min)?min.toFixed(2):'-'} · 最大 ${isFinite(max)?max.toFixed(2):'-'} · 均值 ${isFinite(mean)?mean.toFixed(2):'-'}`;
+          btnCSV.disabled = forecasts.length===0; btnPNG.disabled = forecasts.length===0;
+          window.__lastForecasts = forecasts;
+        }catch(e){ statusEl.textContent='失败：'+e.message; drawLine([]); }
+        finally{ btnFetch.disabled=false; }
+      }
+
+      function drawLine(points){
+        chartHost.innerHTML='';
+        const flows = (points||[]).map(p=>Number(p.streamflow_m3s ?? p.predicted_flow ?? 0)).filter(Number.isFinite);
+        if(!flows.length){ chartHost.textContent='无数据'; return; }
+        const W=chartHost.clientWidth||960, H=320, pad={l:50,r:10,t:10,b:30}; const w=W-pad.l-pad.r, h=H-pad.t-pad.b;
+        const svgNS='http://www.w3.org/2000/svg'; const svg=document.createElementNS(svgNS,'svg'); svg.setAttribute('width',W); svg.setAttribute('height',H); chartHost.appendChild(svg);
+        const mn=Math.min(...flows), mx=Math.max(...flows), pv=(mx-mn)*0.05||1, y0=mn-pv, y1=mx+pv; const xs=i=> pad.l+(i/(flows.length-1))*w, ys=v=> pad.t+h-((v-y0)/(y1-y0))*h;
+        const axis=document.createElementNS(svgNS,'g'); axis.setAttribute('stroke','#94a3b8'); axis.appendChild(line(pad.l,pad.t,pad.l,pad.t+h)); axis.appendChild(line(pad.l,pad.t+h,pad.l+w,pad.t+h)); svg.appendChild(axis);
+        const pl=document.createElementNS(svgNS,'polyline'); pl.setAttribute('fill','none'); pl.setAttribute('stroke','#2563eb'); pl.setAttribute('stroke-width','2'); pl.setAttribute('points', flows.map((v,i)=>`${xs(i)},${ys(v)}`).join(' ')); svg.appendChild(pl);
+        function line(x1,y1,x2,y2){ const l=document.createElementNS(svgNS,'line'); l.setAttribute('x1',x1); l.setAttribute('y1',y1); l.setAttribute('x2',x2); l.setAttribute('y2',y2); return l; }
+      }
+
+      function exportCSV(){ const rows = (window.__lastForecasts||[]).map(f=> `${f.date},${f.streamflow_m3s ?? f.predicted_flow ?? ''}`); const blob = new Blob([`date,streamflow\n${rows.join('\n')}`], {type:'text/csv'}); const a=document.createElement('a'); a.download='forecast.csv'; a.href=URL.createObjectURL(blob); a.click(); }
+      function exportPNG(){ try{ const svg = chartHost.querySelector('svg'); if(!svg){alert('无图表');return;} const xml = new XMLSerializer().serializeToString(svg); const img = new Image(); const svg64 = btoa(unescape(encodeURIComponent(xml))); img.onload=()=>{ const c=document.createElement('canvas'); c.width=svg.viewBox.baseVal?.width||svg.width.baseVal.value; c.height=svg.viewBox.baseVal?.height||svg.height.baseVal.value; const ctx=c.getContext('2d'); ctx.drawImage(img,0,0); const a=document.createElement('a'); a.download='forecast.png'; a.href=c.toDataURL('image/png'); a.click(); }; img.src='data:image/svg+xml;base64,'+svg64; } catch(e){ alert('导出失败: '+e.message);} }
+
+      async function runAssess(){
+        const s = (station.value||'05OC001').trim(); const cf = Number(curFlow.value||0);
+        try{
+          const url = `/api/v1/flood/flood-risk-assessment?station_id=${encodeURIComponent(s)}&current_flow=${encodeURIComponent(cf)}&forecast_hours=${encodeURIComponent((hours.value||'').trim())}&forecast_flows=${encodeURIComponent((flows.value||'').trim())}`;
+          const j = await fetchJson(url, 3000); floodResult.textContent = JSON.stringify(j,null,2);
+        }catch(e){ floodResult.textContent = '失败：'+e.message; }
+      }
+
+      async function runCV(){
+        const s=(station.value||'05OC001').trim(); const url=`/api/v1/cross-validation/quick?station_id=${encodeURIComponent(s)}&start_date=${encodeURIComponent(cvStart.value)}&end_date=${encodeURIComponent(cvEnd.value)}`;
+        try{ const j = await fetchJson(url, 5000); cvResult.textContent = JSON.stringify(j,null,2); }catch(e){ cvResult.textContent='失败：'+e.message; }
+      }
+    })();
+  </script>
+</body>
+</html>
+
+

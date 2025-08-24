@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HydrAI-SWE Demo</title>
+  <style>
+    body { 
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; 
+      margin: 0; 
+      padding: 20px; 
+      background-color: #f8fafc;
+    }
+    
+    .container {
+      display: flex;
+      gap: 24px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    .left-panel {
+      flex: 2;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    
+    .right-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    
+    .control-panel {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .chart-container {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .analysis-panel {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .glossary-panel {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .provenance-panel {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .form-group {
+      margin-bottom: 15px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+      color: #333;
+    }
+    
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    
+    .form-group small {
+      color: #6b7280;
+      font-size: 12px;
+      margin-top: 4px;
+      display: block;
+    }
+    
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background-color 0.3s ease;
+    }
+    
+    button:hover {
+      background: #0056b3;
+    }
+    
+    button.secondary {
+      background: #6c757d;
+    }
+    
+    button.secondary:hover {
+      background: #545b62;
+    }
+    
+    .toolbar {
+      margin-top: 15px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    
+    .toolbar button {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+    
+    .muted {
+      color: #6b7280;
+      font-style: italic;
+    }
+    
+    .glossary-item {
+      margin-bottom: 20px;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 6px;
+    }
+    
+    .glossary-term {
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 5px;
+    }
+    
+    .glossary-acronym {
+      color: #007bff;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+    
+    .glossary-definition {
+      color: #555;
+      line-height: 1.5;
+    }
+    
+    .provenance-item {
+      margin-bottom: 15px;
+      padding: 10px;
+      background: #f8f9fa;
+      border-radius: 4px;
+    }
+    
+    .provenance-item strong {
+      color: #333;
+      display: block;
+      margin-bottom: 5px;
+    }
+    
+    .provenance-item span {
+      color: #555;
+      line-height: 1.4;
+    }
+    
+    .status-info {
+      background: #e9ecef;
+      padding: 15px;
+      border-radius: 6px;
+      margin-top: 15px;
+    }
+    
+    .status-info p {
+      margin: 5px 0;
+      color: #495057;
+    }
+    
+    /* 响应式设计 */
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+      }
+      
+      .left-panel,
+      .right-panel {
+        flex: none;
+      }
+    }
+    
+    /* 深色模式 */
+    .dark-mode {
+      background-color: #1a1a1a;
+      color: #ffffff;
+    }
+    
+    .dark-mode .control-panel,
+    .dark-mode .chart-container,
+    .dark-mode .analysis-panel,
+    .dark-mode .glossary-panel,
+    .dark-mode .provenance-panel {
+      background: #2d2d2d;
+      border-color: #444;
+      color: #ffffff;
+    }
+    
+    .dark-mode input,
+    .dark-mode select {
+      background: #3d3d3d;
+      border-color: #555;
+      color: #ffffff;
+    }
+    
+    .dark-mode .glossary-item,
+    .dark-mode .provenance-item {
+      background: #3d3d3d;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="left-panel">
+      <!-- 控制面板 -->
+      <div class="control-panel">
+        <h2>🌨️ HydrAI-SWE 径流预测系统</h2>
+        
+        <div class="form-group">
+          <label for="mode">预测模式</label>
+          <select id="mode" onchange="updateDateFields()">
+            <option value="nowcast">实时预测 (Nowcast)</option>
+            <option value="scenario">情景模拟 (Scenario)</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="scenarioYear">情景年份</label>
+          <input type="number" id="scenarioYear" value="2024" min="1979" max="2024">
+          <select id="dataRangeSelector" onchange="updateScenarioYearRange()" style="margin-left: 8px; padding: 4px 8px;">
+            <option value="auto">Auto-select (Recommended)</option>
+            <option value="historical">Historical Depth Priority (1979-1998)</option>
+            <option value="recent">Recent Accuracy Priority (2020-2024)</option>
+            <option value="mixed">Mixed Use (1979-2024)</option>
+          </select>
+          <small id="dataRangeHint" style="display: block; margin-top: 4px; color: #6b7280;"></small>
+        </div>
+        
+        <div class="form-group">
+          <label for="start">开始日期</label>
+          <input type="date" id="start">
+          <small id="startDateHint">YYYY-MM-DD format for future predictions</small>
+        </div>
+        
+        <div class="form-group">
+          <label for="end">结束日期</label>
+          <input type="date" id="end">
+          <small id="endDateHint">YYYY-MM-DD format for future predictions</small>
+        </div>
+        
+        <button onclick="fetchForecast(event)">获取预测</button>
+        <button onclick="toggleDarkMode()" style="margin-left: 10px; padding: 8px 12px; background: #6b7280; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">🌙 深色模式</button>
+        <button onclick="exportPNG()">Export PNG</button>
+        <button onclick="toggleZoom()" class="secondary">Toggle Zoom</button>
+        <button onclick="resetZoom()" class="secondary">Reset Zoom</button>
+        <button onclick="toggleFloodWarningPanel()" class="secondary">🌊 洪水预警</button>
+        <button onclick="showCrossValidationPanel()" class="secondary">🔍 交叉验证</button>
+      </div>
+      
+      <!-- 图表区域 -->
+      <div class="chart-container">
+        <h3>预测结果图表</h3>
+        <canvas id="forecastChart" width="800" height="400"></canvas>
+        <div class="toolbar">
+          <button onclick="exportPNG()">Export PNG</button>
+          <button onclick="toggleZoom()" class="secondary">Toggle Zoom</button>
+          <button onclick="resetZoom()" class="secondary">Reset Zoom</button>
+        </div>
+      </div>
+      
+      <!-- 分析面板 -->
+      <div class="analysis-panel">
+        <h3>分析结果</h3>
+        <div id="analysisContent">
+          <p class="muted">请先获取预测数据以查看分析结果</p>
+        </div>
+      </div>
+      
+      <!-- 重点名词解释 -->
+      <div class="glossary-panel">
+        <h3>重点名词解释</h3>
+        
+        <div class="glossary-item">
+          <div class="glossary-term">SWE (Snow Water Equivalent)</div>
+          <div class="glossary-acronym">积雪水当量</div>
+          <div class="glossary-definition">积雪融化后产生的水的深度，是积雪体积和密度的乘积。这是量化积雪资源的核心指标，优于单纯的积雪深度测量。</div>
+        </div>
+        
+        <div class="glossary-item">
+          <div class="glossary-term">NDSI (Normalized Difference Snow Index)</div>
+          <div class="glossary-acronym">标准化积雪指数</div>
+          <div class="glossary-definition">基于卫星遥感数据的积雪检测指数，利用积雪在可见光和近红外波段的反射特性差异来计算，是积雪覆盖监测的重要指标。</div>
+        </div>
+        
+        <div class="glossary-item">
+          <div class="glossary-term">Sentinel-2</div>
+          <div class="glossary-acronym">欧洲航天局高分辨率卫星</div>
+          <div class="glossary-definition">欧洲航天局的地球观测卫星，提供10米分辨率的多光谱数据，特别适用于积雪监测、植被分析和环境变化研究。</div>
+        </div>
+        
+        <div class="glossary-item">
+          <div class="glossary-term">LiDAR</div>
+          <div class="glossary-acronym">激光雷达地形测量</div>
+          <div class="glossary-definition">使用激光脉冲测量距离的技术，能够生成高精度的三维地形模型，为积雪深度估算和水文建模提供精确的地形数据。</div>
+        </div>
+        
+        <div class="glossary-item">
+          <div class="glossary-term">DEM (Digital Elevation Model)</div>
+          <div class="glossary-acronym">数字高程模型</div>
+          <div class="glossary-definition">表示地球表面高程的数字模型，包含地形信息如坡度、坡向和流向，是水文建模和积雪分布分析的基础数据。</div>
+        </div>
+        
+        <div class="glossary-item">
+          <div class="glossary-term">HYDAT</div>
+          <div class="glossary-acronym">加拿大水文数据库</div>
+          <div class="glossary-definition">加拿大政府维护的国家水文数据库，包含河流流量、水位、水质等历史观测数据，为水文建模和预测提供基础数据。</div>
+        </div>
+        
+        <div class="glossary-item">
+          <div class="glossary-term">ECCC</div>
+          <div class="glossary-acronym">加拿大环境与气候变化部</div>
+          <div class="glossary-definition">负责加拿大环境政策和气候监测的政府部门，提供天气数据、气候信息和环境监测服务，是重要的气象数据源。</div>
+        </div>
+        
+        <div class="glossary-item">
+          <div class="glossary-term">径流预测</div>
+          <div class="glossary-acronym">Runoff Prediction</div>
+          <div class="glossary-definition">基于积雪状态、地形特征和气象条件，预测未来一段时间内河流的流量变化，为水资源管理、洪水预警和水电运营提供决策支持。</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 洪水预警面板 -->
+    <div id="floodWarningPanelContainer"></div>
+    
+    <!-- 交叉验证面板 -->
+    <div id="crossValidationPanelContainer"></div>
+    
+    <!-- 右侧面板：Provenance & Notes -->
+    <div class="right-panel">
+      <div class="provenance-panel">
+        <h3>数据来源与算法信息</h3>
+        
+        <div class="provenance-item">
+          <strong>数据来源</strong>
+          <span>ECCC积雪数据 + HYDAT径流数据 + NASA MODIS积雪覆盖</span>
+        </div>
+        
+        <div class="provenance-item">
+          <strong>算法</strong>
+          <span>NeuralHydrology LSTM深度学习模型</span>
+        </div>
+        
+        <div class="provenance-item">
+          <strong>作者</strong>
+          <span>Sean Li</span>
+        </div>
+        
+        <div class="provenance-item">
+          <strong>置信度</strong>
+          <span>85% (基于历史数据验证)</span>
+        </div>
+        
+        <div class="provenance-item">
+          <strong>联系邮箱</strong>
+          <span>
+            lixiaowww@gmail.com<br>
+            li-x55@webmail.uwinnipeg.ca
+          </span>
+        </div>
+        
+        <div class="provenance-item">
+          <strong>生成时间</strong>
+          <span id="dataUpdateTime">加载中...</span>
+        </div>
+        
+        <div class="provenance-item">
+          <strong>模式标签</strong>
+          <span id="modeTag">未选择</span>
+        </div>
+        
+        <div class="provenance-item">
+          <strong>总结</strong>
+          <span id="summaryLine">HydrAI-SWE系统：基于深度学习的积雪水当量与径流预测平台，集成多源数据，为水资源管理提供科学决策支持。</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 加载外部面板 -->
+  <script>
+    // 加载洪水预警面板
+    function loadFloodWarningPanel() {
+      fetch('templates/flood_warning.html')
+        .then(response => response.text())
+        .then(html => {
+          document.getElementById('floodWarningPanelContainer').innerHTML = html;
+        })
+        .catch(error => {
+          console.error('加载洪水预警面板失败:', error);
+        });
+    }
+    
+    // 加载交叉验证面板
+    function loadCrossValidationPanel() {
+      fetch('templates/cross_validation.html')
+        .then(response => response.text())
+        .then(html => {
+          document.getElementById('crossValidationPanelContainer').innerHTML = html;
+        })
+        .catch(error => {
+          console.error('加载交叉验证面板失败:', error);
+        });
+    }
+    
+    // 页面加载完成后初始化
+    document.addEventListener('DOMContentLoaded', function() {
+      // 设置默认日期
+      setDefaultDates();
+      
+      // 加载外部面板
+      loadFloodWarningPanel();
+      loadCrossValidationPanel();
+      
+      // 更新数据更新时间
+      updateDataUpdateTime();
+      
+      // 初始化图表（但不自动获取数据）
+      try {
+        ensureChart();
+      } catch (e) {
+        console.error('Chart initialization failed:', e);
+      }
+
+      // 添加情景年份变化监听器
+      addScenarioYearListener();
+    });
+    
+    // 设置默认日期
+    function setDefaultDates() {
+      const today = new Date();
+      const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+      
+      document.getElementById('start').value = today.toISOString().split('T')[0];
+      document.getElementById('end').value = nextWeek.toISOString().split('T')[0];
+    }
+    
+    // 更新日期字段提示
+    function updateDateFields() {
+      const mode = document.getElementById('mode').value;
+      const startDate = document.getElementById('start');
+      const endDate = document.getElementById('end');
+      const startHint = document.getElementById('startDateHint');
+      const endHint = document.getElementById('endDateHint');
+      
+      if (mode === 'scenario') {
+        startHint.textContent = 'MM-DD format (year determined by scenario year)';
+        endHint.textContent = 'MM-DD format (year determined by scenario year)';
+        
+        // 设置默认春季融雪日期
+        const scenarioYear = document.getElementById('scenarioYear').value;
+        startDate.value = `${scenarioYear}-03-15`;
+        endDate.value = `${scenarioYear}-05-15`;
+        
+        // 在情景模式下，日期字段应该只显示月-日，但值保持完整格式
+        startDate.type = 'date';
+        endDate.type = 'date';
+      } else {
+        startHint.textContent = 'YYYY-MM-DD format for future predictions';
+        endHint.textContent = 'YYYY-MM-DD format for future predictions';
+        
+        // 设置默认下周日期
+        const today = new Date();
+        const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+        startDate.value = today.toISOString().split('T')[0];
+        endDate.value = nextWeek.toISOString().split('T')[0];
+        
+        startDate.type = 'date';
+        endDate.type = 'date';
+      }
+      
+      updateModeTag();
+    }
+    
+    // 更新情景年份范围
+    function updateScenarioYearRange() {
+      const selector = document.getElementById('dataRangeSelector');
+      const yearInput = document.getElementById('scenarioYear');
+      const hint = document.getElementById('dataRangeHint');
+      
+      switch (selector.value) {
+        case 'historical':
+          yearInput.min = '1979';
+          yearInput.max = '1998';
+          yearInput.value = '1990';
+          hint.textContent = '使用1979-1998年深度历史数据，适合长期模式分析';
+          break;
+        case 'recent':
+          yearInput.min = '2020';
+          yearInput.max = '2024';
+          yearInput.value = '2023';
+          hint.textContent = '使用2020-2024年近期数据，精度更高但历史深度有限';
+          break;
+        case 'mixed':
+          yearInput.min = '1979';
+          yearInput.max = '2024';
+          yearInput.value = '2020';
+          hint.textContent = '混合使用1979-2024年数据，平衡历史深度和近期精度';
+          break;
+        default: // auto
+          yearInput.min = '1979';
+          yearInput.max = '2024';
+          yearInput.value = '2024';
+          hint.textContent = '自动选择：优先使用2020-2024年数据，必要时补充历史数据';
+      }
+      
+      // 当情景年份改变时，自动更新日期字段
+      updateDateFields();
+    }
+    
+    // 添加情景年份变化监听器
+    function addScenarioYearListener() {
+      const yearInput = document.getElementById('scenarioYear');
+      if (yearInput) {
+        yearInput.addEventListener('change', function() {
+          // 如果当前是情景模式，更新日期字段
+          if (document.getElementById('mode').value === 'scenario') {
+            updateDateFields();
+          }
+        });
+      }
+    }
+    
+    // 更新模式标签
+    function updateModeTag() {
+      const mode = document.getElementById('mode').value;
+      const modeTag = document.getElementById('modeTag');
+      
+      if (mode === 'scenario') {
+        const year = document.getElementById('scenarioYear').value;
+        modeTag.textContent = `情景模拟 (${year}年)`;
+      } else {
+        modeTag.textContent = '实时预测';
+      }
+    }
+    
+    // 更新数据更新时间
+    function updateDataUpdateTime() {
+      const now = new Date();
+      const timeString = now.toLocaleString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+      document.getElementById('dataUpdateTime').textContent = timeString;
+    }
+    
+    // 图表相关变量
+    let chart = null;
+    let zoomEnabled = false;
+    
+    // 确保图表已初始化
+    function ensureChart() {
+      if (chart) return;
+      
+      const ctx = document.getElementById('forecastChart');
+      if (!ctx) return;
+      
+      chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [{
+            label: '预测径流 (m³/s)',
+            data: [],
+            borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            tension: 0.1,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            zoom: {
+              zoom: {
+                wheel: {
+                  enabled: false
+                },
+                pinch: {
+                  enabled: false
+                },
+                mode: 'xy'
+              },
+              pan: {
+                enabled: false
+              }
+            }
+          },
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: '日期'
+              }
+            },
+            y: {
+              title: {
+                display: true,
+                text: '径流 (m³/s)'
+              }
+            }
+          }
+        }
+      });
+    }
+    
+    // 获取预测数据
+    async function fetchForecast(event) {
+      if (event) {
+        event.preventDefault();
+      }
+      
+      const mode = document.getElementById('mode').value;
+      const startDate = document.getElementById('start').value;
+      const endDate = document.getElementById('end').value;
+      const scenarioYear = document.getElementById('scenarioYear').value;
+      
+      if (!startDate || !endDate) {
+        alert('请选择开始和结束日期');
+        return;
+      }
+      
+      try {
+        // 显示加载状态
+        const analysisContent = document.getElementById('analysisContent');
+        analysisContent.innerHTML = '<p>正在获取预测数据...</p>';
+        
+        // 构建API请求参数
+        const params = new URLSearchParams({
+          station_id: '05OC001',
+          start_date: startDate,
+          end_date: endDate,
+          mode: mode
+        });
+        
+        if (mode === 'scenario') {
+          params.append('scenario_year', scenarioYear);
+        }
+        
+        const response = await fetch(`/api/v1/runoff-forecast?${params}`);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.forecasts && data.forecasts.length > 0) {
+          // 更新图表
+          updateChart(data.forecasts);
+          
+          // 更新分析结果
+          updateAnalysis(data.forecasts);
+          
+          // 更新模式标签
+          updateModeTag();
+          
+          // 更新数据更新时间
+          updateDataUpdateTime();
+          
+          console.log('预测数据获取成功:', data);
+        } else {
+          throw new Error('API返回数据格式错误');
+        }
+        
+      } catch (error) {
+        console.error('获取预测数据失败:', error);
+        const analysisContent = document.getElementById('analysisContent');
+        analysisContent.innerHTML = `<p style="color: red;">获取预测数据失败: ${error.message}</p>`;
+      }
+    }
+    
+    // 更新图表
+    function updateChart(forecasts) {
+      if (!chart) {
+        ensureChart();
+      }
+      
+      const labels = forecasts.map(f => f.date);
+      const data = forecasts.map(f => f.streamflow_m3s ?? f.predicted_flow ?? 0);
+      
+      chart.data.labels = labels;
+      chart.data.datasets[0].data = data;
+      chart.update();
+    }
+    
+    // 更新分析结果
+    function updateAnalysis(forecasts) {
+      if (!forecasts || forecasts.length === 0) return;
+      
+      const flows = forecasts.map(f => f.streamflow_m3s);
+      const dates = forecasts.map(f => new Date(f.date));
+      
+      // 计算统计指标
+      const minFlow = Math.min(...flows);
+      const maxFlow = Math.max(...flows);
+      const meanFlow = flows.reduce((a, b) => a + b, 0) / flows.length;
+      
+      // 计算趋势（简单线性回归斜率）
+      const n = flows.length;
+      const xMean = (n - 1) / 2;
+      const yMean = meanFlow;
+      let numerator = 0;
+      let denominator = 0;
+      
+      for (let i = 0; i < n; i++) {
+        numerator += (i - xMean) * (flows[i] - yMean);
+        denominator += (i - xMean) * (i - xMean);
+      }
+      
+      const slope = denominator !== 0 ? numerator / denominator : 0;
+      const trend = slope > 0 ? '上升' : slope < 0 ? '下降' : '稳定';
+      
+      // 计算标准差
+      const variance = flows.reduce((acc, val) => acc + Math.pow(val - meanFlow, 2), 0) / n;
+      const stdDev = Math.sqrt(variance);
+      
+      // 计算百分位数
+      const sortedFlows = [...flows].sort((a, b) => a - b);
+      const p10 = sortedFlows[Math.floor(n * 0.1)];
+      const p50 = sortedFlows[Math.floor(n * 0.5)];
+      const p90 = sortedFlows[Math.floor(n * 0.9)];
+      
+      // 找出峰值
+      const peakIndex = flows.indexOf(maxFlow);
+      const peakDate = dates[peakIndex];
+      
+      // 计算超过阈值的次数
+      const threshold = meanFlow * 1.5; // 1.5倍均值作为阈值
+      const exceedCount = flows.filter(f => f > threshold).length;
+      
+      const analysisContent = document.getElementById('analysisContent');
+      analysisContent.innerHTML = `
+        <div class="status-info">
+          <h4>📊 统计摘要</h4>
+          <p><strong>最小值:</strong> ${minFlow.toFixed(2)} m³/s</p>
+          <p><strong>最大值:</strong> ${maxFlow.toFixed(2)} m³/s</p>
+          <p><strong>平均值:</strong> ${meanFlow.toFixed(2)} m³/s</p>
+          
+          <h4>📈 趋势分析</h4>
+          <p><strong>趋势:</strong> ${trend} (斜率: ${slope.toFixed(4)})</p>
+          <p><strong>离散度:</strong> 标准差 ${stdDev.toFixed(2)} m³/s</p>
+          
+          <h4>📊 百分位数</h4>
+          <p><strong>P10:</strong> ${p10.toFixed(2)} m³/s</p>
+          <p><strong>P50 (中位数):</strong> ${p50.toFixed(2)} m³/s</p>
+          <p><strong>P90:</strong> ${p90.toFixed(2)} m³/s</p>
+          
+          <h4>🏔️ 峰值分析</h4>
+          <p><strong>峰值流量:</strong> ${maxFlow.toFixed(2)} m³/s</p>
+          <p><strong>峰值日期:</strong> ${peakDate.toLocaleDateString('zh-CN')}</p>
+          <p><strong>超过阈值次数:</strong> ${exceedCount} 次 (阈值: ${threshold.toFixed(2)} m³/s)</p>
+        </div>
+      `;
+    }
+    
+    // 导出PNG
+    function exportPNG() {
+      if (chart) {
+        const link = document.createElement('a');
+        link.download = 'forecast_chart.png';
+        link.href = chart.toBase64Image();
+        link.click();
+      }
+    }
+    
+    // 切换缩放
+    function toggleZoom() {
+      if (!chart) return;
+      
+      zoomEnabled = !zoomEnabled;
+      chart.options.plugins.zoom.zoom.wheel.enabled = zoomEnabled;
+      chart.options.plugins.zoom.zoom.pinch.enabled = zoomEnabled;
+      chart.options.plugins.zoom.pan.enabled = zoomEnabled;
+      chart.update();
+      
+      const button = event.target;
+      if (zoomEnabled) {
+        button.textContent = 'Disable Zoom';
+        button.style.background = '#fbbf24';
+        button.style.color = '#1f2937';
+        button.style.boxShadow = '0 2px 4px rgba(0,0,0,0.3)';
+      } else {
+        button.textContent = 'Enable Zoom';
+        button.style.background = '#6c757d';
+        button.style.color = '#ffffff';
+        button.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+      }
+    }
+    
+    // 重置缩放
+    function resetZoom() {
+      if (chart) {
+        chart.resetZoom();
+      }
+    }
+    
+    // 切换深色模式
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+      const button = event.target;
+      if (document.body.classList.contains('dark-mode')) {
+        button.textContent = '☀️ 浅色模式';
+        button.style.background = '#fbbf24';
+        button.style.color = '#1f2937';
+      } else {
+        button.textContent = '🌙 深色模式';
+        button.style.background = '#6b7280';
+        button.style.color = '#ffffff';
+      }
+    }
+    
+    // 切换洪水预警面板
+    function toggleFloodWarningPanel() {
+      const panel = document.getElementById('floodWarningPanel');
+      if (panel) {
+        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+      }
+    }
+    
+    // 显示交叉验证面板
+    function showCrossValidationPanel() {
+      const panel = document.getElementById('crossValidationPanel');
+      if (panel) {
+        panel.style.display = 'block';
+      }
+    }
+  </script>
+  
+  <!-- 加载Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>
+</body>
+</html>

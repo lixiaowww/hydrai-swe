@@ -1,0 +1,315 @@
+{
+  "timestamp": "2025-08-21 12:21:04.661464",
+  "username": "lixiaowww",
+  "discovery": {
+    "status": "completed",
+    "discovery_results": {
+      "early_dates": {
+        "2025.08.21": {
+          "has_data": false,
+          "products": [],
+          "total_files": 0
+        },
+        "2025.08.20": {
+          "has_data": false,
+          "products": [],
+          "total_files": 0
+        },
+        "2025.08.19": {
+          "has_data": false,
+          "products": [],
+          "total_files": 0
+        },
+        "2025.08.18": {
+          "has_data": false,
+          "products": [],
+          "total_files": 0
+        },
+        "2025.08.17": {
+          "has_data": false,
+          "products": [],
+          "total_files": 0
+        },
+        "2025.08.16": {
+          "has_data": false,
+          "products": [],
+          "total_files": 0
+        },
+        "2025.08.15": {
+          "has_data": false,
+          "products": [],
+          "total_files": 0
+        },
+        "2025.08.14": {
+          "has_data": false,
+          "products": [],
+          "total_files": 0
+        },
+        "2025.08.13": {
+          "has_data": false,
+          "products": [],
+          "total_files": 0
+        },
+        "2025.08.12": {
+          "has_data": false,
+          "products": [],
+          "total_files": 0
+        },
+        "2025.08.11": {
+          "has_data": false,
+          "products": [],
+          "total_files": 0
+        },
+        "2025.08.10": {
+          "has_data": false,
+          "products": [],
+          "total_files": 0
+        },
+        "2025.08.09": {
+          "has_data": false,
+          "products": [],
+          "total_files": 0
+        },
+        "2025.08.08": {
+          "has_data": false,
+          "products": [],
+          "total_files": 0
+        },
+        "2025.08.07": {
+          "has_data": false,
+          "products": [],
+          "total_files": 0
+        },
+        "2025.08.06": {
+          "has_data": false,
+          "products": [],
+          "total_files": 0
+        },
+        "2025.08.05": {
+          "has_data": false,
+          "products": [],
+          "total_files": 0
+        },
+        "2025.08.04": {
+          "has_data": false,
+          "products": [],
+          "total_files": 0
+        },
+        "2025.08.03": {
+          "has_data": false,
+          "products": [],
+          "total_files": 0
+        },
+        "2025.08.02": {
+          "has_data": false,
+          "products": [],
+          "total_files": 0
+        },
+        "2025.08.01": {
+          "has_data": false,
+          "products": [],
+          "total_files": 0
+        },
+        "2025.07.31": {
+          "has_data": false,
+          "products": [],
+          "total_files": 0
+        },
+        "2025.07.30": {
+          "has_data": false,
+          "products": [],
+          "total_files": 0
+        },
+        "2025.07.29": {
+          "has_data": false,
+          "products": [],
+          "total_files": 0
+        },
+        "2025.07.28": {
+          "has_data": false,
+          "products": [],
+          "total_files": 0
+        },
+        "2025.07.27": {
+          "has_data": false,
+          "products": [],
+          "total_files": 0
+        },
+        "2025.07.26": {
+          "has_data": false,
+          "products": [],
+          "total_files": 0
+        },
+        "2025.07.25": {
+          "has_data": false,
+          "products": [],
+          "total_files": 0
+        },
+        "2025.07.24": {
+          "has_data": false,
+          "products": [],
+          "total_files": 0
+        },
+        "2025.07.23": {
+          "has_data": false,
+          "products": [],
+          "total_files": 0
+        }
+      },
+      "product_versions": {
+        "004": {
+          "SPL1CTB_E": {
+            "accessible": true,
+            "available_dates": [],
+            "date_count": 0
+          },
+          "SPL2SMP_E": {
+            "accessible": true,
+            "available_dates": [],
+            "date_count": 0
+          },
+          "SPL3SMP_E": {
+            "accessible": true,
+            "available_dates": [],
+            "date_count": 0
+          }
+        },
+        "003": {
+          "SPL1CTB_E": {
+            "accessible": true,
+            "available_dates": [],
+            "date_count": 0
+          },
+          "SPL2SMP_E": {
+            "accessible": true,
+            "available_dates": [],
+            "date_count": 0
+          },
+          "SPL3SMP_E": {
+            "accessible": true,
+            "available_dates": [],
+            "date_count": 0
+          }
+        },
+        "002": {
+          "SPL1CTB_E": {
+            "accessible": true,
+            "available_dates": [],
+            "date_count": 0
+          },
+          "SPL2SMP_E": {
+            "accessible": true,
+            "available_dates": [],
+            "date_count": 0
+          },
+          "SPL3SMP_E": {
+            "accessible": true,
+            "available_dates": [],
+            "date_count": 0
+          }
+        },
+        "001": {
+          "SPL1CTB_E": {
+            "accessible": true,
+            "available_dates": [],
+            "date_count": 0
+          },
+          "SPL2SMP_E": {
+            "accessible": true,
+            "available_dates": [],
+            "date_count": 0
+          },
+          "SPL3SMP_E": {
+            "accessible": true,
+            "available_dates": [],
+            "date_count": 0
+          }
+        }
+      },
+      "file_extensions": {
+        ".h5": {
+          "found": false,
+          "file_count": 0,
+          "sample_files": []
+        },
+        ".hdf5": {
+          "found": false,
+          "file_count": 0,
+          "sample_files": []
+        },
+        ".nc": {
+          "found": false,
+          "file_count": 0,
+          "sample_files": []
+        },
+        ".nc4": {
+          "found": false,
+          "file_count": 0,
+          "sample_files": []
+        },
+        ".bin": {
+          "found": false,
+          "file_count": 0,
+          "sample_files": []
+        },
+        ".dat": {
+          "found": false,
+          "file_count": 0,
+          "sample_files": []
+        },
+        ".txt": {
+          "found": false,
+          "file_count": 0,
+          "sample_files": []
+        }
+      },
+      "data_paths": {
+        "https://n5eil01u.ecs.nsidc.org/DP4/SMAP/": {
+          "accessible": true,
+          "status_code": 200,
+          "content_length": 10921,
+          "has_smap_content": false
+        },
+        "https://n5eil01u.ecs.nsidc.org/DP4/SMAP_V2/": {
+          "accessible": false,
+          "status_code": 404,
+          "content_length": 717,
+          "has_smap_content": false
+        },
+        "https://n5eil01u.ecs.nsidc.org/DP4/SMAP_V3/": {
+          "accessible": false,
+          "status_code": 404,
+          "content_length": 717,
+          "has_smap_content": false
+        },
+        "https://n5eil01u.ecs.nsidc.org/DP4/SMAP_Latest/": {
+          "accessible": false,
+          "status_code": 404,
+          "content_length": 717,
+          "has_smap_content": false
+        },
+        "https://n5eil01u.ecs.nsidc.org/DP4/SMAP_Archive/": {
+          "accessible": false,
+          "status_code": 404,
+          "content_length": 717,
+          "has_smap_content": false
+        },
+        "https://n5eil01u.ecs.nsidc.org/DP4/SMAP_Data/": {
+          "accessible": false,
+          "status_code": 404,
+          "content_length": 717,
+          "has_smap_content": false
+        }
+      }
+    },
+    "summary": {
+      "total_dates_searched": 30,
+      "dates_with_data": 0,
+      "total_files_found": 0,
+      "accessible_product_versions": 12,
+      "found_file_extensions": 0,
+      "accessible_data_paths": 1,
+      "has_usable_data": false
+    }
+  }
+}

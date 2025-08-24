@@ -1,0 +1,199 @@
+{
+  "timestamp": "2025-08-21T18:26:52.391978",
+  "anomalies": {
+    "anomaly_count": 1310,
+    "anomaly_rate": 0.09969558599695585,
+    "total_count": 13140,
+    "anomaly_features": {
+      "Longitude (x)": {
+        "anomaly_mean": -99.86563358778626,
+        "normal_mean": -101.18855621301775,
+        "difference": 1.3229226252314845,
+        "deviation": -0.013073836358002038
+      },
+      "Latitude (y)": {
+        "anomaly_mean": 50.81152671755726,
+        "normal_mean": 50.932011834319525,
+        "difference": -0.12048511676226781,
+        "deviation": 0.0023656068634045455
+      },
+      "Year": {
+        "anomaly_mean": 2025.0,
+        "normal_mean": 2025.0,
+        "difference": 0.0,
+        "deviation": 0.0
+      },
+      "Month": {
+        "anomaly_mean": 4.427480916030534,
+        "normal_mean": 6.758410819949281,
+        "difference": -2.330929903918747,
+        "deviation": 0.3448931954592603
+      },
+      "Day": {
+        "anomaly_mean": 16.383969465648853,
+        "normal_mean": 15.647083685545224,
+        "difference": 0.7368857801036288,
+        "deviation": 0.04709412916250738
+      },
+      "Data Quality": {
+        "anomaly_mean": NaN,
+        "normal_mean": NaN,
+        "difference": NaN,
+        "deviation": NaN
+      },
+      "Max Temp (°C)": {
+        "anomaly_mean": -3.6012437810945275,
+        "normal_mean": 16.453397027600847,
+        "difference": -20.054640808695375,
+        "deviation": 1.2188753954610942
+      },
+      "Min Temp (°C)": {
+        "anomaly_mean": -14.587437810945273,
+        "normal_mean": 3.808651804670913,
+        "difference": -18.396089615616187,
+        "deviation": 4.830079135366302
+      },
+      "Mean Temp (°C)": {
+        "anomaly_mean": -9.094651741293532,
+        "normal_mean": 10.136571125265393,
+        "difference": -19.231222866558923,
+        "deviation": 1.897211850921178
+      },
+      "Heat Deg Days (°C)": {
+        "anomaly_mean": 27.408830845771146,
+        "normal_mean": 8.82744161358811,
+        "difference": 18.581389232183035,
+        "deviation": 2.1049574775527984
+      },
+      "Cool Deg Days (°C)": {
+        "anomaly_mean": 0.314179104477612,
+        "normal_mean": 0.9640127388535034,
+        "difference": -0.6498336343758914,
+        "deviation": 0.6740923726264614
+      },
+      "Total Rain (mm)": {
+        "anomaly_mean": NaN,
+        "normal_mean": NaN,
+        "difference": NaN,
+        "deviation": NaN
+      },
+      "Total Rain Flag": {
+        "anomaly_mean": NaN,
+        "normal_mean": NaN,
+        "difference": NaN,
+        "deviation": NaN
+      },
+      "Total Snow (cm)": {
+        "anomaly_mean": NaN,
+        "normal_mean": NaN,
+        "difference": NaN,
+        "deviation": NaN
+      },
+      "Total Snow Flag": {
+        "anomaly_mean": NaN,
+        "normal_mean": NaN,
+        "difference": NaN,
+        "deviation": NaN
+      },
+      "Total Precip (mm)": {
+        "anomaly_mean": 0.45609452736318407,
+        "normal_mean": 1.2327494692144374,
+        "difference": -0.7766549418512534,
+        "deviation": 0.6300184759732018
+      },
+      "Snow on Grnd (cm)": {
+        "anomaly_mean": 4.368499257057949,
+        "normal_mean": 2.204081632653061,
+        "difference": 2.164417624404888,
+        "deviation": 0.9820042925540696
+      },
+      "Snow on Grnd Flag": {
+        "anomaly_mean": NaN,
+        "normal_mean": NaN,
+        "difference": NaN,
+        "deviation": NaN
+      },
+      "Dir of Max Gust (10s deg)": {
+        "anomaly_mean": 21.198686371100163,
+        "normal_mean": 19.349828178694157,
+        "difference": 1.8488581924060057,
+        "deviation": 0.09554907544046098
+      },
+      "Spd of Max Gust (km/h)": {
+        "anomaly_mean": 47.243021346469625,
+        "normal_mean": 43.7147766323024,
+        "difference": 3.528244714167222,
+        "deviation": 0.08071057399753649
+      },
+      "station_lat": {
+        "anomaly_mean": 49.347118518518506,
+        "normal_mean": 49.17018375634517,
+        "difference": 0.1769347621733388,
+        "deviation": 0.003598415719780715
+      },
+      "station_lon": {
+        "anomaly_mean": -97.360612345679,
+        "normal_mean": -97.28749340101524,
+        "difference": -0.07311894466376145,
+        "deviation": -0.0007515759951011177
+      }
+    },
+    "anomaly_timestamps": []
+  },
+  "clusters": {
+    "status": "error",
+    "error": "Input X contains NaN.\nKMeans does not accept missing values encoded as NaN natively. For supervised learning, you might want to consider sklearn.ensemble.HistGradientBoostingClassifier and Regressor which accept missing values encoded as NaNs natively. Alternatively, it is possible to preprocess the data, for instance by using an imputer transformer in a pipeline or drop samples with missing values. See https://scikit-learn.org/stable/modules/impute.html You can find a list of all estimators that handle NaN values at the following page: https://scikit-learn.org/stable/modules/impute.html#estimators-that-handle-nan-values"
+  },
+  "dimensions": {
+    "status": "error",
+    "error": "Input X contains NaN.\nPCA does not accept missing values encoded as NaN natively. For supervised learning, you might want to consider sklearn.ensemble.HistGradientBoostingClassifier and Regressor which accept missing values encoded as NaNs natively. Alternatively, it is possible to preprocess the data, for instance by using an imputer transformer in a pipeline or drop samples with missing values. See https://scikit-learn.org/stable/modules/impute.html You can find a list of all estimators that handle NaN values at the following page: https://scikit-learn.org/stable/modules/impute.html#estimators-that-handle-nan-values"
+  },
+  "temporal": {
+    "status": "error",
+    "error": "缺少时间或目标列"
+  },
+  "risk_mechanisms": {
+    "data_quality": {
+      "high_missing_features": [
+        "Data Quality",
+        "Max Temp (°C)",
+        "Max Temp Flag",
+        "Min Temp (°C)",
+        "Min Temp Flag",
+        "Mean Temp (°C)",
+        "Mean Temp Flag",
+        "Heat Deg Days (°C)",
+        "Heat Deg Days Flag",
+        "Cool Deg Days (°C)",
+        "Cool Deg Days Flag",
+        "Total Rain (mm)",
+        "Total Rain Flag",
+        "Total Snow (cm)",
+        "Total Snow Flag",
+        "Total Precip (mm)",
+        "Total Precip Flag",
+        "Snow on Grnd (cm)",
+        "Snow on Grnd Flag",
+        "Dir of Max Gust (10s deg)",
+        "Dir of Max Gust Flag",
+        "Spd of Max Gust (km/h)",
+        "Spd of Max Gust Flag",
+        "station_key",
+        "station_name",
+        "station_lat",
+        "station_lon"
+      ],
+      "overall_missing_rate": 0.6468884540117417,
+      "risk_level": "high"
+    }
+  },
+  "summary": {
+    "total_insights": -2,
+    "key_findings": [],
+    "risk_assessment": "low",
+    "recommendations": [
+      "数据质量良好，可继续现有流程",
+      "建议定期进行模式分析"
+    ]
+  }
+}

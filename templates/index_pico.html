@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HydrAI-SWE · Minimal (Pico + Alpine + uPlot)</title>
+  <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@1.5.10/css/pico.min.css">
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans", "Noto Sans CJK SC", "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", "Helvetica Neue", Arial, sans-serif; }
+    :root { --chart-border: #e5e7eb; --chart-text: #111827; }
+    @media (prefers-color-scheme: dark) {
+      :root { --chart-border: #475569; --chart-text: #e5e7f0; }
+    }
+    .chart { min-height: 380px; border: 1px solid var(--chart-border); border-radius: 8px; padding: 8px; color: var(--chart-text); }
+  </style>
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <meta name="color-scheme" content="light dark" />
+</head>
+<body>
+<main class="container" x-data="forecastApp()" x-init="init()">
+  <hgroup>
+    <h2>HydrAI-SWE 预测</h2>
+    <p>轻量、漂亮、稳定。仅在点击获取时加载图表库。</p>
+  </hgroup>
+
+  <form @submit.prevent="fetchAndDraw">
+    <div class="grid">
+      <div>
+        <label>模式
+          <select x-model="mode" @change="onModeChange()">
+            <option value="nowcast">Nowcast</option>
+            <option value="scenario">Scenario</option>
+          </select>
+        </label>
+      </div>
+      <div>
+        <label>情景年份
+          <input type="number" x-model.number="scenarioYear" min="1979" max="2024" @change="onScenarioYearChange()">
+        </label>
+        <small>Scenario 模式会强制起止日期使用该年份</small>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div>
+        <label>开始日期
+          <input type="date" x-model="startDate" x-show="!useMD">
+          <input type="text" x-model="startMD" placeholder="MM-DD" pattern="^[0-1][0-9]-[0-3][0-9]$" inputmode="numeric" x-show="useMD">
+        </label>
+        <small x-text="startHint"></small>
+      </div>
+      <div>
+        <label>结束日期
+          <input type="date" x-model="endDate" x-show="!useMD">
+          <input type="text" x-model="endMD" placeholder="MM-DD" pattern="^[0-1][0-9]-[0-3][0-9]$" inputmode="numeric" x-show="useMD">
+        </label>
+        <small x-text="endHint"></small>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div>
+        <label>站点
+          <input type="text" x-model="stationId" placeholder="05OC001" list="stationList">
+          <datalist id="stationList"></datalist>
+        </label>
+      </div>
+      <div class="grid">
+        <button type="submit" :aria-busy="loading">获取预测并绘图</button>
+      </div>
+    </div>
+  </form>
+
+  <nav>
+    <ul>
+      <li><button type="button" @click="exportPNG()" :disabled="!chart">导出 PNG</button></li>
+      <li><button type="button" @click="exportCSV()" :disabled="!lastPoints">导出 CSV</button></li>
+      <li><button type="button" @click="resetZoom()" :disabled="!chart">重置缩放</button></li>
+      <li><button type="button" @click="toggleTheme()">切换主题</button></li>
+    </ul>
+  </nav>
+
+  <article>
+    <header>
+      <strong>状态</strong>
+      <span x-text="status"></span>
+    </header>
+    <div id="chartContainer" class="chart" aria-label="预测图表"></div>
+    <footer>
+      <small id="analysisText" class="contrast"></small>
+    </footer>
+  </article>
+</main>
+
+<script>
+function forecastApp() {
+  const today = new Date();
+  const nextWeek = new Date(today.getTime() + 7*24*60*60*1000);
+  const iso = d => d.toISOString().slice(0,10);
+
+  return {
+    async init() {
+      // 填充站点列表（轻量端点）
+      try {
+        const r = await fetch('/api/v1/flood/flood-risk-assessment/stations');
+        if (r.ok) {
+          const j = await r.json();
+          const dl = document.getElementById('stationList');
+          if (dl && j && j.available_stations) {
+            dl.innerHTML = '';
+            Object.keys(j.available_stations).slice(0, 50).forEach(id => {
+              const opt = document.createElement('option');
+              opt.value = id;
+              dl.appendChild(opt);
+            });
+          }
+        }
+      } catch {}
+
+      // 首次进入进行一次轻量 nowcast 查询，避免空白
+      try { await this.fetchAndDraw(); } catch {}
+    },
+    stationId: '05OC001',
+    mode: 'nowcast',
+    scenarioYear: 2023,
+    startDate: iso(today),
+    endDate: iso(nextWeek),
+    status: '就绪',
+    loading: false,
+    uplotLoaded: false,
+    chart: null,
+    lastPoints: null,
+    startHint: 'YYYY-MM-DD',
+    endHint: 'YYYY-MM-DD',
+    useMD: false,
+    startMD: '03-15',
+    endMD: '05-15',
+
+    onModeChange() {
+      if (this.mode === 'scenario') {
+        this.setScenarioDefaultDates();
+        this.startHint = 'MM-DD（按情景年份拼接）';
+        this.endHint = 'MM-DD（按情景年份拼接）';
+        this.useMD = true;
+      } else {
+        this.setNowcastDefaultDates();
+        this.startHint = 'YYYY-MM-DD';
+        this.endHint = 'YYYY-MM-DD';
+        this.useMD = false;
+      }
+    },
+
+    onScenarioYearChange() {
+      if (this.mode === 'scenario') {
+        this.setScenarioDefaultDates();
+      }
+    },
+
+    setNowcastDefaultDates() {
+      const today = new Date();
+      const nextWeek = new Date(today.getTime() + 7*24*60*60*1000);
+      this.startDate = today.toISOString().slice(0,10);
+      this.endDate = nextWeek.toISOString().slice(0,10);
+    },
+
+    setScenarioDefaultDates() {
+      const y = Number(this.scenarioYear) || new Date().getFullYear();
+      this.startMD = '03-15';
+      this.endMD = '05-15';
+      this.startDate = `${y}-${this.startMD}`;
+      this.endDate = `${y}-${this.endMD}`;
+    },
+
+    clampScenarioYear(y) {
+      const ymin = 1979, ymax = 2024;
+      if (y < ymin) return ymin;
+      if (y > ymax) return ymax;
+      return y;
+    },
+
+    async fetchAndDraw() {
+      if (!this.startDate || !this.endDate) { alert('请选择开始/结束日期'); return; }
+      this.loading = true;
+      this.status = '请求中...';
+      try {
+        // 保证 Scenario 年份与起止日期一致
+        let reqStart = this.startDate;
+        let reqEnd = this.endDate;
+        if (this.mode === 'scenario') {
+          this.scenarioYear = this.clampScenarioYear(Number(this.scenarioYear) || 2023);
+          const sMD = (this.startMD || '03-15').slice(0,5);
+          const eMD = (this.endMD || '05-15').slice(0,5);
+          reqStart = `${this.scenarioYear}-${sMD}`;
+          reqEnd = `${this.scenarioYear}-${eMD}`;
+        }
+
+        const qs = new URLSearchParams({
+          station_id: this.stationId,
+          start_date: reqStart,
+          end_date: reqEnd,
+          mode: this.mode,
+        });
+        if (this.mode === 'scenario') qs.append('scenario_year', String(this.scenarioYear));
+
+        const resp = await fetch(`/api/v1/runoff-forecast?${qs.toString()}`);
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const data = await resp.json();
+        const series = Array.isArray(data?.forecasts) ? data.forecasts : [];
+
+        await this.drawChart(series);
+        const { min, max, mean } = this.computeStats(series);
+        this.status = `完成：${series.length} 条 · 最小 ${min.toFixed(2)} · 最大 ${max.toFixed(2)} · 均值 ${mean.toFixed(2)}`;
+        const a = document.getElementById('analysisText');
+        if (a) a.textContent = `统计 | 最小 ${min.toFixed(2)} · 最大 ${max.toFixed(2)} · 均值 ${mean.toFixed(2)}`;
+      } catch (e) {
+        this.status = '失败：' + e.message;
+        const a = document.getElementById('analysisText');
+        if (a) a.textContent = '无数据';
+        await this.drawChart([]);
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async ensureUplot() {
+      if (this.uplotLoaded) return;
+      await new Promise((resolve, reject) => {
+        const css = document.createElement('link');
+        css.rel = 'stylesheet';
+        css.href = 'https://unpkg.com/uplot/dist/uPlot.min.css';
+        document.head.appendChild(css);
+
+        const s = document.createElement('script');
+        s.src = 'https://unpkg.com/uplot/dist/uPlot.iife.min.js';
+        s.onload = () => resolve();
+        s.onerror = () => reject(new Error('uPlot 加载失败'));
+        document.head.appendChild(s);
+      });
+      this.uplotLoaded = true;
+    },
+
+    async drawChart(points) {
+      const el = document.getElementById('chartContainer');
+      el.innerHTML = '';
+      if (!points || points.length === 0) { el.textContent = '无数据'; return; }
+
+      try {
+        await this.ensureUplot();
+      } catch (e) {
+        // CDN 加载失败则退回 SVG 绘制
+        this.drawFallbackSvg(flows);
+        this.lastPoints = points;
+        return;
+      }
+
+      const flows = points.map(p => Number(p.streamflow_m3s ?? p.predicted_flow ?? 0)).filter(v => Number.isFinite(v));
+      if (flows.length === 0) { el.textContent = '无数据'; return; }
+      const x = flows.map((_, i) => i);
+      const y = flows;
+
+      // 主题自适应颜色（确保深浅模式下都有良好对比度）
+      const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const stroke = isDark ? '#60a5fa' : '#2563eb';
+      const axisColor = isDark ? '#94a3b8' : '#374151';
+      const gridColor = isDark ? '#334155' : '#e5e7eb';
+
+      const opts = {
+        width: el.clientWidth || 900,
+        height: 360,
+        series: [
+          { label: 'Idx' },
+          { label: '径流 (m³/s)', stroke: stroke, width: 2 },
+        ],
+        axes: [
+          { stroke: axisColor, grid: { show: true, stroke: gridColor } },
+          { stroke: axisColor, grid: { show: true, stroke: gridColor } },
+        ],
+      };
+
+      const u = new uPlot(opts, [x, y], el);
+      new ResizeObserver(() => {
+        u.setSize({ width: el.clientWidth || 900, height: 360 });
+      }).observe(el);
+
+      this.chart = u;
+      this.lastPoints = points;
+
+      // 监听主题变化，自动重绘，避免颜色对比冲突
+      if (!this._themeWatchAttached) {
+        const mq = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+        if (mq && mq.addEventListener) {
+          mq.addEventListener('change', () => {
+            if (this.lastPoints) this.drawChart(this.lastPoints);
+          });
+        }
+        this._themeWatchAttached = true;
+      }
+    },
+
+    computeStats(points) {
+      const flows = (points||[]).map(p => Number(p.streamflow_m3s ?? p.predicted_flow ?? 0)).filter(Number.isFinite);
+      if (flows.length === 0) return { min: 0, max: 0, mean: 0 };
+      const min = Math.min(...flows);
+      const max = Math.max(...flows);
+      const mean = flows.reduce((a,b)=>a+b,0)/flows.length;
+      return { min, max, mean };
+    },
+
+    drawFallbackSvg(flows) {
+      const el = document.getElementById('chartContainer');
+      el.innerHTML = '';
+      const svgNS = 'http://www.w3.org/2000/svg';
+      const width = el.clientWidth || 900, height = 360;
+      const pad = { l: 50, r: 10, t: 10, b: 30 };
+      const plotW = width - pad.l - pad.r;
+      const plotH = height - pad.t - pad.b;
+      const svg = document.createElementNS(svgNS, 'svg');
+      svg.setAttribute('width', width);
+      svg.setAttribute('height', height);
+      el.appendChild(svg);
+
+      const minV = Math.min(...flows), maxV = Math.max(...flows);
+      const padV = (maxV - minV) * 0.05 || 1;
+      const yMin = minV - padV, yMax = maxV + padV;
+      const xScale = i => pad.l + (flows.length<=1 ? 0 : (i/(flows.length-1))*plotW);
+      const yScale = v => pad.t + plotH - ((v - yMin)/(yMax - yMin))*plotH;
+
+      // axes
+      const axis = document.createElementNS(svgNS, 'g');
+      axis.setAttribute('stroke', '#94a3b8');
+      axis.appendChild(line(pad.l, pad.t, pad.l, pad.t + plotH));
+      axis.appendChild(line(pad.l, pad.t + plotH, pad.l + plotW, pad.t + plotH));
+      svg.appendChild(axis);
+
+      // polyline
+      const pl = document.createElementNS(svgNS, 'polyline');
+      pl.setAttribute('fill', 'none');
+      pl.setAttribute('stroke', '#2563eb');
+      pl.setAttribute('stroke-width', '2');
+      pl.setAttribute('points', flows.map((v,i)=>`${xScale(i)},${yScale(v)}`).join(' '));
+      svg.appendChild(pl);
+
+      function line(x1,y1,x2,y2){ const l=document.createElementNS(svgNS,'line'); l.setAttribute('x1',x1); l.setAttribute('y1',y1); l.setAttribute('x2',x2); l.setAttribute('y2',y2); return l; }
+    }
+  }
+}
+</script>
+</body>
+</html>
+
+

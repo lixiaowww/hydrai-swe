@@ -1,0 +1,534 @@
+<!-- 洪水预警面板 -->
+<div class="flood-warning-panel" id="floodWarningPanel" style="display: none;">
+    <div class="panel-header">
+        <h3>🌊 洪水预警系统</h3>
+        <button class="close-btn" onclick="toggleFloodWarningPanel()">×</button>
+    </div>
+    
+    <div class="panel-content">
+        <!-- 站点选择 -->
+        <div class="form-group">
+            <label for="stationSelect">选择水文站点:</label>
+            <select id="stationSelect" onchange="updateStationInfo()">
+                <option value="05OC001">05OC001 - Red River at Emerson</option>
+                <option value="05OC011">05OC011 - Red River at Winnipeg</option>
+                <option value="05OC012">05OC012 - Red River at Lockport</option>
+            </select>
+        </div>
+        
+        <!-- 当前流量输入 -->
+        <div class="form-group">
+            <label for="currentFlow">当前流量 (m³/s):</label>
+            <input type="number" id="currentFlow" value="150" step="0.1" min="0">
+        </div>
+        
+        <!-- 预测流量输入 -->
+        <div class="form-group">
+            <label>预测流量 (m³/s):</label>
+            <div class="forecast-inputs">
+                <div class="forecast-row">
+                    <span>6小时:</span>
+                    <input type="number" id="forecast6h" value="160" step="0.1" min="0">
+                </div>
+                <div class="forecast-row">
+                    <span>12小时:</span>
+                    <input type="number" id="forecast12h" value="180" step="0.1" min="0">
+                </div>
+                <div class="forecast-row">
+                    <span>18小时:</span>
+                    <input type="number" id="forecast18h" value="220" step="0.1" min="0">
+                </div>
+                <div class="forecast-row">
+                    <span>24小时:</span>
+                    <input type="number" id="forecast24h" value="280" step="0.1" min="0">
+                </div>
+                <div class="forecast-row">
+                    <span>30小时:</span>
+                    <input type="number" id="forecast30h" value="320" step="0.1" min="0">
+                </div>
+                <div class="forecast-row">
+                    <span>36小时:</span>
+                    <input type="number" id="forecast42h" value="280" step="0.1" min="0">
+                </div>
+                <div class="forecast-row">
+                    <span>42小时:</span>
+                    <input type="number" id="forecast42h" value="220" step="0.1" min="0">
+                </div>
+            </div>
+        </div>
+        
+        <!-- 风险评估按钮 -->
+        <div class="form-group">
+            <button class="btn btn-primary" onclick="assessFloodRisk()">
+                🔍 评估洪水风险
+            </button>
+        </div>
+        
+        <!-- 风险评估结果 -->
+        <div id="riskAssessmentResult" class="risk-result" style="display: none;">
+            <div class="risk-header">
+                <h4>风险评估结果</h4>
+                <div class="risk-level" id="riskLevelDisplay"></div>
+            </div>
+            
+            <div class="risk-details">
+                <div class="risk-metric">
+                    <span class="label">风险等级:</span>
+                    <span class="value" id="riskLevel"></span>
+                </div>
+                <div class="risk-metric">
+                    <span class="label">风险评分:</span>
+                    <span class="value" id="riskScore"></span>
+                </div>
+                <div class="risk-metric">
+                    <span class="label">风险概率:</span>
+                    <span class="value" id="riskProbability"></span>
+                </div>
+                <div class="risk-metric">
+                    <span class="label">预警级别:</span>
+                    <span class="value" id="warningLevel"></span>
+                </div>
+            </div>
+            
+            <div class="warning-info">
+                <div class="warning-description" id="warningDescription"></div>
+                <div class="recommended-action" id="recommendedAction"></div>
+            </div>
+            
+            <div class="forecast-summary">
+                <h5>预测摘要</h5>
+                <div class="summary-item">
+                    <span class="label">峰值流量:</span>
+                    <span class="value" id="peakFlow"></span>
+                </div>
+                <div class="summary-item">
+                    <span class="label">峰值时间:</span>
+                    <span class="value" id="peakTime"></span>
+                </div>
+                <div class="summary-item">
+                    <span class="label">超阈值持续时间:</span>
+                    <span class="value" id="durationAboveThreshold"></span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 历史风险评估 -->
+        <div class="history-section">
+            <h5>历史风险评估</h5>
+            <div id="riskHistory" class="risk-history">
+                <!-- 动态加载历史记录 -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 洪水预警样式 -->
+<style>
+.flood-warning-panel {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.panel-header h3 {
+    margin: 0;
+    color: var(--text-color);
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--text-color);
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.close-btn:hover {
+    color: var(--accent-color);
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--input-bg);
+    color: var(--text-color);
+}
+
+.forecast-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.forecast-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.forecast-row span {
+    min-width: 60px;
+    font-size: 14px;
+    color: var(--text-color);
+}
+
+.forecast-row input {
+    flex: 1;
+    min-width: 80px;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: var(--accent-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--accent-hover);
+}
+
+.risk-result {
+    margin-top: 20px;
+    padding: 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--card-bg);
+}
+
+.risk-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.risk-header h4 {
+    margin: 0;
+    color: var(--text-color);
+}
+
+.risk-level {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+}
+
+.risk-level.minimal { background: #10B981; color: white; }
+.risk-level.low { background: #3B82F6; color: white; }
+.risk-level.medium { background: #F59E0B; color: white; }
+.risk-level.high { background: #EF4444; color: white; }
+.risk-level.extreme { background: #7C2D12; color: white; }
+
+.risk-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.risk-metric {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+}
+
+.risk-metric .label {
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.risk-metric .value {
+    color: var(--accent-color);
+    font-weight: 600;
+}
+
+.warning-info {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: var(--warning-bg);
+    border-radius: 6px;
+    border-left: 4px solid var(--warning-color);
+}
+
+.warning-description {
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: var(--warning-text);
+}
+
+.recommended-action {
+    color: var(--warning-text);
+    line-height: 1.5;
+}
+
+.forecast-summary {
+    margin-bottom: 20px;
+}
+
+.forecast-summary h5 {
+    margin: 0 0 15px 0;
+    color: var(--text-color);
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.summary-item:last-child {
+    border-bottom: none;
+}
+
+.summary-item .label {
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.summary-item .value {
+    color: var(--accent-color);
+    font-weight: 600;
+}
+
+.history-section {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+.history-section h5 {
+    margin: 0 0 15px 0;
+    color: var(--text-color);
+}
+
+.risk-history {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.history-item {
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--card-bg);
+}
+
+.history-item .time {
+    font-size: 12px;
+    color: var(--muted-color);
+    margin-bottom: 5px;
+}
+
+.history-item .risk {
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+/* 深色模式适配 */
+body.dark .flood-warning-panel {
+    background: #1e293b;
+    border-color: #475569;
+}
+
+body.dark .form-group input,
+body.dark .form-group select {
+    background: #334155;
+    border-color: #64748b;
+    color: #f1f5f9;
+}
+
+body.dark .risk-result {
+    background: #1e293b;
+    border-color: #475569;
+}
+
+body.dark .warning-info {
+    background: #7c2d12;
+    border-left-color: #f97316;
+}
+
+body.dark .warning-description,
+body.dark .recommended-action {
+    color: #fed7aa;
+}
+
+body.dark .history-item {
+    background: #1e293b;
+    border-color: #475569;
+}
+</style>
+
+<!-- 洪水预警JavaScript -->
+<script>
+// 洪水预警面板切换
+function toggleFloodWarningPanel() {
+    const panel = document.getElementById('floodWarningPanel');
+    if (panel.style.display === 'none') {
+        panel.style.display = 'block';
+        loadRiskHistory();
+    } else {
+        panel.style.display = 'none';
+    }
+}
+
+// 更新站点信息
+function updateStationInfo() {
+    const stationId = document.getElementById('stationSelect').value;
+    // 这里可以根据站点ID加载相应的配置信息
+    console.log(`Selected station: ${stationId}`);
+}
+
+// 评估洪水风险
+async function assessFloodRisk() {
+    const stationId = document.getElementById('stationSelect').value;
+    const currentFlow = parseFloat(document.getElementById('currentFlow').value);
+    
+    // 收集预测流量
+    const forecastFlows = [
+        parseFloat(document.getElementById('forecast6h').value),
+        parseFloat(document.getElementById('forecast12h').value),
+        parseFloat(document.getElementById('forecast18h').value),
+        parseFloat(document.getElementById('forecast24h').value),
+        parseFloat(document.getElementById('forecast30h').value),
+        parseFloat(document.getElementById('forecast42h').value),
+        parseFloat(document.getElementById('forecast42h').value)
+    ];
+    
+    const forecastHours = [6, 12, 18, 24, 30, 36, 42];
+    
+    try {
+        // 调用洪水风险评估API
+        const response = await fetch(`/api/v1/flood/flood-risk-assessment?station_id=${stationId}&current_flow=${currentFlow}&forecast_hours=${forecastHours.join(',')}&forecast_flows=${forecastFlows.join(',')}`);
+        
+        if (response.ok) {
+            const result = await response.json();
+            displayRiskAssessment(result);
+            saveRiskHistory(result);
+        } else {
+            const error = await response.json();
+            alert(`风险评估失败: ${error.detail}`);
+        }
+    } catch (error) {
+        console.error('风险评估请求失败:', error);
+        alert('风险评估请求失败，请检查网络连接');
+    }
+}
+
+// 显示风险评估结果
+function displayRiskAssessment(result) {
+    const resultDiv = document.getElementById('riskAssessmentResult');
+    resultDiv.style.display = 'block';
+    
+    // 更新风险等级显示
+    document.getElementById('riskLevel').textContent = result.risk_level;
+    document.getElementById('riskScore').textContent = result.risk_score;
+    document.getElementById('riskProbability').textContent = `${(result.risk_probability * 100).toFixed(1)}%`;
+    document.getElementById('warningLevel').textContent = result.warning_level;
+    document.getElementById('warningDescription').textContent = result.warning_description;
+    document.getElementById('recommendedAction').textContent = result.recommended_action;
+    
+    // 更新预测摘要
+    document.getElementById('peakFlow').textContent = `${result.forecast_summary.peak_flow} m³/s`;
+    document.getElementById('peakTime').textContent = `${result.forecast_summary.peak_flow_time} 小时`;
+    document.getElementById('durationAboveThreshold').textContent = `${result.forecast_summary.duration_above_threshold} 小时`;
+    
+    // 更新风险等级显示样式
+    const riskLevelDisplay = document.getElementById('riskLevelDisplay');
+    riskLevelDisplay.textContent = result.risk_level.toUpperCase();
+    riskLevelDisplay.className = `risk-level ${result.risk_level}`;
+}
+
+// 保存风险评估历史
+function saveRiskHistory(result) {
+    const history = JSON.parse(localStorage.getItem('floodRiskHistory') || '[]');
+    const historyItem = {
+        time: new Date().toLocaleString(),
+        station: result.station_name,
+        riskLevel: result.risk_level,
+        riskScore: result.risk_score,
+        currentFlow: result.current_flow
+    };
+    
+    history.unshift(historyItem);
+    
+    // 只保留最近20条记录
+    if (history.length > 20) {
+        history.pop();
+    }
+    
+    localStorage.setItem('floodRiskHistory', JSON.stringify(history));
+    loadRiskHistory();
+}
+
+// 加载风险评估历史
+function loadRiskHistory() {
+    const history = JSON.parse(localStorage.getItem('floodRiskHistory') || '[]');
+    const historyDiv = document.getElementById('riskHistory');
+    
+    if (history.length === 0) {
+        historyDiv.innerHTML = '<p class="muted">暂无历史记录</p>';
+        return;
+    }
+    
+    historyDiv.innerHTML = history.map(item => `
+        <div class="history-item">
+            <div class="time">${item.time}</div>
+            <div class="risk">${item.station} - ${item.riskLevel} (${item.riskScore}分)</div>
+        </div>
+    `).join('');
+}
+
+// 页面加载时初始化
+document.addEventListener('DOMContentLoaded', function() {
+    // 初始化站点信息
+    updateStationInfo();
+});
+</script>

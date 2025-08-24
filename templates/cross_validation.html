@@ -1,0 +1,707 @@
+<!-- 交叉验证面板 -->
+<div id="crossValidationPanel" class="cross-validation-panel" style="display: none;">
+    <div class="panel-header">
+        <h3>🌊 历史数据交叉验证</h3>
+        <button onclick="closeCrossValidationPanel()" class="close-btn">×</button>
+    </div>
+    
+    <div class="panel-content">
+        <!-- 配置区域 -->
+        <div class="config-section">
+            <h4>验证配置</h4>
+            <div class="form-group">
+                <label for="cvStartDate">开始日期:</label>
+                <input type="date" id="cvStartDate" value="2024-01-01">
+            </div>
+            <div class="form-group">
+                <label for="cvEndDate">结束日期:</label>
+                <input type="date" id="cvEndDate" value="2024-01-31">
+            </div>
+            <div class="form-group">
+                <label for="cvStation">水文站点:</label>
+                <select id="cvStation">
+                    <option value="05OC001">05OC001 - Red River at Emerson</option>
+                    <option value="05OC011">05OC011 - Red River at Winnipeg</option>
+                    <option value="05OC012">05OC012 - Red River at Lockport</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="cvWindowSize">验证窗口大小 (天):</label>
+                <input type="number" id="cvWindowSize" value="30" min="7" max="90">
+            </div>
+            <div class="form-group">
+                <label for="cvStepSize">步长 (天):</label>
+                <input type="number" id="cvStepSize" value="7" min="1" max="30">
+            </div>
+        </div>
+        
+        <!-- 操作按钮 -->
+        <div class="action-section">
+            <button onclick="startCrossValidation()" class="btn btn-primary">🚀 开始交叉验证</button>
+            <button onclick="quickCrossValidation()" class="btn btn-secondary">⚡ 快速验证</button>
+            <button onclick="checkCVStatus()" class="btn btn-info">📊 检查状态</button>
+        </div>
+        
+        <!-- 状态显示 -->
+        <div class="status-section">
+            <div id="cvStatus" class="status-info">
+                <p>准备就绪，请配置参数并开始验证</p>
+            </div>
+            <div id="cvProgress" class="progress-bar" style="display: none;">
+                <div class="progress-fill"></div>
+            </div>
+        </div>
+        
+        <!-- 结果展示 -->
+        <div class="results-section" style="display: none;">
+            <h4>验证结果</h4>
+            <div id="cvResults" class="results-content">
+                <!-- 结果将在这里动态显示 -->
+            </div>
+            
+            <!-- 下载按钮 -->
+            <div class="download-section">
+                <button onclick="downloadCVReport()" class="btn btn-success">📥 下载报告</button>
+                <button onclick="downloadCVPlots()" class="btn btn-success">📊 下载图表</button>
+            </div>
+        </div>
+        
+        <!-- 任务列表 -->
+        <div class="tasks-section">
+            <h4>验证任务</h4>
+            <div id="cvTasks" class="tasks-list">
+                <!-- 任务列表将在这里动态显示 -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.cross-validation-panel {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin: 20px 0;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.panel-header {
+    background: #f8f9fa;
+    padding: 15px 20px;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.panel-header h3 {
+    margin: 0;
+    color: #333;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+}
+
+.close-btn:hover {
+    color: #333;
+}
+
+.panel-content {
+    padding: 20px;
+}
+
+.config-section {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+}
+
+.config-section h4 {
+    margin-top: 0;
+    color: #555;
+}
+
+.form-group {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.form-group label {
+    width: 120px;
+    font-weight: 500;
+    color: #333;
+}
+
+.form-group input,
+.form-group select {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.action-section {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: #007bff;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #0056b3;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #545b62;
+}
+
+.btn-info {
+    background: #17a2b8;
+    color: white;
+}
+
+.btn-info:hover {
+    background: #117a8b;
+}
+
+.btn-success {
+    background: #28a745;
+    color: white;
+}
+
+.btn-success:hover {
+    background: #1e7e34;
+}
+
+.status-section {
+    background: #e9ecef;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+}
+
+.status-info {
+    margin-bottom: 15px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 20px;
+    background: #dee2e6;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #007bff;
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+.results-section {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+}
+
+.results-content {
+    margin-bottom: 15px;
+}
+
+.download-section {
+    display: flex;
+    gap: 10px;
+}
+
+.tasks-section {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 6px;
+}
+
+.tasks-list {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.task-item {
+    background: white;
+    padding: 10px;
+    margin-bottom: 8px;
+    border-radius: 4px;
+    border-left: 4px solid #007bff;
+}
+
+.task-item.completed {
+    border-left-color: #28a745;
+}
+
+.task-item.failed {
+    border-left-color: #dc3545;
+}
+
+.task-item.running {
+    border-left-color: #ffc107;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .form-group {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .form-group label {
+        width: 100%;
+        margin-bottom: 5px;
+    }
+    
+    .action-section {
+        flex-direction: column;
+    }
+    
+    .btn {
+        width: 100%;
+    }
+}
+</style>
+
+<script>
+// 交叉验证相关函数
+let currentCVTaskId = null;
+let cvStatusCheckInterval = null;
+
+// 显示交叉验证面板
+function showCrossValidationPanel() {
+    document.getElementById('crossValidationPanel').style.display = 'block';
+    loadCVTasks();
+}
+
+// 关闭交叉验证面板
+function closeCrossValidationPanel() {
+    document.getElementById('crossValidationPanel').style.display = 'none';
+    if (cvStatusCheckInterval) {
+        clearInterval(cvStatusCheckInterval);
+        cvStatusCheckInterval = null;
+    }
+}
+
+// 开始交叉验证
+async function startCrossValidation() {
+    const startDate = document.getElementById('cvStartDate').value;
+    const endDate = document.getElementById('cvEndDate').value;
+    const station = document.getElementById('cvStation').value;
+    const windowSize = parseInt(document.getElementById('cvWindowSize').value);
+    const stepSize = parseInt(document.getElementById('cvStepSize').value);
+    
+    if (!startDate || !endDate || !station) {
+        alert('请填写所有必需的参数');
+        return;
+    }
+    
+    try {
+        // 显示进度条
+        document.getElementById('cvProgress').style.display = 'block';
+        document.getElementById('cvStatus').innerHTML = '<p>正在启动交叉验证任务...</p>';
+        
+        const response = await fetch('/api/v1/cross-validation/start', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                start_date: startDate,
+                end_date: endDate,
+                station_id: station,
+                window_size: windowSize,
+                step_size: stepSize
+            })
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            currentCVTaskId = result.task_id;
+            
+            document.getElementById('cvStatus').innerHTML = 
+                `<p>✅ 任务已启动，任务ID: ${currentCVTaskId}</p>`;
+            
+            // 开始定期检查状态
+            startStatusChecking();
+            
+        } else {
+            const error = await response.json();
+            document.getElementById('cvStatus').innerHTML = 
+                `<p>❌ 启动失败: ${error.detail}</p>`;
+        }
+        
+    } catch (error) {
+        document.getElementById('cvStatus').innerHTML = 
+            `<p>❌ 错误: ${error.message}</p>`;
+    }
+}
+
+// 快速交叉验证
+async function quickCrossValidation() {
+    try {
+        document.getElementById('cvStatus').innerHTML = '<p>正在执行快速验证...</p>';
+        
+        const response = await fetch('/api/v1/cross-validation/quick', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                start_date: '2024-01-01',
+                end_date: '2024-01-07',
+                station_id: '05OC001'
+            })
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            displayCVResults(result);
+            document.getElementById('cvStatus').innerHTML = 
+                '<p>✅ 快速验证完成</p>';
+        } else {
+            const error = await response.json();
+            document.getElementById('cvStatus').innerHTML = 
+                `<p>❌ 快速验证失败: ${error.detail}</p>`;
+        }
+        
+    } catch (error) {
+        document.getElementById('cvStatus').innerHTML = 
+            `<p>❌ 错误: ${error.message}</p>`;
+    }
+}
+
+// 检查交叉验证状态
+async function checkCVStatus() {
+    if (!currentCVTaskId) {
+        alert('请先启动一个验证任务');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/v1/cross-validation/status/${currentCVTaskId}`);
+        
+        if (response.ok) {
+            const status = await response.json();
+            updateCVStatus(status);
+            
+            if (status.status === 'completed') {
+                // 任务完成，获取结果
+                await loadCVResults(currentCVTaskId);
+                stopStatusChecking();
+            }
+        } else {
+            document.getElementById('cvStatus').innerHTML = 
+                '<p>❌ 无法获取任务状态</p>';
+        }
+        
+    } catch (error) {
+        document.getElementById('cvStatus').innerHTML = 
+            `<p>❌ 错误: ${error.message}</p>`;
+    }
+}
+
+// 开始状态检查
+function startStatusChecking() {
+    if (cvStatusCheckInterval) {
+        clearInterval(cvStatusCheckInterval);
+    }
+    
+    cvStatusCheckInterval = setInterval(async () => {
+        if (currentCVTaskId) {
+            await checkCVStatus();
+        }
+    }, 5000); // 每5秒检查一次
+}
+
+// 停止状态检查
+function stopStatusChecking() {
+    if (cvStatusCheckInterval) {
+        clearInterval(cvStatusCheckInterval);
+        cvStatusCheckInterval = null;
+    }
+}
+
+// 更新状态显示
+function updateCVStatus(status) {
+    const statusDiv = document.getElementById('cvStatus');
+    const progressBar = document.querySelector('.progress-fill');
+    
+    let statusHtml = `<p><strong>任务状态:</strong> ${status.status}</p>`;
+    
+    if (status.progress) {
+        statusHtml += `<p><strong>进度:</strong> ${status.progress}%</p>`;
+        progressBar.style.width = `${status.progress}%`;
+    }
+    
+    if (status.message) {
+        statusHtml += `<p><strong>消息:</strong> ${status.message}</p>`;
+    }
+    
+    if (status.estimated_completion) {
+        statusHtml += `<p><strong>预计完成时间:</strong> ${status.estimated_completion}</p>`;
+    }
+    
+    statusDiv.innerHTML = statusHtml;
+}
+
+// 加载验证结果
+async function loadCVResults(taskId) {
+    try {
+        const response = await fetch(`/api/v1/cross-validation/download/${taskId}/report`);
+        
+        if (response.ok) {
+            const result = await response.json();
+            displayCVResults(result);
+        } else {
+            document.getElementById('cvStatus').innerHTML = 
+                '<p>❌ 无法获取验证结果</p>';
+        }
+        
+    } catch (error) {
+        document.getElementById('cvStatus').innerHTML = 
+            `<p>❌ 错误: ${error.message}</p>`;
+    }
+}
+
+// 显示验证结果
+function displayCVResults(result) {
+    const resultsSection = document.getElementById('resultsSection');
+    const resultsContent = document.getElementById('cvResults');
+    
+    let resultsHtml = '<div class="results-summary">';
+    
+    if (result.overall_metrics) {
+        resultsHtml += `
+            <h5>整体性能指标</h5>
+            <div class="metrics-grid">
+                <div class="metric-item">
+                    <span class="metric-label">预测MSE:</span>
+                    <span class="metric-value">${result.overall_metrics.prediction_mse?.mean?.toFixed(4) || 'N/A'}</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">预测MAE:</span>
+                    <span class="metric-value">${result.overall_metrics.prediction_mae?.mean?.toFixed(4) || 'N/A'}</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">预测R²:</span>
+                    <span class="metric-value">${result.overall_metrics.prediction_r2?.mean?.toFixed(4) || 'N/A'}</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">风险评估分数:</span>
+                    <span class="metric-value">${result.overall_metrics.risk_assessment_score?.mean?.toFixed(4) || 'N/A'}</span>
+                </div>
+            </div>
+        `;
+    }
+    
+    if (result.station_metrics) {
+        resultsHtml += `
+            <h5>站点性能指标</h5>
+            <div class="station-metrics">
+                ${Object.entries(result.station_metrics).map(([station, metrics]) => `
+                    <div class="station-item">
+                        <h6>站点 ${station}</h6>
+                        <p>MSE: ${metrics.prediction_mse?.mean?.toFixed(4) || 'N/A'}</p>
+                        <p>MAE: ${metrics.prediction_mae?.mean?.toFixed(4) || 'N/A'}</p>
+                        <p>R²: ${metrics.prediction_r2?.mean?.toFixed(4) || 'N/A'}</p>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+    
+    resultsHtml += '</div>';
+    
+    resultsContent.innerHTML = resultsHtml;
+    resultsSection.style.display = 'block';
+}
+
+// 加载任务列表
+async function loadCVTasks() {
+    try {
+        const response = await fetch('/api/v1/cross-validation/tasks');
+        
+        if (response.ok) {
+            const tasks = await response.json();
+            displayCVTasks(tasks);
+        }
+        
+    } catch (error) {
+        console.error('加载任务列表失败:', error);
+    }
+}
+
+// 显示任务列表
+function displayCVTasks(tasks) {
+    const tasksDiv = document.getElementById('cvTasks');
+    
+    if (!tasks || tasks.length === 0) {
+        tasksDiv.innerHTML = '<p>暂无验证任务</p>';
+        return;
+    }
+    
+    let tasksHtml = '';
+    
+    tasks.forEach(task => {
+        const statusClass = task.status === 'completed' ? 'completed' : 
+                           task.status === 'failed' ? 'failed' : 'running';
+        
+        tasksHtml += `
+            <div class="task-item ${statusClass}">
+                <div class="task-header">
+                    <strong>任务ID:</strong> ${task.task_id}
+                    <span class="task-status">${task.status}</span>
+                </div>
+                <div class="task-details">
+                    <p><strong>创建时间:</strong> ${task.created_at}</p>
+                    <p><strong>站点:</strong> ${task.station_id || 'N/A'}</p>
+                    <p><strong>时间范围:</strong> ${task.start_date || 'N/A'} 到 ${task.end_date || 'N/A'}</p>
+                </div>
+                <div class="task-actions">
+                    <button onclick="viewTaskDetails('${task.task_id}')" class="btn btn-sm btn-info">查看详情</button>
+                    <button onclick="deleteTask('${task.task_id}')" class="btn btn-sm btn-danger">删除</button>
+                </div>
+            </div>
+        `;
+    });
+    
+    tasksDiv.innerHTML = tasksHtml;
+}
+
+// 查看任务详情
+async function viewTaskDetails(taskId) {
+    try {
+        const response = await fetch(`/api/v1/cross-validation/status/${taskId}`);
+        
+        if (response.ok) {
+            const status = await response.json();
+            currentCVTaskId = taskId;
+            updateCVStatus(status);
+            
+            if (status.status === 'completed') {
+                await loadCVResults(taskId);
+            }
+        }
+        
+    } catch (error) {
+        console.error('获取任务详情失败:', error);
+    }
+}
+
+// 删除任务
+async function deleteTask(taskId) {
+    if (!confirm('确定要删除这个任务吗？')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/v1/cross-validation/task/${taskId}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            alert('任务删除成功');
+            loadCVTasks(); // 重新加载任务列表
+        } else {
+            alert('删除失败');
+        }
+        
+    } catch (error) {
+        alert(`删除失败: ${error.message}`);
+    }
+}
+
+// 下载验证报告
+async function downloadCVReport() {
+    if (!currentCVTaskId) {
+        alert('请先完成一个验证任务');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/v1/cross-validation/download/${currentCVTaskId}/report`);
+        
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `cross_validation_report_${currentCVTaskId}.json`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        } else {
+            alert('下载失败');
+        }
+        
+    } catch (error) {
+        alert(`下载失败: ${error.message}`);
+    }
+}
+
+// 下载验证图表
+async function downloadCVPlots() {
+    if (!currentCVTaskId) {
+        alert('请先完成一个验证任务');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/v1/cross-validation/download/${currentCVTaskId}/plots`);
+        
+        if (response.ok) {
+            const plotsInfo = await response.json();
+            alert(`图表信息: ${JSON.stringify(plotsInfo, null, 2)}`);
+        } else {
+            alert('获取图表信息失败');
+        }
+        
+    } catch (error) {
+        alert(`获取图表信息失败: ${error.message}`);
+    }
+}
+
+// 页面加载完成后初始化
+document.addEventListener('DOMContentLoaded', function() {
+    // 设置默认日期
+    const today = new Date();
+    const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
+    
+    document.getElementById('cvStartDate').value = lastMonth.toISOString().split('T')[0];
+    document.getElementById('cvEndDate').value = today.toISOString().split('T')[0];
+});
+</script>
+

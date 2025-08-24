@@ -1,0 +1,174 @@
+{
+  "timestamp": "2025-08-21 11:59:52.837989",
+  "username": "lixiaowww",
+  "tests": {
+    "path_discovery": {
+      "status": "completed",
+      "discovered_paths": {
+        "/applications": {
+          "url": "https://urs.earthdata.nasa.gov/applications",
+          "status_code": 200,
+          "accessible": true,
+          "content_length": 10405,
+          "has_create_button": true,
+          "has_app_list": true,
+          "has_form": true
+        },
+        "/applications/new": {
+          "url": "https://urs.earthdata.nasa.gov/applications/new",
+          "status_code": 200,
+          "accessible": true,
+          "content_length": 10405,
+          "has_create_button": true,
+          "has_app_list": true,
+          "has_form": true
+        },
+        "/oauth/applications": {
+          "url": "https://urs.earthdata.nasa.gov/oauth/applications",
+          "status_code": 200,
+          "accessible": true,
+          "content_length": 10405,
+          "has_create_button": true,
+          "has_app_list": true,
+          "has_form": true
+        },
+        "/oauth/applications/new": {
+          "url": "https://urs.earthdata.nasa.gov/oauth/applications/new",
+          "status_code": 200,
+          "accessible": true,
+          "content_length": 10405,
+          "has_create_button": true,
+          "has_app_list": true,
+          "has_form": true
+        },
+        "/apps": {
+          "url": "https://urs.earthdata.nasa.gov/apps",
+          "status_code": 200,
+          "accessible": true,
+          "content_length": 10405,
+          "has_create_button": true,
+          "has_app_list": true,
+          "has_form": true
+        },
+        "/apps/new": {
+          "url": "https://urs.earthdata.nasa.gov/apps/new",
+          "status_code": 200,
+          "accessible": true,
+          "content_length": 8846,
+          "has_create_button": true,
+          "has_app_list": true,
+          "has_form": true
+        },
+        "/my/applications": {
+          "url": "https://urs.earthdata.nasa.gov/my/applications",
+          "status_code": 200,
+          "accessible": true,
+          "content_length": 8846,
+          "has_create_button": true,
+          "has_app_list": true,
+          "has_form": true
+        },
+        "/my/apps": {
+          "url": "https://urs.earthdata.nasa.gov/my/apps",
+          "status_code": 200,
+          "accessible": true,
+          "content_length": 8846,
+          "has_create_button": true,
+          "has_app_list": true,
+          "has_form": true
+        },
+        "/profile/applications": {
+          "url": "https://urs.earthdata.nasa.gov/profile/applications",
+          "status_code": 200,
+          "accessible": true,
+          "content_length": 8846,
+          "has_create_button": true,
+          "has_app_list": true,
+          "has_form": true
+        },
+        "/profile/apps": {
+          "url": "https://urs.earthdata.nasa.gov/profile/apps",
+          "status_code": 200,
+          "accessible": true,
+          "content_length": 8846,
+          "has_create_button": true,
+          "has_app_list": true,
+          "has_form": true
+        }
+      },
+      "summary": {
+        "total_paths": 10,
+        "accessible": 10,
+        "with_create_button": 10,
+        "with_app_list": 10,
+        "with_form": 10
+      }
+    },
+    "page_analysis": {
+      "status": "success",
+      "page_url": "https://urs.earthdata.nasa.gov/applications",
+      "content_length": 10405,
+      "has_applications_section": true,
+      "has_create_button": true,
+      "has_app_list": true,
+      "has_navigation": true,
+      "has_forms": true,
+      "has_oauth_info": false,
+      "content_preview": "<!DOCTYPE html>\n<!--[if lt IE 7]><html class=\"no-js lt-ie9 lt-ie8 lt-ie7\"> <![endif]-->\n<!--[if IE 7]><html class=\"no-js lt-ie9 lt-ie8\"> <![endif]-->\n<!--[if IE 8]><html class=\"no-js lt-ie9\"> <![endif]-->\n<!--[if gt IE 8]><!--><html lang=\"en\" class=\"no-js\"><!--<![endif]-->\n  <head>\n    <meta charset=\"utf-8\">\n    <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge,chrome=1\">\n    <title>Earthdata Login</title>\n    <meta name=\"description\" content=\"Earthdata Login\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n\n    <!-- Google Tag Manager -->\n    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push(\n\n      {'gtm.start': new Date().getTime(),event:'gtm.js'}\n\n    );var f=d.getElementsByTagName(s)[0],\n      j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=\n      'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);\n    })(window,document,'script','dataLayer','GTM-WNP7MLF');</script>\n    <!-- End Google Tag Manager...",
+      "all_links": [
+        "/assets/application-f6bf1b938c8159947246866978e15c467902bef70b069dabf6fee52c2d02f034.css",
+        "/assets/font-awesome-ie7.min.css",
+        "//netdna.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css",
+        "/retrieve_info",
+        "/reset_passwords/new",
+        "/users/new",
+        "/"
+      ],
+      "create_links": [
+        "/reset_passwords/new",
+        "/users/new"
+      ]
+    },
+    "direct_creation": {
+      "status": "completed",
+      "results": {
+        "/applications": {
+          "status_code": 200,
+          "success": true,
+          "response_length": 10405,
+          "has_error": false,
+          "redirect_url": "",
+          "response_preview": "<!DOCTYPE html>\n<!--[if lt IE 7]><html class=\"no-js lt-ie9 lt-ie8 lt-ie7\"> <![endif]-->\n<!--[if IE 7]><html class=\"no-js lt-ie9 lt-ie8\"> <![endif]-->\n<!--[if IE 8]><html class=\"no-js lt-ie9\"> <![endif]-->\n<!--[if gt IE 8]><!--><html lang=\"en\" class=\"no-js\"><!--<![endif]-->\n  <head>\n    <meta charset=\"utf-8\">\n    <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge,chrome=1\">\n    <title>Earthdata Login</title>\n    <meta name=\"description\" content=\"Earthdata Login\">\n    <meta name=\"viewport\" conten..."
+        },
+        "/oauth/applications": {
+          "status_code": 200,
+          "success": true,
+          "response_length": 10405,
+          "has_error": false,
+          "redirect_url": "",
+          "response_preview": "<!DOCTYPE html>\n<!--[if lt IE 7]><html class=\"no-js lt-ie9 lt-ie8 lt-ie7\"> <![endif]-->\n<!--[if IE 7]><html class=\"no-js lt-ie9 lt-ie8\"> <![endif]-->\n<!--[if IE 8]><html class=\"no-js lt-ie9\"> <![endif]-->\n<!--[if gt IE 8]><!--><html lang=\"en\" class=\"no-js\"><!--<![endif]-->\n  <head>\n    <meta charset=\"utf-8\">\n    <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge,chrome=1\">\n    <title>Earthdata Login</title>\n    <meta name=\"description\" content=\"Earthdata Login\">\n    <meta name=\"viewport\" conten..."
+        },
+        "/apps": {
+          "status_code": 200,
+          "success": true,
+          "response_length": 10405,
+          "has_error": false,
+          "redirect_url": "",
+          "response_preview": "<!DOCTYPE html>\n<!--[if lt IE 7]><html class=\"no-js lt-ie9 lt-ie8 lt-ie7\"> <![endif]-->\n<!--[if IE 7]><html class=\"no-js lt-ie9 lt-ie8\"> <![endif]-->\n<!--[if IE 8]><html class=\"no-js lt-ie9\"> <![endif]-->\n<!--[if gt IE 8]><!--><html lang=\"en\" class=\"no-js\"><!--<![endif]-->\n  <head>\n    <meta charset=\"utf-8\">\n    <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge,chrome=1\">\n    <title>Earthdata Login</title>\n    <meta name=\"description\" content=\"Earthdata Login\">\n    <meta name=\"viewport\" conten..."
+        }
+      },
+      "summary": {
+        "total_endpoints": 3,
+        "successful": 3,
+        "failed": 0
+      }
+    }
+  },
+  "overall_assessment": {
+    "creation_status": "creation_successful",
+    "recommendation": "应用创建成功！",
+    "path_discovery_ok": true,
+    "page_analysis_ok": true,
+    "direct_creation_ok": true
+  }
+}

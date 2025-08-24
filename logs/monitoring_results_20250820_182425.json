@@ -1,0 +1,107 @@
+{
+  "monitoring_start": "2025-08-20T18:24:07.242982",
+  "models": {
+    "swe_model": {
+      "model_type": "SWE Prediction",
+      "status": "monitoring_complete",
+      "test_cases": {
+        "7d": {
+          "status": "success",
+          "response_time": 0.076476,
+          "data_points": 8,
+          "forecast_type": "SWE",
+          "confidence_level": 90
+        },
+        "14d": {
+          "status": "success",
+          "response_time": 0.118487,
+          "data_points": 15,
+          "forecast_type": "SWE",
+          "confidence_level": 90
+        },
+        "30d": {
+          "status": "success",
+          "response_time": 0.268499,
+          "data_points": 31,
+          "forecast_type": "SWE",
+          "confidence_level": 90
+        }
+      },
+      "timestamp": "2025-08-20T18:24:07.710907"
+    },
+    "runoff_model": {
+      "model_type": "Runoff Prediction",
+      "status": "monitoring_complete",
+      "test_cases": {
+        "7d": {
+          "status": "error",
+          "error_code": 422,
+          "error_message": "{\"detail\":\"No overlapping dates between request and ECCC data\"}"
+        },
+        "14d": {
+          "status": "error",
+          "error_code": 422,
+          "error_message": "{\"detail\":\"No overlapping dates between request and ECCC data\"}"
+        },
+        "30d": {
+          "status": "error",
+          "error_code": 422,
+          "error_message": "{\"detail\":\"No overlapping dates between request and ECCC data\"}"
+        }
+      },
+      "timestamp": "2025-08-20T18:24:07.876967"
+    },
+    "agriculture_model": {
+      "model_type": "Agriculture Model",
+      "status": "monitoring_complete",
+      "model_status": {
+        "status": "ready",
+        "config": {
+          "input_size": 5,
+          "hidden_size": 64,
+          "num_layers": 1,
+          "dropout": 0.1,
+          "learning_rate": 0.0005,
+          "batch_size": 64,
+          "epochs": 100,
+          "sequence_length": 30,
+          "patience": 15,
+          "min_delta": 0.0001
+        },
+        "training_history": true
+      },
+      "prediction_status": "exception",
+      "prediction_info": {
+        "error_message": "HTTPConnectionPool(host='localhost', port=8000): Read timed out. (read timeout=10)"
+      },
+      "timestamp": "2025-08-20T18:24:17.897311"
+    },
+    "flood_warning_model": {
+      "model_type": "Flood Warning",
+      "status": "monitoring_complete",
+      "model_status": {
+        "status": "success",
+        "model": {
+          "loaded": true,
+          "type": "Random Forest Classifier",
+          "features": 15,
+          "training_samples": 650
+        },
+        "scaler": {
+          "loaded": true,
+          "type": "StandardScaler"
+        },
+        "last_updated": "2025-08-20T18:24:24.462519"
+      },
+      "risk_assessment_status": "success",
+      "risk_info": {
+        "response_time": 0.769183,
+        "overall_risk": "LOW",
+        "risk_percentage": 9.85
+      },
+      "timestamp": "2025-08-20T18:24:25.243364"
+    }
+  },
+  "monitoring_duration": 18.000697135925293,
+  "monitoring_end": "2025-08-20T18:24:25.243679"
+}

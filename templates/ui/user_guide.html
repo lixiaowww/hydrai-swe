@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HydrAI-SWE User Guide - Complete System Documentation</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .logo i {
+            font-size: 2rem;
+            color: #4A90E2;
+        }
+
+        .logo h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #555;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            background: #f8f9fa;
+            color: #4A90E2;
+        }
+
+        .nav-links a.active {
+            background: #4A90E2;
+            color: white;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .guide-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .guide-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid #f1f3f4;
+        }
+
+        .guide-header h1 {
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+        }
+
+        .guide-header p {
+            font-size: 1.2rem;
+            color: #7f8c8d;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .toc {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .toc h2 {
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+        }
+
+        .toc-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .toc-list li {
+            margin: 0.8rem 0;
+            padding: 0.5rem;
+            border-radius: 6px;
+            transition: background 0.3s ease;
+        }
+
+        .toc-list li:hover {
+            background: #e9ecef;
+        }
+
+        .toc-list a {
+            text-decoration: none;
+            color: #4A90E2;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section {
+            margin-bottom: 4rem;
+            padding: 2rem 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .section:last-child {
+            border-bottom: none;
+        }
+
+        .section h2 {
+            color: #2c3e50;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #4A90E2;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .section h3 {
+            color: #34495e;
+            font-size: 1.5rem;
+            margin: 2rem 0 1rem 0;
+        }
+
+        .section h4 {
+            color: #2c3e50;
+            font-size: 1.2rem;
+            margin: 1.5rem 0 0.5rem 0;
+        }
+
+        .section p {
+            line-height: 1.7;
+            margin: 1rem 0;
+            color: #555;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .feature-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 1.5rem;
+            border-left: 4px solid #4A90E2;
+        }
+
+        .feature-card h4 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .feature-card i {
+            color: #4A90E2;
+        }
+
+        .step-list {
+            counter-reset: step;
+            list-style: none;
+            padding: 0;
+            margin: 2rem 0;
+        }
+
+        .step-list li {
+            counter-increment: step;
+            background: #f8f9fa;
+            margin: 1rem 0;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid #4A90E2;
+            position: relative;
+        }
+
+        .step-list li::before {
+            content: counter(step);
+            position: absolute;
+            left: -2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #4A90E2;
+            color: white;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.8rem;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .code-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 1.5rem;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+        }
+
+        .screenshot-placeholder {
+            background: #e9ecef;
+            border: 2px dashed #adb5bd;
+            border-radius: 8px;
+            padding: 3rem;
+            text-align: center;
+            color: #6c757d;
+            margin: 1rem 0;
+        }
+
+        .back-to-top {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #4A90E2;
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+            transition: all 0.3s ease;
+            display: none;
+        }
+
+        .back-to-top:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(74, 144, 226, 0.4);
+        }
+
+        .back-to-top.visible {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 1rem auto;
+                padding: 0 0.5rem;
+            }
+            
+            .guide-container {
+                padding: 1rem;
+            }
+            
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-book-open"></i>
+                <h1>HydrAI-SWE User Guide</h1>
+            </div>
+            <div class="nav-links">
+                <a href="/ui"><i class="fas fa-home"></i> Dashboard</a>
+                <a href="/applications"><i class="fas fa-water"></i> Applications</a>
+                <a href="/model"><i class="fas fa-brain"></i> Model Training</a>
+                <a href="/guides" class="active"><i class="fas fa-book-open"></i> User Guide</a>
+                <a href="/docs" target="_blank"><i class="fas fa-code"></i> API Reference</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="guide-container">
+            <div class="guide-header">
+                <h1><i class="fas fa-mountain-snow"></i> HydrAI-SWE User Guide</h1>
+                <p>Complete documentation for the HydrAI-SWE Enhanced System - Your comprehensive guide to snow water equivalent prediction, flood warning, and agricultural intelligence tools.</p>
+            </div>
+
+            <div class="toc">
+                <h2><i class="fas fa-list"></i> Table of Contents</h2>
+                <ul class="toc-list">
+                    <li><a href="#overview"><i class="fas fa-info-circle"></i> System Overview</a></li>
+                    <li><a href="#getting-started"><i class="fas fa-play"></i> Getting Started</a></li>
+                    <li><a href="#dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard Interface</a></li>
+                    <li><a href="#applications"><i class="fas fa-seedling"></i> Agriculture Applications</a></li>
+                    <li><a href="#model-training"><i class="fas fa-brain"></i> Model Training</a></li>
+                    <li><a href="#data-sources"><i class="fas fa-database"></i> Data Sources</a></li>
+                    <li><a href="#troubleshooting"><i class="fas fa-wrench"></i> Troubleshooting</a></li>
+                    <li><a href="#api-usage"><i class="fas fa-code"></i> API Usage</a></li>
+                    <li><a href="#support"><i class="fas fa-life-ring"></i> Support & Resources</a></li>
+                </ul>
+            </div>
+
+            <section id="overview" class="section">
+                <h2><i class="fas fa-info-circle"></i> System Overview</h2>
+                
+                <p>HydrAI-SWE is an advanced hydrological intelligence system designed for snow water equivalent (SWE) prediction, flood warning, and agricultural decision support. The system integrates machine learning models with real-time environmental data to provide accurate predictions for water resource management.</p>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4><i class="fas fa-snowflake"></i> SWE Prediction</h4>
+                        <p>Advanced machine learning models for predicting snow water equivalent with confidence intervals and seasonal analysis.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4><i class="fas fa-exclamation-triangle"></i> Flood Warning</h4>
+                        <p>Real-time flood risk assessment with early warning alerts and risk level classification.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4><i class="fas fa-seedling"></i> Agricultural Intelligence</h4>
+                        <p>Soil moisture prediction, crop recommendations, and yield forecasting for agricultural decision support.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4><i class="fas fa-chart-line"></i> Data Analytics</h4>
+                        <p>Historical trend analysis, seasonal patterns, and comprehensive data visualization tools.</p>
+                    </div>
+                </div>
+
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        <strong>System Architecture:</strong> The HydrAI-SWE system is built with a FastAPI backend, real-time data integration from Environment Canada (ECCC), USGS, and NASA SMAP, and a responsive web frontend supporting English and French languages.
+                    </div>
+                </div>
+            </section>
+
+            <section id="getting-started" class="section">
+                <h2><i class="fas fa-play"></i> Getting Started</h2>
+                
+                <h3>Quick Start</h3>
+                <ol class="step-list">
+                    <li>
+                        <strong>Access the Dashboard</strong>
+                        <p>Navigate to the main dashboard at <code>/ui</code> to view the primary interface with historical analysis and forecasting tools.</p>
+                    </li>
+                    <li>
+                        <strong>Select Your Language</strong>
+                        <p>Choose between English and French using the language switcher in the top navigation bar.</p>
+                    </li>
+                    <li>
+                        <strong>Explore the Data</strong>
+                        <p>Use the date range selectors and region filters to explore historical SWE data and trends for your area of interest.</p>
+                    </li>
+                    <li>
+                        <strong>Generate Predictions</strong>
+                        <p>Switch to the "Future Forecast" tab to access 7, 14, and 30-day SWE and runoff predictions with confidence intervals.</p>
+                    </li>
+                </ol>
+
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i>
+                    <div>
+                        <strong>First Time Users:</strong> Start with the dashboard's preset date ranges (Last Year, 3 Years, 5 Years) to familiarize yourself with the data visualization tools before exploring custom date ranges.
+                    </div>
+                </div>
+            </section>
+
+            <section id="dashboard" class="section">
+                <h2><i class="fas fa-tachometer-alt"></i> Dashboard Interface</h2>
+                
+                <h3>Historical Analysis Tab</h3>
+                <h4>Regional SWE Overview</h4>
+                <ul>
+                    <li><strong>Date Range Selection:</strong> Choose custom date ranges or use presets (1 year, 3 years, 5 years, all data)</li>
+                    <li><strong>Region Filtering:</strong> Select specific regions including Red River Basin, Southern Region, Central Region, and Western Tributary</li>
+                    <li><strong>Station Comparison:</strong> View multiple monitoring stations simultaneously for detailed comparisons</li>
+                </ul>
+
+                <h4>SWE Analysis</h4>
+                <p>The SWE Analysis tool provides comprehensive trend analysis with:</p>
+                <ul>
+                    <li>Long-term trend analysis (trend per decade)</li>
+                    <li>Statistical significance testing</li>
+                    <li>Seasonal pattern identification</li>
+                    <li>Peak accumulation month detection</li>
+                    <li>Automated insights based on analysis results</li>
+                </ul>
+
+                <div class="code-block">
+# Example SWE Analysis Results
+Trend per Decade: +12.5 mm
+Statistical Significance: p = 2.3e-04
+Peak SWE Month: March
+Data Quality: Good
+                </div>
+
+                <h4>Current Season Summary</h4>
+                <p>Real-time metrics including:</p>
+                <ul>
+                    <li>Total snow accumulation for current season</li>
+                    <li>Comparison vs. historical average</li>
+                    <li>Peak SWE date identification</li>
+                    <li>Active monitoring station count</li>
+                </ul>
+
+                <h3>Future Forecast Tab</h3>
+                <h4>30-Day SWE & Runoff Forecast</h4>
+                <ul>
+                    <li><strong>Forecast Types:</strong> Snow Water Equivalent, Runoff Volume, or Combined View</li>
+                    <li><strong>Time Ranges:</strong> 7, 14, or 30-day predictions</li>
+                    <li><strong>Confidence Intervals:</strong> Upper and lower confidence bounds at 90% level</li>
+                    <li><strong>Seasonal Information:</strong> Automatic summer season detection with climate context</li>
+                </ul>
+
+                <h4>Flood Risk Assessment</h4>
+                <p>Real-time flood risk metrics with:</p>
+                <ul>
+                    <li>Overall risk level classification (Low/Moderate/High)</li>
+                    <li>Peak risk period identification</li>
+                    <li>Number of regions at risk</li>
+                    <li>Alert lead time for early warnings</li>
+                </ul>
+
+                <h4>Runoff Predictions</h4>
+                <ul>
+                    <li><strong>Station Selection:</strong> Choose from available hydrometric stations</li>
+                    <li><strong>Multi-Basin Comparison:</strong> View predictions across different river basins</li>
+                    <li><strong>Flow Rate Forecasting:</strong> Detailed flow rate predictions in m³/s</li>
+                </ul>
+
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>
+                        <strong>Data Refresh:</strong> Dashboard data is updated every 6 hours for forecasts and daily for historical data. Use the refresh button to ensure you're viewing the latest information.
+                    </div>
+                </div>
+            </section>
+
+            <section id="applications" class="section">
+                <h2><i class="fas fa-seedling"></i> Agriculture Applications</h2>
+                
+                <p>The Agriculture Intelligence Suite provides specialized tools for agricultural decision support, accessible through the <code>/applications</code> interface.</p>
+
+                <h3>Soil Moisture Prediction</h3>
+                <h4>Input Parameters:</h4>
+                <ul>
+                    <li><strong>Location:</strong> Specify geographic region (e.g., Manitoba Province)</li>
+                    <li><strong>Date Range:</strong> Select start and end dates for prediction period</li>
+                    <li><strong>Soil Type:</strong> Choose from available soil classifications</li>
+                </ul>
+
+                <h4>Output Metrics:</h4>
+                <ul>
+                    <li>Mean soil moisture percentage</li>
+                    <li>Moisture range (min-max values)</li>
+                    <li>Model confidence information</li>
+                    <li>LSTM model architecture details</li>
+                </ul>
+
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        <strong>Model Training:</strong> The soil moisture predictor uses an LSTM neural network that may require training on first use. Training typically takes 30-120 seconds depending on data volume.
+                    </div>
+                </div>
+
+                <h3>Crop Recommendations</h3>
+                <h4>Environmental Inputs:</h4>
+                <ul>
+                    <li>Average temperature (°C)</li>
+                    <li>Expected precipitation (mm)</li>
+                    <li>Soil moisture level (%)</li>
+                    <li>Soil type classification</li>
+                </ul>
+
+                <h4>Recommendation Categories:</h4>
+                <ul>
+                    <li><strong>Highly Suitable:</strong> Crops with optimal growing conditions</li>
+                    <li><strong>Suitable:</strong> Crops with good growing potential</li>
+                    <li><strong>Moderately Suitable:</strong> Crops that may require additional management</li>
+                </ul>
+
+                <h3>Yield Prediction</h3>
+                <p>Predict crop yields based on:</p>
+                <ul>
+                    <li>Crop type selection</li>
+                    <li>Planting date</li>
+                    <li>Geographic location</li>
+                    <li>Weather condition inputs</li>
+                </ul>
+
+                <h4>Prediction Output:</h4>
+                <ul>
+                    <li>Expected yield value with units</li>
+                    <li>Confidence interval range</li>
+                    <li>Uncertainty quantification</li>
+                    <li>Model performance metrics</li>
+                </ul>
+
+                <h3>Data Authenticity Report</h3>
+                <p>Access detailed analysis of data sources and quality metrics through <code>/applications/data-authenticity</code>:</p>
+                <ul>
+                    <li>Data source verification</li>
+                    <li>Quality assessment scores</li>
+                    <li>Authenticity confidence levels</li>
+                    <li>Recommendations for production use</li>
+                </ul>
+            </section>
+
+            <section id="model-training" class="section">
+                <h2><i class="fas fa-brain"></i> Model Training</h2>
+                
+                <p>The Model Training interface at <code>/model</code> provides access to advanced model configuration and training tools for technical users.</p>
+
+                <h3>Available Models</h3>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4><i class="fas fa-snowflake"></i> SWE Prediction Models</h4>
+                        <p>LSTM and ensemble models for snow water equivalent forecasting with cross-validation support.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4><i class="fas fa-exclamation-triangle"></i> Flood Warning Models</h4>
+                        <p>Classification models for flood risk assessment with real-time monitoring integration.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4><i class="fas fa-leaf"></i> Agricultural Models</h4>
+                        <p>Soil moisture prediction and crop yield forecasting models with LSTM architecture.</p>
+                    </div>
+                </div>
+
+                <h3>Training Configuration</h3>
+                <h4>Model Parameters:</h4>
+                <ul>
+                    <li><strong>Learning Rate:</strong> Adjust model learning parameters</li>
+                    <li><strong>Batch Size:</strong> Configure training batch sizes</li>
+                    <li><strong>Epochs:</strong> Set number of training iterations</li>
+                    <li><strong>Validation Split:</strong> Specify train/validation data ratios</li>
+                </ul>
+
+                <h4>Data Configuration:</h4>
+                <ul>
+                    <li>Training data source selection</li>
+                    <li>Feature engineering options</li>
+                    <li>Data preprocessing parameters</li>
+                    <li>Cross-validation settings</li>
+                </ul>
+
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>
+                        <strong>Technical Users Only:</strong> Model training requires advanced knowledge of machine learning concepts. Incorrect configuration may impact system performance. Contact support if assistance is needed.
+                    </div>
+                </div>
+            </section>
+
+            <section id="data-sources" class="section">
+                <h2><i class="fas fa-database"></i> Data Sources</h2>
+                
+                <p>HydrAI-SWE integrates data from multiple authoritative sources to ensure accuracy and reliability:</p>
+
+                <h3>Primary Data Sources</h3>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4><i class="fas fa-flag"></i> Environment Canada (ECCC)</h4>
+                        <p>Real-time meteorological and hydrological data from Environment and Climate Change Canada monitoring networks.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4><i class="fas fa-flag-usa"></i> USGS Water Services</h4>
+                        <p>United States Geological Survey hydrometric data for cross-border watershed monitoring.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4><i class="fas fa-satellite"></i> NASA SMAP</h4>
+                        <p>Soil Moisture Active Passive satellite data for large-scale soil moisture monitoring.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4><i class="fas fa-water"></i> Provincial Networks</h4>
+                        <p>Provincial water survey networks and automated snow pillow monitoring stations.</p>
+                    </div>
+                </div>
+
+                <h3>Data Quality Assurance</h3>
+                <ul>
+                    <li><strong>Real-time Validation:</strong> Automatic quality checks on incoming data streams</li>
+                    <li><strong>Historical Consistency:</strong> Long-term data consistency verification</li>
+                    <li><strong>Multi-source Verification:</strong> Cross-validation between different data sources</li>
+                    <li><strong>Gap Filling:</strong> Intelligent interpolation for missing data points (limited to 7-day gaps)</li>
+                </ul>
+
+                <h3>Data Update Frequency</h3>
+                <ul>
+                    <li><strong>Real-time Data:</strong> Updated every 15-30 minutes</li>
+                    <li><strong>Forecast Models:</strong> Updated every 6 hours</li>
+                    <li><strong>Historical Analysis:</strong> Updated daily</li>
+                    <li><strong>Satellite Data:</strong> Updated every 2-3 days</li>
+                </ul>
+
+                <div class="code-block">
+# Example API endpoint for real-time station data
+GET /api/swe/stations/real-time
+{
+    "stations": [
+        {
+            "station_id": "05OC011",
+            "name": "Red River at Winnipeg",
+            "latitude": 49.895,
+            "longitude": -97.239,
+            "last_update": "2024-08-20T14:30:00Z"
+        }
+    ]
+}
+                </div>
+            </section>
+
+            <section id="troubleshooting" class="section">
+                <h2><i class="fas fa-wrench"></i> Troubleshooting</h2>
+                
+                <h3>Common Issues</h3>
+                
+                <h4>Charts Not Loading</h4>
+                <ul>
+                    <li><strong>Check Internet Connection:</strong> Ensure stable internet connectivity</li>
+                    <li><strong>Clear Browser Cache:</strong> Clear cache and refresh the page</li>
+                    <li><strong>Try Different Date Range:</strong> Some periods may have limited data</li>
+                    <li><strong>Check Region Selection:</strong> Ensure selected region has available data</li>
+                </ul>
+
+                <h4>No Data Available Message</h4>
+                <ul>
+                    <li><strong>Expand Date Window:</strong> Try a longer time period</li>
+                    <li><strong>Select Different Region:</strong> Some regions may have sparse data</li>
+                    <li><strong>Check Station Status:</strong> Verify monitoring stations are active</li>
+                </ul>
+
+                <h4>Agriculture Model Training Timeout</h4>
+                <ul>
+                    <li><strong>Wait for Completion:</strong> Initial training may take up to 2 minutes</li>
+                    <li><strong>Check Model Status:</strong> Use the model status endpoint to verify readiness</li>
+                    <li><strong>Retry After Training:</strong> Subsequent predictions will be faster</li>
+                </ul>
+
+                <h4>API Request Failures</h4>
+                <ul>
+                    <li><strong>Check API Endpoints:</strong> Verify correct endpoint URLs</li>
+                    <li><strong>Validate Parameters:</strong> Ensure all required parameters are provided</li>
+                    <li><strong>Check Network Connectivity:</strong> Verify server accessibility</li>
+                </ul>
+
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        <strong>Debug Mode:</strong> Open browser developer tools (F12) to view console messages for detailed error information. Look for network errors or JavaScript exceptions.
+                    </div>
+                </div>
+            </section>
+
+            <section id="api-usage" class="section">
+                <h2><i class="fas fa-code"></i> API Usage</h2>
+                
+                <p>HydrAI-SWE provides a comprehensive REST API for programmatic access to all system functionality.</p>
+
+                <h3>Base URL</h3>
+                <div class="code-block">
+https://your-domain.com/api
+                </div>
+
+                <h3>Authentication</h3>
+                <p>Currently, the API uses IP-based access control. Contact your administrator for API access credentials if required.</p>
+
+                <h3>Common Endpoints</h3>
+
+                <h4>SWE Data Endpoints</h4>
+                <div class="code-block">
+# Get historical SWE data
+GET /api/swe/historical?start_date=2024-01-01&end_date=2024-08-20&region=all
+
+# Get SWE forecast
+GET /api/swe/forecast?days=30&forecast_type=swe&region=all
+
+# Get seasonal analysis
+POST /api/swe/analysis
+{
+    "mode": "seasonal",
+    "column": "snow_water_equivalent_mm"
+}
+                </div>
+
+                <h4>Agriculture Endpoints</h4>
+                <div class="code-block">
+# Soil moisture prediction
+POST /api/v1/agriculture/soil-moisture/predict
+{
+    "location": "manitoba-province",
+    "start_date": "2024-01-01",
+    "end_date": "2024-08-20"
+}
+
+# Crop recommendations
+POST /api/v1/agriculture/crop/recommend
+{
+    "location": "manitoba-province",
+    "temperature": 20,
+    "precipitation": 400,
+    "soil_moisture": 30,
+    "soil_type": "clay"
+}
+                </div>
+
+                <h4>Flood Warning Endpoints</h4>
+                <div class="code-block">
+# Flood risk assessment
+GET /api/v1/flood/risk-assessment?days=14&region=red-river-basin
+
+# Real-time flood risk
+GET /api/v1/flood/real-time-risk
+                </div>
+
+                <h3>Response Format</h3>
+                <p>All API responses follow a consistent JSON format:</p>
+                <div class="code-block">
+{
+    "status": "success",
+    "data": {
+        // Response data
+    },
+    "metadata": {
+        "timestamp": "2024-08-20T14:30:00Z",
+        "version": "1.0.0"
+    }
+}
+                </div>
+
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        <strong>API Documentation:</strong> Complete API documentation with interactive examples is available at <code>/docs</code> (FastAPI Swagger interface).
+                    </div>
+                </div>
+            </section>
+
+            <section id="support" class="section">
+                <h2><i class="fas fa-life-ring"></i> Support & Resources</h2>
+                
+                <h3>Getting Help</h3>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4><i class="fas fa-book"></i> Documentation</h4>
+                        <p>Complete system documentation including API references and technical specifications.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4><i class="fas fa-envelope"></i> Technical Support</h4>
+                        <p>Contact our technical support team for assistance with system configuration and troubleshooting.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4><i class="fas fa-users"></i> User Community</h4>
+                        <p>Connect with other HydrAI-SWE users to share experiences and best practices.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4><i class="fas fa-graduation-cap"></i> Training Resources</h4>
+                        <p>Access training materials and webinars to maximize your use of the system.</p>
+                    </div>
+                </div>
+
+                <h3>System Requirements</h3>
+                <h4>Browser Compatibility</h4>
+                <ul>
+                    <li>Chrome 90+ (Recommended)</li>
+                    <li>Firefox 88+</li>
+                    <li>Safari 14+</li>
+                    <li>Edge 90+</li>
+                </ul>
+
+                <h4>Network Requirements</h4>
+                <ul>
+                    <li>Minimum bandwidth: 1 Mbps</li>
+                    <li>Recommended bandwidth: 5+ Mbps for optimal performance</li>
+                    <li>WebSocket support for real-time updates</li>
+                </ul>
+
+                <h3>Version Information</h3>
+                <ul>
+                    <li><strong>System Version:</strong> HydrAI-SWE 1.0.0</li>
+                    <li><strong>API Version:</strong> v1</li>
+                    <li><strong>Last Updated:</strong> August 2024</li>
+                    <li><strong>Data Coverage:</strong> 1990-Present</li>
+                </ul>
+
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i>
+                    <div>
+                        <strong>Stay Updated:</strong> Subscribe to system notifications to receive updates about new features, data sources, and system maintenance schedules.
+                    </div>
+                </div>
+
+                <h3>Acknowledgments</h3>
+                <p>HydrAI-SWE development is supported by:</p>
+                <ul>
+                    <li>Environment and Climate Change Canada (ECCC)</li>
+                    <li>United States Geological Survey (USGS)</li>
+                    <li>NASA Soil Moisture Active Passive (SMAP) Program</li>
+                    <li>Provincial water management agencies</li>
+                    <li>Academic research institutions</li>
+                </ul>
+            </section>
+        </div>
+    </div>
+
+    <button class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <script>
+        // Back to top button functionality
+        const backToTopButton = document.getElementById('backToTop');
+        
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                backToTopButton.classList.add('visible');
+            } else {
+                backToTopButton.classList.remove('visible');
+            }
+        });
+        
+        backToTopButton.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        // Smooth scrolling for table of contents links
+        document.querySelectorAll('.toc-list a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const target = document.querySelector(link.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('HydrAI-SWE User Guide loaded');
+        });
+    </script>
+</body>
+</html>

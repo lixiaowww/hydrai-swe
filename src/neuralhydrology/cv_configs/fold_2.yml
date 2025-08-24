@@ -9,12 +9,6 @@ dynamic_inputs:
 - day_of_year
 - month
 - year
-- temperature_c
-- precipitation_mm
-- freezing_degree_day
-- fdd_7d
-- fdd_30d
-- below_zero_days_7d
 epochs: 5
 experiment_name: hydrai_swe_cv_fold2
 forcings:
@@ -24,8 +18,6 @@ forcings:
 - day_of_year
 - month
 - year
-- temperature_c
-- precipitation_mm
 head: regression
 hidden_size: 64
 initial_forget_bias: 3.0

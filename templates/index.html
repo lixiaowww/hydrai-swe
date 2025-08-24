@@ -304,8 +304,8 @@
     }
     
     body.dark { 
-      background: #0b1220; 
-      color: #e5e7eb; 
+      background: #0f172a; 
+      color: #f1f5f9; 
     }
     
     body.dark .card,
@@ -314,22 +314,72 @@
     body.dark .provenance-panel,
     body.dark .glossary-panel {
       background: #1e293b;
-      border-color: #334155;
-      color: #e5e7eb;
+      border-color: #475569;
+      color: #f1f5f9;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
     }
     
     body.dark .provenance-item,
     body.dark .glossary-item {
       background: #334155;
+      border-left-color: #60a5fa;
+    }
+    
+    body.dark .provenance-item strong,
+    body.dark .glossary-term {
+      color: #fbbf24;
+    }
+    
+    body.dark .provenance-item span,
+    body.dark .glossary-definition {
+      color: #cbd5e1;
+    }
+    
+    body.dark .glossary-acronym {
+      color: #94a3b8;
     }
     
     body.dark th {
       background: #334155;
-      color: #e5e7eb;
+      color: #fbbf24;
+      border-color: #475569;
     }
     
     body.dark td {
-      color: #cbd5e1;
+      color: #e2e8f0;
+      border-color: #475569;
+    }
+    
+    body.dark .status {
+      background: #1e3a8a;
+      border-color: #3b82f6;
+      color: #dbeafe;
+    }
+    
+    body.dark .status.error {
+      background: #7f1d1d;
+      border-color: #dc2626;
+      color: #fecaca;
+    }
+    
+    body.dark .status.success {
+      background: #14532d;
+      border-color: #16a34a;
+      color: #bbf7d0;
+    }
+    
+    body.dark .muted,
+    body.dark .small {
+      color: #94a3b8;
+    }
+    
+    body.dark .toolbar button.secondary {
+      background: #475569;
+      color: #f1f5f9;
+    }
+    
+    body.dark .toolbar button.secondary:hover {
+      background: #64748b;
     }
     
     @media (max-width: 768px) {
@@ -350,7 +400,7 @@
 </head>
 <body>
   <div class="dark-mode-toggle">
-    <button onclick="toggleDarkMode()" style="padding: 8px 12px; background: #6b7280; color: white; border: none; border-radius: 6px; cursor: pointer;">
+    <button onclick="toggleDarkMode()" style="padding: 8px 12px; background: #6b7280; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
       🌙 Dark Mode
     </button>
   </div>
@@ -363,52 +413,55 @@
         <h2>HydrAI-SWE 积雪水当量预测系统</h2>
         
         <div class="control-group">
-          <label for="mode">预测模式</label>
-          <select id="mode" onchange="updateScenarioYearRange(); updateDateFields();">
-            <option value="nowcast">Nowcast (实时预测)</option>
-            <option value="scenario">Scenario (场景分析)</option>
+          <label for="mode">模式</label>
+          <select id="mode" onchange="updateDateFields();">
+            <option value="historical">历史分析</option>
+            <option value="forecast">未来预测</option>
           </select>
+          <small id="windowHint" class="small"></small>
         </div>
-        
+
         <div class="control-group">
-          <label for="dataRangeSelector">智能数据选择建议</label>
-          <select id="dataRangeSelector" onchange="updateScenarioYearRange()">
-            <option value="historical">Historical Depth Priority (历史深度优先)</option>
-            <option value="recent">Recent Accuracy Priority (近期精度优先)</option>
-            <option value="mixed">Mixed Use (混合使用)</option>
-            <option value="auto">Auto-select (自动选择)</option>
+          <label for="station">站点选择</label>
+          <select id="station" onchange="updateStationInfo();">
+            <option value="05OC001">Red River at Emerson (东部)</option>
+            <option value="05OC011">Red River at Winnipeg (东部)</option>
+            <option value="05OC012">Red River at Lockport (东部)</option>
+            <option value="5010140">Baldur (南部)</option>
+            <option value="5010481">Brandon A (西部)</option>
           </select>
+          <small id="stationInfo" class="small">选择不同区域的站点进行分析</small>
         </div>
-        
+
         <div class="control-group">
-          <label for="scenarioYear">Scenario Year (场景年份)</label>
-          <input type="number" id="scenarioYear" min="1979" max="2024" placeholder="1979-2024" value="2023">
-          <small>Available historical data: 1979-2024</small>
+          <!-- 智能建议暂时移除，避免干扰 -->
         </div>
         
         <div class="control-group">
           <label for="start">开始日期</label>
           <input type="date" id="start">
-          <small id="startDateHint">MM-DD format (year determined by scenario year)</small>
+          <small id="startDateHint">YYYY-MM-DD</small>
         </div>
         
         <div class="control-group">
           <label for="end">结束日期</label>
           <input type="date" id="end">
-          <small id="endDateHint">MM-DD format (year determined by scenario year)</small>
+          <small id="endDateHint">YYYY-MM-DD</small>
         </div>
         
-        <button onclick="fetchForecast(event)">获取预测</button>
+        <button id="actionBtn" onclick="fetchForecast(event)">获取预测</button>
       </div>
       
       <!-- 图表区域 -->
       <div class="chart-container">
         <h3>预测结果图表</h3>
-        <canvas id="forecastChart" width="800" height="400"></canvas>
+        <canvas id="forecastChart" width="800" height="400" style="display:none"></canvas>
         <div class="toolbar">
           <button onclick="exportPNG()">Export PNG</button>
           <button onclick="toggleZoom()" class="secondary">Toggle Zoom</button>
           <button onclick="resetZoom()" class="secondary">Reset Zoom</button>
+          <button onclick="toggleFloodWarningPanel()" class="secondary">🌊 洪水预警</button>
+          <button onclick="showCrossValidationPanel()" class="secondary">🔍 交叉验证</button>
         </div>
       </div>
       
@@ -473,6 +526,12 @@
         </div>
       </div>
     </div>
+    
+    <!-- 洪水预警面板 -->
+    <div id="floodWarningPanelContainer"></div>
+    
+    <!-- 交叉验证面板 -->
+    <div id="crossValidationPanelContainer"></div>
     
     <!-- 右侧面板：Provenance & Notes -->
     <div class="right-panel">
@@ -540,8 +599,12 @@
     
     // 初始化
     window.onload = function() {
-      triggerInitialFetch();
+      // 初始化日期与可用数据窗
+      setDefaultDates();
+      fetchDataWindow();
       updateDataUpdateTime();
+      // 延迟加载外部面板，避免首次渲染卡顿
+      setTimeout(() => { loadFloodWarningPanel(); loadCrossValidationPanel(); }, 200);
     };
     
     // 更新数据更新时间
@@ -557,86 +620,94 @@
       if (document.body.classList.contains('dark')) {
         button.textContent = '☀️ Light Mode';
         button.style.background = '#fbbf24';
+        button.style.color = '#1f2937';
+        button.style.boxShadow = '0 2px 4px rgba(0,0,0,0.3)';
       } else {
         button.textContent = '🌙 Dark Mode';
         button.style.background = '#6b7280';
+        button.style.color = 'white';
+        button.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
       }
     }
     
-    // 设置默认日期
+    // 设置默认日期（今天到一周后）
     function setDefaultDates() {
-      const mode = document.getElementById('mode').value;
       const startDate = document.getElementById('start');
       const endDate = document.getElementById('end');
-      
-      if (mode === 'scenario') {
-        // Scenario模式：只显示月日，年份由scenario year决定
-        const today = new Date();
-        const springStart = new Date(today.getFullYear(), 2, 1); // 3月1日
-        const springEnd = new Date(today.getFullYear(), 5, 30);  // 6月30日
-        
-        if (!startDate.value) {
-          startDate.value = springStart.toISOString().slice(5, 10); // 只取MM-DD
-        }
-        if (!endDate.value) {
-          endDate.value = springEnd.toISOString().slice(5, 10);   // 只取MM-DD
-        }
-      } else {
-        // Nowcast模式：显示完整日期
-        const today = new Date();
-        const nextWeek = new Date(today);
-        nextWeek.setDate(today.getDate() + 6);
-        
-        if (!startDate.value) {
-          startDate.value = today.toISOString().slice(0, 10);
-        }
-        if (!endDate.value) {
-          endDate.value = nextWeek.toISOString().slice(0, 10);
-        }
-      }
+      const today = new Date();
+      const nextWeek = new Date(today);
+      nextWeek.setDate(today.getDate() + 6);
+      if (!startDate.value) startDate.value = today.toISOString().slice(0,10);
+      if (!endDate.value) endDate.value = nextWeek.toISOString().slice(0,10);
     }
     
     // 更新日期字段提示
     function updateDateFields() {
       const mode = document.getElementById('mode').value;
-      const startDate = document.getElementById('start');
-      const endDate = document.getElementById('end');
       const startHint = document.getElementById('startDateHint');
       const endHint = document.getElementById('endDateHint');
-      
-      if (mode === 'scenario') {
-        // Scenario模式：只显示月日，年份由scenario year决定
-        startHint.textContent = 'MM-DD format (year determined by scenario year)';
-        endHint.textContent = 'MM-DD format (year determined by scenario year)';
-        
-        // 设置默认日期为春季融雪期（3-6月）
-        const today = new Date();
-        const springStart = new Date(today.getFullYear(), 2, 1); // 3月1日
-        const springEnd = new Date(today.getFullYear(), 5, 30);  // 6月30日
-        
-        if (!startDate.value) {
-          startDate.value = springStart.toISOString().slice(5, 10); // 只取MM-DD
-        }
-        if (!endDate.value) {
-          endDate.value = springEnd.toISOString().slice(5, 10);   // 只取MM-DD
-        }
-        
+      const btn = document.getElementById('actionBtn');
+      if (mode === 'forecast') {
+        startHint.textContent = 'YYYY-MM-DD（今天及以后）';
+        endHint.textContent = 'YYYY-MM-DD（今天及以后）';
+        if (btn) btn.textContent = '获取预测';
+        setDateBoundsFromWindow(false);
       } else {
-        // Nowcast模式：显示完整日期
-        startHint.textContent = 'YYYY-MM-DD format for future predictions';
-        endHint.textContent = 'YYYY-MM-DD format for future predictions';
-        
-        // 设置默认日期为未来一周
-        const today = new Date();
-        const nextWeek = new Date(today);
-        nextWeek.setDate(today.getDate() + 6);
-        
-        if (!startDate.value) {
-          startDate.value = today.toISOString().slice(0, 10);
-        }
-        if (!endDate.value) {
-          endDate.value = nextWeek.toISOString().slice(0, 10);
-        }
+        startHint.textContent = 'YYYY-MM-DD（限制在可用数据窗内）';
+        endHint.textContent = 'YYYY-MM-DD（限制在可用数据窗内）';
+        if (btn) btn.textContent = '历史分析';
+        setDateBoundsFromWindow(true);
+      }
+      validateWindow();
+    }
+
+    // 可用数据窗口
+    let DATA_WINDOW = null;
+    function fetchDataWindow() {
+      fetch('/api/v1/data-window')
+        .then(r => r.json())
+        .then(j => {
+          DATA_WINDOW = j;
+          const hint = document.getElementById('windowHint');
+          if (j && j.start && j.end && hint) hint.textContent = `可用历史数据时间窗：${j.start} ～ ${j.end}`;
+          // 绑定日期边界
+          setDateBoundsFromWindow(document.getElementById('mode').value === 'historical');
+          validateWindow();
+        })
+        .catch(()=>{});
+    }
+
+    function withinWindow(d){
+      if (!DATA_WINDOW || !DATA_WINDOW.start || !DATA_WINDOW.end) return true;
+      return d >= DATA_WINDOW.start && d <= DATA_WINDOW.end;
+    }
+
+    function validateWindow(){
+      const mode = document.getElementById('mode').value;
+      const s = document.getElementById('start').value;
+      const e = document.getElementById('end').value;
+      const hint = document.getElementById('windowHint');
+      const btn = document.getElementById('actionBtn');
+      let ok = true;
+      if (mode === 'historical'){
+        if (s && !withinWindow(s)) ok = false;
+        if (e && !withinWindow(e)) ok = false;
+      }
+      if (!ok && hint) hint.style.color = '#dc2626'; else if (hint) hint.style.color = '';
+      if (btn) btn.disabled = (mode === 'historical' && !ok);
+      return ok;
+    }
+
+    // 为日期输入设置/清除边界
+    function setDateBoundsFromWindow(apply){
+      const startInput = document.getElementById('start');
+      const endInput = document.getElementById('end');
+      if (apply && DATA_WINDOW && DATA_WINDOW.start && DATA_WINDOW.end){
+        startInput.min = DATA_WINDOW.start; startInput.max = DATA_WINDOW.end;
+        endInput.min = DATA_WINDOW.start; endInput.max = DATA_WINDOW.end;
+      } else {
+        startInput.removeAttribute('min'); startInput.removeAttribute('max');
+        endInput.removeAttribute('min'); endInput.removeAttribute('max');
       }
     }
     
@@ -738,21 +809,7 @@
     }
     
     // 触发初始获取
-    function triggerInitialFetch() {
-      setTimeout(() => {
-        setDefaultDates();
-        try {
-          ensureChart();
-        } catch (e) {
-          console.error('Chart initialization failed:', e);
-        }
-        try {
-          fetchForecast({ preventDefault: () => {} });
-        } catch (e) {
-          console.error('Initial fetch failed:', e);
-        }
-      }, 100);
-    }
+    // 移除自动获取，改为手动点击按钮触发
     
     // 获取预测
     async function fetchForecast(event) {
@@ -763,7 +820,6 @@
       const mode = document.getElementById('mode').value;
       const startDate = document.getElementById('start').value;
       const endDate = document.getElementById('end').value;
-      const scenarioYear = document.getElementById('scenarioYear').value;
       
       if (!startDate || !endDate) {
         alert('请选择开始和结束日期');
@@ -776,19 +832,13 @@
       statusDiv.className = 'status';
       
       try {
-        // 构建请求参数
-        let requestStartDate = startDate;
-        let requestEndDate = endDate;
-        
-        if (mode === 'scenario') {
-          // 对于scenario模式，将月日与年份组合
-          const startMonthDay = startDate.slice(5); // 提取MM-DD
-          const endMonthDay = endDate.slice(5);
-          requestStartDate = `${scenarioYear}-${startMonthDay}`;
-          requestEndDate = `${scenarioYear}-${endMonthDay}`;
+        if (mode === 'historical' && !validateWindow()) {
+          updateStatus('起止日期不在可用数据时间窗内', 'error');
+          return;
         }
-        
-        const response = await fetch(`/api/v1/runoff-forecast?start_date=${requestStartDate}&end_date=${requestEndDate}&mode=${mode}&scenario_year=${scenarioYear}`);
+        // 构建请求参数（始终携带站点ID）
+        const stationId = document.getElementById('station').value;
+        const response = await fetch(`/api/v1/runoff-forecast?station_id=${stationId}&start_date=${startDate}&end_date=${endDate}&mode=${mode}`);
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -826,19 +876,59 @@
     }
     
     // 更新图表
+    function flowVal(f) { return (typeof f.streamflow_m3s !== 'undefined') ? f.streamflow_m3s : (typeof f.predicted_flow !== 'undefined' ? f.predicted_flow : 0); }
+
     function updateChart(forecasts) {
       if (!chart) {
         ensureChart();
       }
       
       const labels = forecasts.map(f => f.date);
-      const data = forecasts.map(f => f.predicted_flow);
+      const data = forecasts.map(f => flowVal(f));
       
+      // 判定是否全为常数或无数据
+      const hasData = data.length > 0;
+      const minVal = hasData ? Math.min(...data) : 0;
+      const maxVal = hasData ? Math.max(...data) : 0;
+      const cvs = document.getElementById('forecastChart');
+      if (!hasData || maxVal - minVal === 0) {
+        if (cvs) cvs.style.display = 'none';
+        updateStatus('暂无可用预测数据（后端占位或常数）。', 'error');
+        return;
+      }
+
       chart.data.labels = labels;
       chart.data.datasets[0].data = data;
+      // 动态Y轴范围，取消从0开始压扁
+      const pad = (maxVal - minVal) * 0.1;
+      if (chart.options && chart.options.scales && chart.options.scales.y) {
+        chart.options.scales.y.beginAtZero = false;
+        chart.options.scales.y.suggestedMin = minVal - pad;
+        chart.options.scales.y.suggestedMax = maxVal + pad;
+      }
       chart.update();
+      // 首次绘制后显示画布
+      if (cvs && cvs.style.display === 'none') {
+        cvs.style.display = 'block';
+      }
     }
     
+    // 更新站点信息
+    function updateStationInfo() {
+      const stationSelect = document.getElementById('station');
+      const stationInfo = document.getElementById('stationInfo');
+      const selectedOption = stationSelect.options[stationSelect.selectedIndex];
+      
+      if (selectedOption) {
+        const stationName = selectedOption.text;
+        const region = stationName.includes('东部') ? '东部红河流域' : 
+                      stationName.includes('南部') ? '南部农业区' : 
+                      stationName.includes('西部') ? '西部草原区' : '未知区域';
+        
+        stationInfo.textContent = `${stationName} - ${region}，数据覆盖完整`;
+      }
+    }
+
     // 更新分析面板
     function updateAnalysisPanel(data) {
       const analysisContent = document.getElementById('analysisContent');
@@ -849,7 +939,7 @@
       }
       
       const forecasts = data.forecasts;
-      const flows = forecasts.map(f => f.predicted_flow);
+      const flows = forecasts.map(f => flowVal(f));
       
       // 计算统计信息
       const avgFlow = flows.reduce((a, b) => a + b, 0) / flows.length;
@@ -940,6 +1030,38 @@
         chart.resetZoom();
       }
     }
+    
+    // 加载洪水预警面板
+    function loadFloodWarningPanel() {
+      fetch('templates/flood_warning.html')
+        .then(response => response.text())
+        .then(html => {
+          document.getElementById('floodWarningPanelContainer').innerHTML = html;
+        })
+        .catch(error => {
+          console.error('加载洪水预警面板失败:', error);
+        });
+    }
+    
+    // 加载交叉验证面板
+    function loadCrossValidationPanel() {
+      fetch('templates/cross_validation.html')
+        .then(response => response.text())
+        .then(html => {
+          document.getElementById('crossValidationPanelContainer').innerHTML = html;
+        })
+        .catch(error => {
+          console.error('加载交叉验证面板失败:', error);
+        });
+    }
+    
+    // 页面加载完成后初始化
+    document.addEventListener('DOMContentLoaded', function() {
+      // 加载洪水预警面板
+      loadFloodWarningPanel();
+      // 加载交叉验证面板
+      loadCrossValidationPanel();
+    });
   </script>
 </body>
 </html>

@@ -3,32 +3,32 @@
 # General settings
 experiment_name: hydrai_swe_experiment
 run_dir: runs/{experiment_name}_{start_time}
-device: cpu # or 'cuda:0' if you have a GPU
+device: cpu
 
 # Data settings
-dataset: "generic"  # Use GenericDataset for custom data format
+dataset: "generic"
 data_dir: /home/sean/hydrai_swe/src/neuralhydrology/data
 train_basin_file: /home/sean/hydrai_swe/src/neuralhydrology/data/basins.txt
-validation_basin_file: /home/sean/hydrai_swe/src/neuralhydrology/data/basins.txt # Using the same for simplicity
+validation_basin_file: /home/sean/hydrai_swe/src/neuralhydrology/data/basins.txt
 test_basin_file: /home/sean/hydrai_swe/src/neuralhydrology/data/basins.txt
 
-# Training period (using our actual data range)
-train_start_date: "1979-01-01"
-train_end_date: "1995-12-31" # 80% for training
+# Training period
+train_start_date: "01/01/1979"
+train_end_date: "31/12/1995"
 
 # Validation period
-validation_start_date: "1996-01-01"
-validation_end_date: "1997-06-30" # 15% for validation
+validation_start_date: "01/01/1996"
+validation_end_date: "30/06/1997"
 
 # Test period
-test_start_date: "1997-07-01"
-test_end_date: "1998-12-31" # 5% for testing
+test_start_date: "01/07/1997"
+test_end_date: "31/12/1998"
 
 # Model settings
 model: lstm
 hidden_size: 64
 
-# Input and output variables (verified against actual data)
+# Input and output variables
 dynamic_inputs:
   - snow_depth_mm
   - snow_fall_mm
@@ -36,10 +36,11 @@ dynamic_inputs:
   - day_of_year
   - month
   - year
+
 target_variables:
   - streamflow_m3s
 
-# Forcing variables (required for CAMELS-US format)
+# Forcing variables
 forcings:
   - snow_depth_mm
   - snow_fall_mm
@@ -49,33 +50,13 @@ forcings:
   - year
 
 # Training settings
-epochs: 30
+epochs: 5
 batch_size: 16
 optimizer: Adam
 learning_rate: 0.001
-seq_length: 30  # Sequence length for LSTM (30 days)
+seq_length: 30
 predict_last_n: 1
 head: regression
 loss: MSE
 target_noise_std: 0.0
 initial_forget_bias: 3.0
-
-# Data preprocessing
-scaler: standard  # StandardScaler for input normalization
-target_scaler: standard  # StandardScaler for target normalization
-
-# Validation settings
-validation_metrics:
-  - nse
-  - rmse
-  - mae
-  - r2
-
-# Early stopping
-early_stopping: true
-patience: 10
-min_delta: 0.001
-
-# Logging
-log_tensorboard: true
-log_interval: 100

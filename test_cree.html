@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Cree Language - HydrAI-SWE</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .language-switch { margin-bottom: 20px; }
+        .language-switch a { 
+            padding: 10px 15px; 
+            margin-right: 10px; 
+            text-decoration: none; 
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background: #f0f0f0;
+        }
+        .language-switch a.active { background: #4A90E2; color: white; }
+        .content { margin-top: 20px; }
+        #test-text { font-size: 18px; margin: 20px 0; }
+        #welcome-msg { font-size: 16px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="language-switch">
+        <a href="#" onclick="switchLanguage('en'); return false;" class="active">English</a>
+        <a href="#" onclick="switchLanguage('fr'); return false;">Français</a>
+        <a href="#" onclick="switchLanguage('cr'); return false;">ᓀᐦᐃᔭᐍᐏᐣ</a>
+    </div>
+
+    <div class="content">
+        <h1 id="title">HydrAI-SWE Enhanced System - Test Page</h1>
+        <div id="test-text">Click the language buttons above to test the Cree translation.</div>
+        <div id="welcome-msg">Welcome message will appear here.</div>
+        
+        <h2 id="nav-title">Navigation Items:</h2>
+        <ul>
+            <li id="nav-dashboard">Dashboard</li>
+            <li id="nav-applications">Applications</li>
+            <li id="nav-training">Model Training</li>
+            <li id="nav-guide">User Guide</li>
+            <li id="nav-api">API Reference</li>
+        </ul>
+
+        <h2 id="sections-title">Main Sections:</h2>
+        <ul>
+            <li id="historical-analysis">Historical Analysis</li>
+            <li id="future-forecast">Future Forecast</li>
+        </ul>
+    </div>
+
+    <script>
+        // Simplified translation data for testing
+        const translations = {
+            en: {
+                title: 'HydrAI-SWE Enhanced System - Test Page',
+                testText: 'Click the language buttons above to test the Cree translation.',
+                welcome: 'Welcome to the HydrAI-SWE Enhanced System',
+                navTitle: 'Navigation Items:',
+                sectionsTitle: 'Main Sections:',
+                nav: {
+                    dashboard: 'Dashboard',
+                    applications: 'Applications',
+                    training: 'Model Training',
+                    guide: 'User Guide',
+                    api: 'API Reference'
+                },
+                sections: {
+                    historical: 'Historical Analysis',
+                    forecast: 'Future Forecast'
+                }
+            },
+            fr: {
+                title: 'Système HydrAI-SWE Amélioré - Page de Test',
+                testText: 'Cliquez sur les boutons de langue ci-dessus pour tester la traduction en français.',
+                welcome: 'Bienvenue dans le Système HydrAI-SWE Amélioré',
+                navTitle: 'Éléments de Navigation:',
+                sectionsTitle: 'Sections Principales:',
+                nav: {
+                    dashboard: 'Tableau de Bord',
+                    applications: 'Applications',
+                    training: 'Formation du Modèle',
+                    guide: 'Guide Utilisateur',
+                    api: 'Référence API'
+                },
+                sections: {
+                    historical: 'Analyse Historique',
+                    forecast: 'Prévisions Futures'
+                }
+            },
+            cr: {
+                title: 'HydrAI-SWE ᐊᓪᓚᕆᔭᐅᔪᖅ ᐊᓪᓚᑦᑎᐊᓂᐅᖅ - ᖃᐅᔨᓴᕈᑎ ᒃᑭᓐᓇᖓ',
+                testText: 'ᐅᖃᐅᓯᖅ ᖃᓂᒋᔭᖅᑐᖅᑕᐅᔪᓂᒃ ᐊᖁᑎᖏᓐᓂᒃ ᖃᐅᔨᓴᕈᑎᒋᓕᐅᑎᒋᑦ ᑯᕆ ᐅᖃᐅᓯᖓ.',
+                welcome: 'ᑐᓐᖓᓱᒍᓐᓇᖅᑐᖅ HydrAI-SWE ᐊᓪᓚᕆᔭᐅᔪᒧᑦ ᐊᓪᓚᑦᑎᐊᓂᐅᒧᑦ',
+                navTitle: 'ᐊᐅᓚᑦᑎᔨᐅᔪᑦ ᓴᔭᐅᔪᑦ:',
+                sectionsTitle: 'ᐊᖏᔪᑦ ᐃᓚᖏᑦ:',
+                nav: {
+                    dashboard: 'ᑕᑯᓐᓇᐅᔮᖅ',
+                    applications: 'ᐊᑐᖅᑕᐅᔪᑦ',
+                    training: 'ᐃᓕᓐᓂᐊᖅᑎᑦᑎᓂᖅ',
+                    guide: 'ᐊᑐᖅᑐᐃᓐ ᑕᐃᑦᓯᕋᐅᑎᖓ',
+                    api: 'API ᑐᑭᒧᐊᒃᑲᓐᓂᖅ'
+                },
+                sections: {
+                    historical: 'ᐅᓰᒃᑯᑦ ᖃᐅᔨᓴᕐᓂᖅ',
+                    forecast: 'ᓯᕗᓂᐊᒍᑦ ᖃᓄᐃᑦᑐᓂᒃ'
+                }
+            }
+        };
+
+        let currentLanguage = 'en';
+
+        function switchLanguage(lang) {
+            currentLanguage = lang;
+            const t = translations[lang];
+
+            // Update page content
+            document.getElementById('title').textContent = t.title;
+            document.getElementById('test-text').textContent = t.testText;
+            document.getElementById('welcome-msg').textContent = t.welcome;
+            document.getElementById('nav-title').textContent = t.navTitle;
+            document.getElementById('sections-title').textContent = t.sectionsTitle;
+
+            // Update navigation items
+            document.getElementById('nav-dashboard').textContent = t.nav.dashboard;
+            document.getElementById('nav-applications').textContent = t.nav.applications;
+            document.getElementById('nav-training').textContent = t.nav.training;
+            document.getElementById('nav-guide').textContent = t.nav.guide;
+            document.getElementById('nav-api').textContent = t.nav.api;
+
+            // Update section items
+            document.getElementById('historical-analysis').textContent = t.sections.historical;
+            document.getElementById('future-forecast').textContent = t.sections.forecast;
+
+            // Update language switch active state
+            document.querySelectorAll('.language-switch a').forEach(link => {
+                link.classList.remove('active');
+                if ((lang === 'en' && link.textContent.toLowerCase().includes('english')) ||
+                    (lang === 'fr' && link.textContent.toLowerCase().includes('français')) ||
+                    (lang === 'cr' && link.textContent.includes('ᓀᐦᐃᔭᐍᐏᐣ'))) {
+                    link.classList.add('active');
+                }
+            });
+
+            console.log(`Language switched to: ${lang}`);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="cr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HydrAI-SWE ᐊᓪᓚᕆᔭᐅᔪᖅ ᐊᓪᓚᑦᑎᐊᓂᐅᖅ</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <script>
+        // Fix for 'exports is not defined' error in browser environment
+        window.exports = {};
+        window.module = { exports: window.exports };
+        
+        // Ensure Chart.js is available globally
+        if (typeof Chart === 'undefined') {
+            console.warn('Chart.js not loaded, charts may not work properly');
+        }
+        
+        // Global error handler to catch any remaining issues
+        window.addEventListener('error', function(e) {
+            console.error('Global error caught:', e.error);
+            if (e.error && e.error.message && e.error.message.includes('exports is not defined')) {
+                console.warn('Exports error detected, attempting recovery...');
+            }
+        });
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .logo i {
+            font-size: 2rem;
+            color: #4A90E2;
+        }
+
+        .logo h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .logo .subtitle {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            font-weight: normal;
+            margin-left: 0.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #555;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            background: #f8f9fa;
+            color: #4A90E2;
+        }
+
+        .nav-links a.active {
+            background: #4A90E2;
+            color: white;
+        }
+
+        .language-selector {
+            margin-right: 1rem;
+        }
+
+        .language-selector select {
+            padding: 0.5rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            color: #333;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 140px;
+        }
+
+        .language-selector select:hover {
+            border-color: #4A90E2;
+        }
+
+        .language-selector select:focus {
+            outline: none;
+            border-color: #4A90E2;
+            box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-left: auto;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .status-blue { background: #4A90E2; }
+        .status-green { background: #27ae60; }
+        .status-orange { background: #f39c12; }
+        .status-red { background: #e74c3c; }
+
+        .main-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .main-tab {
+            padding: 1rem 2rem;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #555;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .main-tab:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .main-tab.active {
+            background: #4A90E2;
+            color: white;
+        }
+
+        .main-content {
+            display: none;
+        }
+
+        .main-content.active {
+            display: block;
+        }
+
+        .welcome-message {
+            text-align: center;
+            padding: 3rem;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 16px;
+            margin-bottom: 2rem;
+        }
+
+        .welcome-message h2 {
+            font-size: 2rem;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+        }
+
+        .welcome-message p {
+            font-size: 1.1rem;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .language-info {
+            background: rgba(74, 144, 226, 0.1);
+            border: 1px solid rgba(74, 144, 226, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .language-info h3 {
+            color: #4A90E2;
+            margin-bottom: 0.5rem;
+        }
+
+        .language-info p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-snowflake"></i>
+                <h1>HydrAI-SWE <span class="subtitle">ᐊᓪᓚᕆᔭᐅᔪᖅ ᐊᓪᓚᑦᑎᐊᓂᐅᖅ</span></h1>
+            </div>
+            <div class="nav-links">
+                <div class="language-selector">
+                    <select id="languageSelect" onchange="switchLanguage(this.value)">
+                        <option value="en">🇺🇸 English</option>
+                        <option value="fr">🇫🇷 Français</option>
+                        <option value="cr" selected>🇨🇦 ᓀᐦᐃᔭᐍᐏᐣ (Cree)</option>
+                    </select>
+                </div>
+                <a href="/ui/enhanced_en"><i class="fas fa-tachometer-alt"></i> ᑕᑯᓐᓇᐅᔮᖅ</a>
+                <a href="/applications"><i class="fas fa-water"></i> ᐊᑐᖅᑕᐅᔪᑦ</a>
+                <a href="/model"><i class="fas fa-brain"></i> ᐃᓕᓐᓂᐊᖅᑎᑦᑎᓂᖅ</a>
+                <a href="/guides"><i class="fas fa-book-open"></i> ᐊᑐᖅᑐᐃᓐ ᑕᐃᑦᓯᕋᐅᑎᖓ</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Navigation Tabs -->
+    <div class="main-tabs">
+        <button class="main-tab active" onclick="showMainTab('historical')">
+            <i class="fas fa-chart-line"></i> ᐅᓰᒃᑯᑦ ᖃᐅᔨᓴᕐᓂᖅ
+        </button>
+        <button class="main-tab" onclick="showMainTab('forecast')">
+            <i class="fas fa-crystal-ball"></i> ᓯᕗᓂᐊᒍᑦ ᖃᓄᐃᑦᑐᓂᒃ
+        </button>
+    </div>
+
+    <div class="container">
+        <!-- Welcome Message -->
+        <div class="welcome-message">
+            <h2>ᑐᓐᖓᓱᒍᓐᓇᖅᑐᖅ HydrAI-SWE ᐊᓪᓚᕆᔭᐅᔪᒧᑦ ᐊᓪᓚᑦᑎᐊᓂᐅᒧᑦ</h2>
+            <p>ᐊᐳᑦ ᓂᕐᔪᑎᖓ ᐊᒻᒪ ᓴᕚᕐᔪᐊᖅ ᓯᕗᒧᐊᕈᑕᐅᔪᓄᑦ ᐊᓪᓚᑦᑎᐊᓂᐅᖅ</p>
+            
+            <div class="language-info">
+                <h3>ᓀᐦᐃᔭᐍᐏᐣ ᐊᓪᓚᑦᑎᐊᓂᐅᖅ</h3>
+                <p>ᐊᓂ ᐊᓪᓚᑦᑎᐊᓂᐅᖅ ᓀᐦᐃᔭᐍᐏᐣ ᐊᓪᓚᑦᑎᐊᓂᐅᒧᑦ ᐊᓪᓚᑦᑎᐊᓂᐅᖅᓯᒪᔪᖅ. ᐊᓂᒃᑯᑦ ᐊᓪᓚᑦᑎᐊᓂᐅᖅ ᐊᓪᓚᑦᑎᐊᓂᐅᖅᓯᒪᔪᖅ ᐊᓂᒃᑯᑦ ᐊᓪᓚᑦᑎᐊᓂᐅᖅ ᐊᓂᒃᑯᑦ ᐊᓪᓚᑦᑎᐊᓂᐅᖅ.</p>
+            </div>
+        </div>
+
+        <!-- Historical Analysis Section -->
+        <div id="historical-content" class="main-content active">
+            <div class="content-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-map"></i>
+                        <div class="card-title">ᓄᓇᓕᒃᑯᑦ ᐊᐳᑦ ᓂᕐᔪᑎᖓ - ᐅᓰᒃᑯᑦ ᑕᑯᓐᓇᐅᔮᖅ</div>
+                        <div class="status-indicator">
+                            <div class="status-dot status-blue"></div>
+                            <span>ᐅᓪᓗᓕᒫᖅ ᓄᑦᑎᖅᓱᐃᔪᖅ</span>
+                        </div>
+                    </div>
+                    <p>ᐊᓂ ᐊᓪᓚᑦᑎᐊᓂᐅᖅ ᓀᐦᐃᔭᐍᐏᐣ ᐊᓪᓚᑦᑎᐊᓂᐅᖅᓯᒪᔪᖅ ᐊᓂᒃᑯᑦ ᐊᓪᓚᑦᑎᐊᓂᐅᖅ ᐊᓂᒃᑯᑦ ᐊᓪᓚᑦᑎᐊᓂᐅᖅ.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Forecast Section -->
+        <div id="forecast-content" class="main-content">
+            <div class="content-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-crystal-ball"></i>
+                        <div class="card-title">30-ᐅᓪᓗᓂᒃ ᓯᕗᒧᐊᕈᑕᐅᔪᑦ</div>
+                        <div class="status-indicator">
+                            <div class="status-dot status-green"></div>
+                            <span>6 ᐃᑲᕐᕋᓂᒃ ᐊᑕᐅᓯᕐᒥᒃ ᓄᑦᑎᖅᑎᑕᐅᔪᖅ</span>
+                        </div>
+                    </div>
+                    <p>ᐊᓂ ᐊᓪᓚᑦᑎᐊᓂᐅᖅ ᓯᕗᒧᐊᕈᑕᐅᔪᑦ ᐊᓪᓚᑦᑎᐊᓂᐅᖅᓯᒪᔪᖅ ᐊᓂᒃᑯᑦ ᐊᓪᓚᑦᑎᐊᓂᐅᖅ.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple tab switching
+        function showMainTab(tabName) {
+            // Hide all content
+            document.querySelectorAll('.main-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.main-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected content and activate tab
+            document.getElementById(tabName + '-content').classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Simple language switching
+        function switchLanguage(lang) {
+            // Store language preference
+            localStorage.setItem('selectedLanguage', lang);
+            
+            // Redirect to appropriate language page
+            if (lang === 'fr') {
+                window.location.href = '/ui/francais';
+            } else if (lang === 'en') {
+                window.location.href = '/ui/enhanced_en';
+            }
+            // If Cree is selected, stay on current page
+        }
+
+        // Initialize language selector
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedLanguage = localStorage.getItem('selectedLanguage') || 'cr';
+            const languageSelect = document.getElementById('languageSelect');
+            if (languageSelect) {
+                languageSelect.value = savedLanguage;
+            }
+            
+            // Initialize dashboard if elements exist
+            if (document.getElementById('total-snow-value')) {
+                initializeDashboard();
+            }
+        });
+    </script>
+    <script src="/static/shared_dashboard.js"></script>
+</body>
+</html>

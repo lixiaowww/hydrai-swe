@@ -1,0 +1,56 @@
+{
+  "timestamp": "2025-08-24T12:23:28.340146",
+  "model_info": {
+    "type": "RandomForestClassifier",
+    "n_estimators": 100,
+    "max_depth": 10,
+    "features_count": 17
+  },
+  "data_info": {
+    "total_samples": 3654,
+    "training_samples": 2923,
+    "test_samples": 731,
+    "features": [
+      "Snow on Grnd (cm)",
+      "snow_change",
+      "snow_trend",
+      "Max Temp (\u00b0C)",
+      "Min Temp (\u00b0C)",
+      "Mean Temp (\u00b0C)",
+      "temp_anomaly",
+      "Total Rain (mm)",
+      "rain_cumulative",
+      "rain_intensity",
+      "05OC001",
+      "flow_change",
+      "flow_anomaly",
+      "season_fall",
+      "season_winter",
+      "day_of_year_sin",
+      "day_of_year_cos"
+    ]
+  },
+  "performance": {
+    "train_accuracy": 1.0,
+    "test_accuracy": 1.0,
+    "cv_accuracy_mean": 0.9996575342465753,
+    "cv_accuracy_std": 0.0006849315068492956,
+    "roc_auc": 1.0
+  },
+  "clustering": {
+    "n_clusters": 5,
+    "silhouette_score": 0.2984349752149369
+  },
+  "feature_importance": {
+    "05OC001": 0.6368535489284629,
+    "flow_anomaly": 0.1676074833553223,
+    "day_of_year_sin": 0.053368933042706145,
+    "flow_change": 0.03743443206453231,
+    "day_of_year_cos": 0.026310793623189686,
+    "Max Temp (\u00b0C)": 0.015035048926432294,
+    "Mean Temp (\u00b0C)": 0.01483250978831257,
+    "Min Temp (\u00b0C)": 0.013226778294546085,
+    "temp_anomaly": 0.011888479808908062,
+    "season_fall": 0.008011141501086196
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "validation_start": "2025-08-23T09:11:01.036567",
+  "data_info": {
+    "total_samples": 9132,
+    "date_range": "2000-01-01 00:00:00 to 2024-12-31 00:00:00",
+    "n_splits": 5
+  },
+  "models": {
+    "real_swe_model": {
+      "error": "模型加载失败"
+    }
+  },
+  "validation_duration": 0.012971,
+  "validation_end": "2025-08-23T09:11:01.049538"
+}

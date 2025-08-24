@@ -1,0 +1,26 @@
+[
+  {
+    "timestamp": "2025-08-22T21:34:41.172301",
+    "cpu_percent": 94.0,
+    "memory_percent": 77.7,
+    "disk_percent": 88.6,
+    "process_count": 338,
+    "status": "warning",
+    "alerts": [
+      "CPU使用率过高: 94.0%",
+      "磁盘使用率较高: 88.6%"
+    ]
+  },
+  {
+    "timestamp": "2025-08-22T21:34:43.176473",
+    "cpu_percent": 77.1,
+    "memory_percent": 77.8,
+    "disk_percent": 88.6,
+    "process_count": 340,
+    "status": "warning",
+    "alerts": [
+      "CPU使用率较高: 77.1%",
+      "磁盘使用率较高: 88.6%"
+    ]
+  }
+]

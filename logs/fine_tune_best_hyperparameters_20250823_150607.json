@@ -1,0 +1,19 @@
+{
+  "best_value": 0.001603395077134401,
+  "best_params": {
+    "hidden_size": 64,
+    "num_layers": 2,
+    "dropout": 0.1,
+    "learning_rate": 0.001,
+    "batch_size": 16
+  },
+  "n_trials": 25,
+  "optimization_time": "2025-08-23T15:06:07.809679",
+  "base_params": {
+    "hidden_size": 64,
+    "num_layers": 2,
+    "dropout": 0.1,
+    "learning_rate": 0.001,
+    "batch_size": 16
+  }
+}

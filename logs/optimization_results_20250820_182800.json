@@ -1,0 +1,119 @@
+{
+  "optimization_start": "2025-08-20T18:27:09.126009",
+  "models": {
+    "agriculture_model": {
+      "model": "Agriculture Model",
+      "status": "optimization_success",
+      "training_results": {
+        "status": "success",
+        "message": "农业模型训练完成",
+        "training_results": {
+          "final_train_loss": 9.525254426989704e-05,
+          "final_val_loss": 1.799311394279357e-05,
+          "test_metrics": {
+            "mse": 2.1075377261672074e-05,
+            "rmse": 0.004590792661586022,
+            "mae": 0.0043907235393594035,
+            "r2": 0.0
+          }
+        },
+        "timestamp": "2025-08-20T18:27:47.652459"
+      },
+      "test_results": {
+        "status": "success",
+        "location": "red-river-basin",
+        "prediction_date": "2025-08-20T18:27:59.227502",
+        "prediction_stats": {
+          "mean": 80.00439453125,
+          "std": 0.0013404993806034327,
+          "min": 80.00057220458984,
+          "max": 80.0083236694336,
+          "predictions_count": 1092
+        },
+        "model_info": {
+          "type": "LSTM",
+          "input_features": 5,
+          "hidden_size": 64,
+          "layers": 1
+        }
+      },
+      "optimization_time": "2025-08-20T18:27:59.229321"
+    },
+    "flood_warning_model": {
+      "model": "Flood Warning Model",
+      "status": "optimization_success",
+      "test_results": {
+        "7d": {
+          "status": "success",
+          "response_time": 0.18125,
+          "overall_risk": "LOW",
+          "risk_percentage": 9.85
+        },
+        "14d": {
+          "status": "success",
+          "response_time": 0.155106,
+          "overall_risk": "LOW",
+          "risk_percentage": 9.85
+        },
+        "30d": {
+          "status": "success",
+          "response_time": 0.172182,
+          "overall_risk": "LOW",
+          "risk_percentage": 9.85
+        }
+      },
+      "optimization_time": "2025-08-20T18:27:59.748628"
+    },
+    "swe_model": {
+      "model": "SWE Prediction Model",
+      "status": "optimization_success",
+      "test_results": {
+        "7d_swe": {
+          "status": "success",
+          "response_time": 0.141816,
+          "data_points": 8,
+          "forecast_type": "SWE",
+          "confidence_level": 90
+        },
+        "14d_swe": {
+          "status": "success",
+          "response_time": 0.157412,
+          "data_points": 15,
+          "forecast_type": "SWE",
+          "confidence_level": 90
+        },
+        "30d_swe": {
+          "status": "success",
+          "response_time": 0.297945,
+          "data_points": 31,
+          "forecast_type": "SWE",
+          "confidence_level": 90
+        },
+        "7d_runoff": {
+          "status": "success",
+          "response_time": 0.131068,
+          "data_points": 8,
+          "forecast_type": "RUNOFF",
+          "confidence_level": 90
+        },
+        "14d_runoff": {
+          "status": "success",
+          "response_time": 0.159359,
+          "data_points": 15,
+          "forecast_type": "RUNOFF",
+          "confidence_level": 90
+        },
+        "30d_runoff": {
+          "status": "success",
+          "response_time": 0.253717,
+          "data_points": 31,
+          "forecast_type": "RUNOFF",
+          "confidence_level": 90
+        }
+      },
+      "optimization_time": "2025-08-20T18:28:00.901065"
+    }
+  },
+  "optimization_duration": 51.77528691291809,
+  "optimization_end": "2025-08-20T18:28:00.901296"
+}

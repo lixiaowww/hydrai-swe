@@ -1,0 +1,92 @@
+{
+  "validation_start": "2025-08-23T09:19:51.950778",
+  "data_info": {
+    "total_samples": 9132,
+    "date_range": "2000-01-01 00:00:00 to 2024-12-31 00:00:00",
+    "n_splits": 5
+  },
+  "models": {
+    "real_swe_model": {
+      "model_type": "Real SWE LSTM Model",
+      "model_path": "models/real_trained_swe_model.pth",
+      "cv_metrics": [
+        {
+          "fold": 1,
+          "train_size": 200,
+          "test_size": 60,
+          "mse": 5.888981622644653,
+          "rmse": 2.4267224032931027,
+          "mae": 1.445674883297273,
+          "r2": -0.1231490750082842,
+          "train_start": 0,
+          "train_end": 200,
+          "test_start": 200,
+          "test_end": 260
+        },
+        {
+          "fold": 2,
+          "train_size": 260,
+          "test_size": 60,
+          "mse": 60.58987406693776,
+          "rmse": 7.783949772894077,
+          "mae": 6.249237985428052,
+          "r2": -1.5281829274291723,
+          "train_start": 0,
+          "train_end": 260,
+          "test_start": 260,
+          "test_end": 320
+        },
+        {
+          "fold": 3,
+          "train_size": 320,
+          "test_size": 60,
+          "mse": 239.08804385432003,
+          "rmse": 15.462472113291588,
+          "mae": 15.186049497185913,
+          "r2": -26.068288192655203,
+          "train_start": 0,
+          "train_end": 320,
+          "test_start": 320,
+          "test_end": 380
+        },
+        {
+          "fold": 4,
+          "train_size": 380,
+          "test_size": 60,
+          "mse": 438.3377285550593,
+          "rmse": 20.936516628968135,
+          "mae": 20.671650968313983,
+          "r2": -36.105695089290705,
+          "train_start": 0,
+          "train_end": 380,
+          "test_start": 380,
+          "test_end": 440
+        },
+        {
+          "fold": 5,
+          "train_size": 440,
+          "test_size": 60,
+          "mse": 8.195372480896426,
+          "rmse": 2.86275609874408,
+          "mae": 2.003983024092762,
+          "r2": -0.9656251630284567,
+          "train_start": 0,
+          "train_end": 440,
+          "test_start": 440,
+          "test_end": 500
+        }
+      ],
+      "summary_metrics": {
+        "mean_rmse": 9.894483403438198,
+        "std_rmse": 7.247013060224033,
+        "mean_r2": -12.958188089482366,
+        "std_r2": 15.14520792246828,
+        "mean_mae": 9.111319271663596,
+        "std_mae": 7.589617354826265
+      },
+      "validation_time": "2025-08-23T09:19:52.053101"
+    }
+  },
+  "validation_duration": 0.102634,
+  "validation_end": "2025-08-23T09:19:52.053412"
+}

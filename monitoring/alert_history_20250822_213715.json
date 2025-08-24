@@ -1,0 +1,34 @@
+[
+  {
+    "timestamp": "2025-08-22T21:37:12.947172",
+    "message": "CPU使用率过高: 100.0%",
+    "level": "warning",
+    "cpu_percent": 100.0,
+    "memory_percent": 77.3,
+    "disk_percent": 88.6
+  },
+  {
+    "timestamp": "2025-08-22T21:37:12.947172",
+    "message": "磁盘使用率较高: 88.6%",
+    "level": "warning",
+    "cpu_percent": 100.0,
+    "memory_percent": 77.3,
+    "disk_percent": 88.6
+  },
+  {
+    "timestamp": "2025-08-22T21:37:14.952551",
+    "message": "CPU使用率过高: 91.9%",
+    "level": "warning",
+    "cpu_percent": 91.9,
+    "memory_percent": 77.0,
+    "disk_percent": 88.6
+  },
+  {
+    "timestamp": "2025-08-22T21:37:14.952551",
+    "message": "磁盘使用率较高: 88.6%",
+    "level": "warning",
+    "cpu_percent": 91.9,
+    "memory_percent": 77.0,
+    "disk_percent": 88.6
+  }
+]

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HydrAI-SWE · UI vNext</title>
+  <style>
+    :root { --bg:#ffffff; --fg:#0f172a; --muted:#64748b; --bd:#e5e7eb; --accent:#2563eb; }
+    @media (prefers-color-scheme: dark){ :root{ --bg:#0b1220; --fg:#e2e8f0; --muted:#94a3b8; --bd:#475569; --accent:#60a5fa; } }
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Noto Sans,Helvetica,Arial,sans-serif}
+    .container{max-width:920px;margin:0 auto;padding:16px}
+    h1{font-size:20px;margin:0 0 8px}
+    p.small{color:var(--muted);margin-top:4px}
+    .card{border:1px solid var(--bd);border-radius:10px;padding:12px;margin-top:12px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    label{font-weight:600;display:block;margin:6px 0 4px}
+    input,select,button{width:100%;box-sizing:border-box;padding:10px;border:1px solid var(--bd);border-radius:8px;background:transparent;color:var(--fg)}
+    input[aria-invalid="true"]{border-color:#ef4444}
+    button{cursor:pointer;background:var(--accent);color:#fff;border:none}
+    button[disabled]{opacity:.6;cursor:not-allowed}
+    .hint{font-size:12px;color:var(--muted)}
+    .status{margin-top:10px;padding:10px;border:1px dashed var(--bd);border-radius:8px;color:var(--muted)}
+    .chart{margin-top:12px;border:1px solid var(--bd);border-radius:10px;min-height:320px;padding:8px}
+  </style>
+</head>
+<body>
+  <main class="container">
+    <h1>HydrAI-SWE 预测（vNext 逐步上线）</h1>
+    <p class="small">本页为安全分支：零外部脚本、无自动请求。当前阶段仅表单与校验逻辑（Step1-2）。</p>
+
+    <section class="card" id="formCard">
+      <div class="grid">
+        <div>
+          <label for="mode">模式</label>
+          <select id="mode">
+            <option value="nowcast">Nowcast</option>
+            <option value="scenario">Scenario</option>
+          </select>
+        </div>
+        <div>
+          <label for="year">情景年份</label>
+          <input id="year" type="number" min="1979" max="2024" value="2023" />
+          <div class="hint">Scenario 模式使用此年份；越界将被自动夹逼到 1979-2024。</div>
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top:8px">
+        <div>
+          <label for="range">智能数据选择</label>
+          <select id="range">
+            <option value="auto">Auto-select（推荐）</option>
+            <option value="recent">Recent Accuracy Priority（近期精度优先）</option>
+            <option value="historical">Historical Depth Priority（历史深度优先）</option>
+            <option value="mixed">Mixed Use（混合使用）</option>
+          </select>
+          <div class="hint" id="rangeHint">自动选择：优先采用2020-2024的近年数据</div>
+        </div>
+        <div>
+          <label>&nbsp;</label>
+          <button id="btnSuggest">应用智能推荐</button>
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top:8px">
+        <div>
+          <label for="start">开始日期</label>
+          <input id="start" type="date" />
+          <input id="startMD" type="text" placeholder="MM-DD" pattern="^[0-1][0-9]-[0-3][0-9]$" style="display:none" />
+          <div class="hint" id="startHint">YYYY-MM-DD</div>
+        </div>
+        <div>
+          <label for="end">结束日期</label>
+          <input id="end" type="date" />
+          <input id="endMD" type="text" placeholder="MM-DD" pattern="^[0-1][0-9]-[0-3][0-9]$" style="display:none" />
+          <div class="hint" id="endHint">YYYY-MM-DD</div>
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top:8px">
+        <div>
+          <label for="station">站点</label>
+          <input id="station" type="text" placeholder="05OC001" />
+        </div>
+        <div>
+          <label>&nbsp;</label>
+          <button id="btn" disabled>获取预测并绘图</button>
+        </div>
+      </div>
+
+      <div class="status" id="status">就绪 · 未发起任何请求</div>
+      <div class="chart" id="chart" aria-label="预测图表"></div>
+    </section>
+  </main>
+
+  <script>
+    (function(){
+      const el = id => document.getElementById(id);
+      const mode = el('mode');
+      const year = el('year');
+      const start = el('start');
+      const end = el('end');
+      const startMD = el('startMD');
+      const endMD = el('endMD');
+      const startHint = el('startHint');
+      const endHint = el('endHint');
+      const station = el('station');
+      const btn = el('btn');
+      const status = el('status');
+      const range = el('range');
+      const rangeHint = el('rangeHint');
+
+      function iso(d){return d.toISOString().slice(0,10)}
+      function setNowcastDefaults(){
+        const t = new Date(); const n = new Date(t.getTime()+7*864e5);
+        start.value = iso(t); end.value = iso(n);
+        start.style.display = end.style.display = '';
+        startMD.style.display = endMD.style.display = 'none';
+        startHint.textContent=endHint.textContent='YYYY-MM-DD';
+      }
+      function clampYear(y){ y = y|0; if(isNaN(y)) y=2023; return Math.min(2024, Math.max(1979, y)); }
+      function setScenarioDefaults(){
+        year.value = clampYear(year.value);
+        startMD.value = '03-15'; endMD.value = '05-15';
+        start.style.display = end.style.display = 'none';
+        startMD.style.display = endMD.style.display = '';
+        startHint.textContent=endHint.textContent='MM-DD（提交时按情景年份拼接）';
+      }
+      function validMMDD(s){ return /^([0][1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/.test(s); }
+      function validate(){
+        let ok = !!station.value.trim();
+        if(mode.value==='scenario'){
+          const a = validMMDD(startMD.value), b = validMMDD(endMD.value);
+          startMD.setAttribute('aria-invalid', !a); endMD.setAttribute('aria-invalid', !b);
+          ok = ok && a && b;
+        }else{
+          ok = ok && !!start.value && !!end.value;
+        }
+        btn.disabled = !ok;
+        return ok;
+      }
+
+      // ===== 网络与绘图 =====
+      function toRequestDates(){
+        if (mode.value !== 'scenario') return {start: start.value, end: end.value, year: null};
+        const y = clampYear(year.value);
+        const mmdd = s => (s||'01-01').slice(0,5);
+        return { start: `${y}-${mmdd(startMD.value)}`, end: `${y}-${mmdd(endMD.value)}`, year: y };
+      }
+
+      function fetchJson(url, ms=3000){
+        const ctrl = new AbortController();
+        const t = setTimeout(()=>ctrl.abort(), ms);
+        return fetch(url, {signal: ctrl.signal}).then(r=>{
+          clearTimeout(t);
+          if(!r.ok) throw new Error('HTTP '+r.status);
+          return r.json();
+        });
+      }
+
+      function loadScript(src){ return new Promise((res,rej)=>{ const s=document.createElement('script'); s.src=src; s.onload=res; s.onerror=()=>rej(new Error('load fail '+src)); document.head.appendChild(s); }); }
+      function loadCss(href){ const l=document.createElement('link'); l.rel='stylesheet'; l.href=href; document.head.appendChild(l); }
+      async function ensureUplot(){ if(window.uPlot) return; loadCss('https://unpkg.com/uplot/dist/uPlot.min.css'); await loadScript('https://unpkg.com/uplot/dist/uPlot.iife.min.js'); }
+
+      function computeStats(forecasts){
+        const flows = (forecasts||[]).map(p=> Number(p.streamflow_m3s ?? p.predicted_flow ?? 0)).filter(Number.isFinite);
+        if(!flows.length) return {min:0,max:0,mean:0,flows:[]};
+        const min = Math.min(...flows), max = Math.max(...flows), mean = flows.reduce((a,b)=>a+b,0)/flows.length;
+        return {min,max,mean,flows};
+      }
+
+      function drawSvg(flows){
+        const host = el('chart'); host.innerHTML='';
+        if(!flows.length){ host.textContent='无数据'; return; }
+        const W = host.clientWidth||900, H = 320, pad = {l:50,r:10,t:10,b:30};
+        const w=W-pad.l-pad.r, h=H-pad.t-pad.b;
+        const svgNS='http://www.w3.org/2000/svg';
+        const svg=document.createElementNS(svgNS,'svg'); svg.setAttribute('width',W); svg.setAttribute('height',H); host.appendChild(svg);
+        const min=Math.min(...flows), max=Math.max(...flows), pv=(max-min)*0.05||1, y0=min-pv, y1=max+pv;
+        const xs=i=> pad.l + (flows.length<=1?0:(i/(flows.length-1))*w), ys=v=> pad.t + h - ((v-y0)/(y1-y0))*h;
+        const axis=document.createElementNS(svgNS,'g'); axis.setAttribute('stroke','#94a3b8');
+        axis.appendChild(line(pad.l,pad.t,pad.l,pad.t+h)); axis.appendChild(line(pad.l,pad.t+h,pad.l+w,pad.t+h)); svg.appendChild(axis);
+        const pl=document.createElementNS(svgNS,'polyline'); pl.setAttribute('fill','none'); pl.setAttribute('stroke','#2563eb'); pl.setAttribute('stroke-width','2');
+        pl.setAttribute('points', flows.map((v,i)=>`${xs(i)},${ys(v)}`).join(' ')); svg.appendChild(pl);
+        function line(x1,y1,x2,y2){ const l=document.createElementNS(svgNS,'line'); l.setAttribute('x1',x1); l.setAttribute('y1',y1); l.setAttribute('x2',x2); l.setAttribute('y2',y2); return l; }
+      }
+
+      async function drawChart(forecasts){
+        const {flows} = computeStats(forecasts);
+        try { await ensureUplot(); } catch { drawSvg(flows); return; }
+        const host=el('chart'); host.innerHTML=''; if(!flows.length){ host.textContent='无数据'; return; }
+        const x = flows.map((_,i)=>i), y = flows;
+        const u = new uPlot({ width: host.clientWidth||900, height: 320, series:[{}, {label:'径流 (m³/s)', stroke:'#2563eb', width:2}], axes:[{grid:{show:true}},{grid:{show:true}}] }, [x,y], host);
+        new ResizeObserver(()=> u.setSize({width:host.clientWidth||900,height:320})).observe(host);
+      }
+
+      async function run(){
+        if(!validate()){ status.textContent='请先修正表单'; return; }
+        const {start: s, end: e, year: y} = toRequestDates();
+        const params = new URLSearchParams({ station_id: station.value.trim()||'05OC001', start_date: s, end_date: e, mode: mode.value });
+        if (mode.value==='scenario' && y) params.append('scenario_year', String(y));
+        const url = `/api/v1/runoff-forecast?${params.toString()}`;
+        btn.disabled = true; status.textContent = '请求中...';
+        try {
+          const data = await fetchJson(url, 3000);
+          const forecasts = Array.isArray(data?.forecasts) ? data.forecasts : [];
+          const st = computeStats(forecasts); status.textContent = `完成 · 条数 ${forecasts.length} · 最小 ${st.min.toFixed(2)} · 最大 ${st.max.toFixed(2)} · 均值 ${st.mean.toFixed(2)}`;
+          await drawChart(forecasts);
+        } catch (e){ status.textContent = '失败：' + e.message; drawSvg([]); }
+        finally { btn.disabled = false; }
+      }
+
+      // init
+      setNowcastDefaults();
+      mode.addEventListener('change', ()=>{ mode.value==='scenario'? setScenarioDefaults(): setNowcastDefaults(); validate(); });
+      year.addEventListener('change', ()=>{ year.value = clampYear(year.value); if(mode.value==='scenario') validate(); });
+      [start,end,startMD,endMD,station].forEach(e=> e.addEventListener('input', validate));
+      validate();
+
+      btn.addEventListener('click', (e)=>{ e.preventDefault(); run(); });
+
+      // 智能推荐
+      const RANGE_HINTS = {
+        auto: '自动选择：优先采用2020-2024近年数据，必要时回补历史',
+        recent: '2020-2024：精度更高但历史深度有限',
+        historical: '1979-1998：历史深度优先，适合长期模式分析',
+        mixed: '1979-2024：兼顾历史与近期'
+      };
+      range.addEventListener('change', ()=>{ rangeHint.textContent = RANGE_HINTS[range.value] || RANGE_HINTS.auto; });
+      el('btnSuggest').addEventListener('click', (e)=>{
+        e.preventDefault();
+        const v = range.value;
+        if (mode.value === 'scenario') {
+          if (v === 'recent') { year.value = 2023; startMD.value='03-15'; endMD.value='05-15'; }
+          else if (v === 'historical') { year.value = 1990; startMD.value='03-15'; endMD.value='05-15'; }
+          else if (v === 'mixed') { year.value = 2020; startMD.value='03-15'; endMD.value='05-15'; }
+          else { year.value = 2024; startMD.value='03-15'; endMD.value='05-15'; }
+          year.value = clampYear(year.value);
+          startHint.textContent=endHint.textContent='MM-DD（已按情景年份拼接策略准备）';
+        } else {
+          // nowcast
+          const t = new Date(); const n = new Date(t.getTime()+7*864e5);
+          start.value = iso(t); end.value = iso(n);
+          startHint.textContent=endHint.textContent='YYYY-MM-DD（未来一周）';
+        }
+        status.textContent = '已应用智能推荐';
+        validate();
+      });
+    })();
+  </script>
+</body>
+</html>
+
+

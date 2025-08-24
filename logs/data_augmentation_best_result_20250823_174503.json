@@ -1,0 +1,18 @@
+{
+  "best_result": {
+    "experiment": 7,
+    "name": "噪声+时间偏移",
+    "description": "噪声增强 + 时间偏移增强",
+    "config": {
+      "noise": true,
+      "time_shift": true,
+      "noise_factor": 0.01,
+      "shift_range": 3
+    },
+    "val_loss": 0.001567386605944321,
+    "training_time": 515.8921356201172,
+    "data_size": 7281
+  },
+  "n_experiments": 6,
+  "experiment_time": "2025-08-23T17:45:03.228952"
+}

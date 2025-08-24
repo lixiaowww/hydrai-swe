@@ -1,0 +1,14 @@
+{
+  "test_start_time": "2025-08-22T17:34:29.926058",
+  "test_end_time": "2025-08-22T17:34:47.789870",
+  "test_duration_seconds": 17.863812,
+  "test_results": {
+    "prediction_validator": true,
+    "real_time_validator": true,
+    "api_integration": true,
+    "validation_workflow": true
+  },
+  "overall_success": true,
+  "success_count": 4,
+  "total_tests": 4
+}

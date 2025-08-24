@@ -1,0 +1,25 @@
+{
+  "data_source": {
+    "primary": "ERA5_Alternative",
+    "fallback": "SMAP_When_Available",
+    "last_updated": "2025-08-21T12:29:55.129067"
+  },
+  "soil_moisture": {
+    "source": "ERA5_Alternative",
+    "update_frequency": "daily",
+    "coverage": "Red River Basin",
+    "variables": [
+      "soil_moisture",
+      "temperature",
+      "precipitation"
+    ]
+  },
+  "integration": {
+    "status": "active",
+    "data_path": "data/raw/era5_alternative",
+    "api_endpoints": {
+      "soil_moisture": "/api/v1/agriculture/soil-moisture",
+      "weather": "/api/v1/weather/current"
+    }
+  }
+}

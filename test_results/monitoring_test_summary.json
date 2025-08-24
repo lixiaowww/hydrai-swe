@@ -1,0 +1,15 @@
+{
+  "test_start_time": "2025-08-22T20:59:01.256390",
+  "test_end_time": "2025-08-22T21:00:18.787608",
+  "test_duration_seconds": 77.531218,
+  "test_results": {
+    "system_monitor": true,
+    "alert_system": true,
+    "performance_dashboard": true,
+    "monitoring_controller": true,
+    "integration": true
+  },
+  "overall_success": true,
+  "success_count": 5,
+  "total_tests": 5
+}

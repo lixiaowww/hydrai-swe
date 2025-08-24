@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HydrAI-SWE 洪水预警 - 轻量版</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            min-height: 100vh; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .navbar { background: rgba(44, 62, 80, 0.95) !important; backdrop-filter: blur(10px); }
+        .card { border: none; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .card-header { background: linear-gradient(45deg, #2c3e50, #3498db); color: white; border-radius: 15px 15px 0 0 !important; }
+        .main-container { padding: 20px; margin-top: 20px; }
+        .metric-card { 
+            background: rgba(255,255,255,0.95); 
+            border-radius: 15px; 
+            padding: 20px; 
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .metric-value { font-size: 2.5rem; font-weight: bold; color: #2c3e50; }
+        .metric-label { color: #6c757d; font-size: 0.9rem; margin-top: 10px; }
+        .risk-level { padding: 8px 16px; border-radius: 20px; font-weight: bold; text-align: center; min-width: 100px; }
+        .risk-critical { background: #e74c3c; color: white; }
+        .risk-high { background: #e67e22; color: white; }
+        .risk-medium { background: #f39c12; color: white; }
+        .risk-low { background: #27ae60; color: white; }
+        .risk-normal { background: #17a2b8; color: white; }
+        .footer { background: rgba(44, 62, 80, 0.9); color: white; text-align: center; padding: 20px; margin-top: 40px; border-radius: 15px; }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-water me-2"></i>
+                HydrAI-SWE 洪水预警 - 轻量版
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/ui/enhanced_en">
+                    <i class="fas fa-home me-1"></i>主页面
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <div class="container-fluid">
+            <!-- 页面标题 -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h1 class="text-white text-center mb-3">
+                        <i class="fas fa-exclamation-triangle me-3"></i>
+                        实时洪水预警监控
+                    </h1>
+                    <p class="text-white text-center opacity-75">
+                        轻量级AI智能洪水风险评估系统
+                    </p>
+                </div>
+            </div>
+
+            <!-- 实时风险状态 -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-radar me-2"></i>
+                            实时风险状态
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="metric-card">
+                                        <div class="metric-value" id="currentRiskLevel">--</div>
+                                        <div class="metric-label">当前风险等级</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="metric-card">
+                                        <div class="metric-value" id="riskProbability">--</div>
+                                        <div class="metric-label">风险概率 (%)</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="metric-card">
+                                        <div class="metric-value" id="alertLevel">--</div>
+                                        <div class="metric-label">预警级别</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="metric-card">
+                                        <div class="metric-value" id="riskIntensity">--</div>
+                                        <div class="metric-label">风险强度</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        <strong>建议行动：</strong>
+                                        <span id="recommendedAction">加载中...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 预警时间线 -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-clock me-2"></i>
+                            预警时间线 (未来7天)
+                        </div>
+                        <div class="card-body">
+                            <div id="timelineContainer">
+                                <div class="text-center">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">加载中...</span>
+                                    </div>
+                                    <p class="mt-2">加载时间线数据...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 操作按钮 -->
+            <div class="row mb-4">
+                <div class="col-12 text-center">
+                    <button class="btn btn-primary me-3" onclick="refreshData()">
+                        <i class="fas fa-sync-alt me-2"></i>
+                        刷新数据
+                    </button>
+                    <button class="btn btn-success" onclick="exportReport()">
+                        <i class="fas fa-download me-2"></i>
+                        导出报告
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <div class="footer">
+        <p class="mb-0">
+            <i class="fas fa-copyright me-1"></i>
+            2025 HydrAI-SWE 洪水预警系统 | 轻量级版本
+        </p>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- 轻量级JavaScript -->
+    <script>
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+        });
+
+        // 加载数据
+        async function loadData() {
+            try {
+                await Promise.all([
+                    loadRealTimeRisk(),
+                    loadTimeline()
+                ]);
+            } catch (error) {
+                console.error('数据加载失败:', error);
+                showError('数据加载失败');
+            }
+        }
+
+        // 加载实时风险数据
+        async function loadRealTimeRisk() {
+            try {
+                const response = await fetch('/api/v2/flood/real-time-advanced-risk');
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    updateRiskDisplay(data);
+                }
+            } catch (error) {
+                console.error('实时风险数据加载失败:', error);
+            }
+        }
+
+        // 更新风险显示
+        function updateRiskDisplay(data) {
+            const risk = data.current_risk;
+            
+            document.getElementById('currentRiskLevel').textContent = risk.level;
+            document.getElementById('currentRiskLevel').className = `metric-value risk-${risk.level.toLowerCase()}`;
+            document.getElementById('riskProbability').textContent = Math.round(risk.probability * 100);
+            document.getElementById('alertLevel').textContent = risk.alert_level;
+            document.getElementById('riskIntensity').textContent = risk.intensity.toFixed(1);
+            document.getElementById('recommendedAction').textContent = risk.action;
+        }
+
+        // 加载时间线
+        async function loadTimeline() {
+            try {
+                const response = await fetch('/api/v2/flood/advanced-timeline?days=7');
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    updateTimelineDisplay(data);
+                }
+            } catch (error) {
+                console.error('时间线数据加载失败:', error);
+            }
+        }
+
+        // 更新时间线显示
+        function updateTimelineDisplay(data) {
+            const container = document.getElementById('timelineContainer');
+            const timeline = data.timeline;
+            const summary = data.summary;
+            
+            let html = `
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <div class="alert alert-info">
+                            <strong>时间线摘要：</strong>
+                            共 ${summary.total_days} 天，高风险天数：${summary.high_risk_days}，
+                            平均风险：${(summary.average_risk * 100).toFixed(1)}%
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+            `;
+            
+            timeline.forEach((day, index) => {
+                const riskClass = `risk-${day.risk_level.toLowerCase()}`;
+                html += `
+                    <div class="col-md-6 mb-3">
+                        <div class="border-start border-primary ps-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-1">${day.date}</h6>
+                                <span class="risk-level ${riskClass}">${day.risk_level}</span>
+                            </div>
+                            <p class="mb-1">风险概率: ${(day.risk_probability * 100).toFixed(1)}%</p>
+                            <p class="mb-1">预警级别: ${day.alert_level}</p>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // 刷新数据
+        function refreshData() {
+            loadData();
+        }
+
+        // 导出报告
+        function exportReport() {
+            const reportData = {
+                timestamp: new Date().toISOString(),
+                exportType: 'flood_warning_light_report'
+            };
+            
+            const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `flood_warning_light_report_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // 显示错误信息
+        function showError(message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+            alertDiv.innerHTML = `
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.querySelector('.main-container').insertBefore(alertDiv, document.querySelector('.main-container').firstChild);
+            
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

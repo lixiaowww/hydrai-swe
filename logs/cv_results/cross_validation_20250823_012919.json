@@ -1,0 +1,249 @@
+{
+  "validation_start": "2025-08-23T01:29:19.477217",
+  "data_info": {
+    "total_samples": 1827,
+    "date_range": "2020-01-01 00:00:00 to 2024-12-31 00:00:00",
+    "n_splits": 5
+  },
+  "models": {
+    "swe_model": {
+      "model_type": "SWE Prediction",
+      "cv_metrics": [
+        {
+          "fold": 1,
+          "train_size": 365,
+          "test_size": 90,
+          "mse": 233.40137159798792,
+          "rmse": 15.277479229178743,
+          "mae": 12.683902237677367,
+          "r2": -1.130432410336157,
+          "train_start": 0,
+          "train_end": 365,
+          "test_start": 365,
+          "test_end": 455
+        },
+        {
+          "fold": 2,
+          "train_size": 455,
+          "test_size": 90,
+          "mse": 201.388331765319,
+          "rmse": 14.191135675671593,
+          "mae": 10.752633026757733,
+          "r2": -1.0202283781934547,
+          "train_start": 0,
+          "train_end": 455,
+          "test_start": 455,
+          "test_end": 545
+        },
+        {
+          "fold": 3,
+          "train_size": 545,
+          "test_size": 90,
+          "mse": 213.70940813324611,
+          "rmse": 14.618803238748585,
+          "mae": 11.94289599532284,
+          "r2": -1.3050706292742196,
+          "train_start": 0,
+          "train_end": 545,
+          "test_start": 545,
+          "test_end": 635
+        },
+        {
+          "fold": 4,
+          "train_size": 635,
+          "test_size": 90,
+          "mse": 171.84967807980212,
+          "rmse": 13.109144826410382,
+          "mae": 9.910308938705123,
+          "r2": -0.7254967508243537,
+          "train_start": 0,
+          "train_end": 635,
+          "test_start": 635,
+          "test_end": 725
+        },
+        {
+          "fold": 5,
+          "train_size": 725,
+          "test_size": 90,
+          "mse": 197.2497313253269,
+          "rmse": 14.044562340113233,
+          "mae": 11.222020101295302,
+          "r2": -1.344878379359261,
+          "train_start": 0,
+          "train_end": 725,
+          "test_start": 725,
+          "test_end": 815
+        }
+      ],
+      "summary_metrics": {
+        "mean_rmse": 14.248225062024506,
+        "std_rmse": 0.7125915816462742,
+        "mean_r2": -1.1052213095974892,
+        "std_r2": 0.22334968107727812,
+        "mean_mae": 11.302352059951671,
+        "std_mae": 0.9555527946860669
+      },
+      "validation_time": "2025-08-23T01:29:19.504017"
+    },
+    "agriculture_model": {
+      "model_type": "Agriculture Model",
+      "cv_metrics": [
+        {
+          "fold": 1,
+          "train_size": 365,
+          "test_size": 90,
+          "mse": 363.3932614921803,
+          "rmse": 19.062876527223803,
+          "mae": 16.014661447204276,
+          "r2": -0.657672947870021,
+          "train_start": 0,
+          "train_end": 365,
+          "test_start": 365,
+          "test_end": 455
+        },
+        {
+          "fold": 2,
+          "train_size": 455,
+          "test_size": 90,
+          "mse": 426.11114696030984,
+          "rmse": 20.642459808857804,
+          "mae": 16.921852916469476,
+          "r2": -1.108081246958295,
+          "train_start": 0,
+          "train_end": 455,
+          "test_start": 455,
+          "test_end": 545
+        },
+        {
+          "fold": 3,
+          "train_size": 545,
+          "test_size": 90,
+          "mse": 435.8246926962002,
+          "rmse": 20.87641474717822,
+          "mae": 16.769271513228087,
+          "r2": -1.6017085380184906,
+          "train_start": 0,
+          "train_end": 545,
+          "test_start": 545,
+          "test_end": 635
+        },
+        {
+          "fold": 4,
+          "train_size": 635,
+          "test_size": 90,
+          "mse": 567.7023945637583,
+          "rmse": 23.826506134214437,
+          "mae": 18.397606423578328,
+          "r2": -1.2280981160788573,
+          "train_start": 0,
+          "train_end": 635,
+          "test_start": 635,
+          "test_end": 725
+        },
+        {
+          "fold": 5,
+          "train_size": 725,
+          "test_size": 90,
+          "mse": 448.95558594593024,
+          "rmse": 21.188572060097165,
+          "mae": 16.43081456424954,
+          "r2": -1.114027285346523,
+          "train_start": 0,
+          "train_end": 725,
+          "test_start": 725,
+          "test_end": 815
+        }
+      ],
+      "summary_metrics": {
+        "mean_rmse": 21.119365855514285,
+        "std_rmse": 1.5394161856408666,
+        "mean_r2": -1.1419176268544373,
+        "std_r2": 0.30174507107512305,
+        "mean_mae": 16.90684137294594,
+        "std_mae": 0.8079749737984232
+      },
+      "validation_time": "2025-08-23T01:29:19.539842"
+    },
+    "flood_warning_model": {
+      "model_type": "Flood Warning",
+      "cv_metrics": [
+        {
+          "fold": 1,
+          "train_size": 365,
+          "test_size": 90,
+          "accuracy": 0.8666666666666667,
+          "precision": 0.2857142857142857,
+          "recall": 0.2222222222222222,
+          "f1": 0.25,
+          "train_start": 0,
+          "train_end": 365,
+          "test_start": 365,
+          "test_end": 455
+        },
+        {
+          "fold": 2,
+          "train_size": 455,
+          "test_size": 90,
+          "accuracy": 0.7888888888888889,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0,
+          "train_start": 0,
+          "train_end": 455,
+          "test_start": 455,
+          "test_end": 545
+        },
+        {
+          "fold": 3,
+          "train_size": 545,
+          "test_size": 90,
+          "accuracy": 0.8,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0,
+          "train_start": 0,
+          "train_end": 545,
+          "test_start": 545,
+          "test_end": 635
+        },
+        {
+          "fold": 4,
+          "train_size": 635,
+          "test_size": 90,
+          "accuracy": 0.8,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0,
+          "train_start": 0,
+          "train_end": 635,
+          "test_start": 635,
+          "test_end": 725
+        },
+        {
+          "fold": 5,
+          "train_size": 725,
+          "test_size": 90,
+          "accuracy": 0.7888888888888889,
+          "precision": 0.0,
+          "recall": 0.0,
+          "f1": 0,
+          "train_start": 0,
+          "train_end": 725,
+          "test_start": 725,
+          "test_end": 815
+        }
+      ],
+      "summary_metrics": {
+        "mean_accuracy": 0.8088888888888889,
+        "std_accuracy": 0.02931312435171761,
+        "mean_f1": 0.05,
+        "std_f1": 0.10000000000000002,
+        "mean_precision": 0.05714285714285714,
+        "mean_recall": 0.04444444444444444
+      },
+      "validation_time": "2025-08-23T01:29:19.549980"
+    }
+  },
+  "validation_duration": 0.073674,
+  "validation_end": "2025-08-23T01:29:19.550891"
+}

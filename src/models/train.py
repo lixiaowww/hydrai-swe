@@ -4,7 +4,7 @@ import sys
 
 # Add the neuralhydrology src to the python path
 sys.path.append('src/neuralhydrology')
-from prepare_data import prepare_data_for_neuralhydrology
+from prepare_data_fixed import prepare_data_for_neuralhydrology
 
 
 def train_model_with_neuralhydrology():

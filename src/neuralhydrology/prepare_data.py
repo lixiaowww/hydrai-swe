@@ -8,7 +8,7 @@ import yaml
 def prepare_data_for_neuralhydrology(processed_dir, output_dir):
     """
     Prepares the data for NeuralHydrology using ECC Manitoba snow data.
-    
+
     This function loads ECC snow data and HYDAT streamflow data, merges them,
     and saves it as a CSV file in the format required by NeuralHydrology.
     
@@ -77,33 +77,10 @@ def prepare_data_for_neuralhydrology(processed_dir, output_dir):
         print("⚠️ No overlapping dates between snow and streamflow data")
         print("Creating complete dataset using ECC snow data...")
         
-        # Use ECC snow data as the base and create synthetic streamflow
-        merged_data = daily_snow_data.copy()
-        
-        # Create synthetic streamflow based on snow melt patterns
-        print("Generating synthetic streamflow based on snow melt patterns...")
-        
-        # Simple snow melt to streamflow model
-        merged_data['streamflow_m3s'] = 0.0
-        
-        for i in range(1, len(merged_data)):
-            current_snow = merged_data.iloc[i]['Snow on Grnd (mm)']
-            previous_snow = merged_data.iloc[i-1]['Snow on Grnd (mm)']
-            
-            # Calculate snow melt (positive change means melting)
-            snow_melt = previous_snow - current_snow
-            
-            if snow_melt > 0:
-                # Snow is melting, generate streamflow
-                # Convert mm of snow melt to m³/s (simplified model)
-                melt_to_flow = snow_melt * 0.1  # 10% of melt becomes streamflow
-                base_flow = 1000  # Base flow in m³/s
-                merged_data.iloc[i, merged_data.columns.get_loc('streamflow_m3s')] = base_flow + melt_to_flow
-            else:
-                # No melting, maintain base flow
-                merged_data.iloc[i, merged_data.columns.get_loc('streamflow_m3s')] = 1000
-        
-        print(f"Created synthetic streamflow data for {len(merged_data)} records")
+        # 系统禁止使用合成数据
+        print("❌ 系统禁止使用合成数据")
+        print("💡 请提供真实的径流观测数据")
+        raise ValueError("Missing streamflow data. Synthetic data generation is prohibited.")
     else:
         print(f"Merged data: {len(merged_data)} records")
     
@@ -210,7 +187,7 @@ def prepare_data_for_neuralhydrology(processed_dir, output_dir):
     if 'snow_fall_mm' not in merged_data.columns:
         if 'Total Snow (mm)' in merged_data.columns:
             merged_data['snow_fall_mm'] = merged_data['Total Snow (mm)']
-        else:
+    else:
             merged_data['snow_fall_mm'] = 0.0
             print("Warning: snow_fall_mm column not found, using default value")
     
@@ -236,9 +213,9 @@ def prepare_data_for_neuralhydrology(processed_dir, output_dir):
         # Rename to standard name
         merged_data = merged_data.rename(columns={streamflow_col: 'streamflow_m3s'})
     else:
-        print("No streamflow column found, using synthetic data")
-        # Create synthetic streamflow if none exists
-        merged_data['streamflow_m3s'] = 1000.0
+        print("No streamflow column found")
+        # 系统禁止使用合成数据
+        raise ValueError("Missing streamflow data. Synthetic data generation is prohibited.")
     
     # Clean the data
     print(f"Before cleaning: {len(merged_data)} records")

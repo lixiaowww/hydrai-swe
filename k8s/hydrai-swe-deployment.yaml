@@ -1,0 +1,244 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hydrai-swe
+  namespace: hydrai
+  labels:
+    app: hydrai-swe
+    version: v1.0.0
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: hydrai-swe
+  template:
+    metadata:
+      labels:
+        app: hydrai-swe
+        version: v1.0.0
+    spec:
+      containers:
+      - name: hydrai-swe-api
+        image: hydrai-swe:latest
+        ports:
+        - containerPort: 8000
+          name: http
+        env:
+        - name: ENVIRONMENT
+          value: "production"
+        - name: LOG_LEVEL
+          value: "INFO"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: hydrai-db-secret
+              key: database-url
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: hydrai-redis-secret
+              key: redis-url
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        volumeMounts:
+        - name: models-storage
+          mountPath: /app/models
+        - name: logs-storage
+          mountPath: /app/logs
+        - name: data-storage
+          mountPath: /app/data
+      volumes:
+      - name: models-storage
+        persistentVolumeClaim:
+          claimName: hydrai-models-pvc
+      - name: logs-storage
+        persistentVolumeClaim:
+          claimName: hydrai-logs-pvc
+      - name: data-storage
+        persistentVolumeClaim:
+          claimName: hydrai-data-pvc
+      imagePullSecrets:
+      - name: hydrai-registry-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hydrai-swe-service
+  namespace: hydrai
+  labels:
+    app: hydrai-swe
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 8000
+    protocol: TCP
+    name: http
+  selector:
+    app: hydrai-swe
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hydrai-swe-ingress
+  namespace: hydrai
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+spec:
+  tls:
+  - hosts:
+    - hydrai-swe.yourdomain.com
+    secretName: hydrai-swe-tls
+  rules:
+  - host: hydrai-swe.yourdomain.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: hydrai-swe-service
+            port:
+              number: 80
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: hydrai-models-pvc
+  namespace: hydrai
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: hydrai-logs-pvc
+  namespace: hydrai
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: standard
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: hydrai-data-pvc
+  namespace: hydrai
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: standard
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hydrai-swe-config
+  namespace: hydrai
+data:
+  app.config: |
+    [app]
+    name = "HydrAI-SWE"
+    version = "1.0.0"
+    environment = "production"
+    
+    [database]
+    host = "postgresql-service"
+    port = 5432
+    name = "hydrai_swe"
+    
+    [redis]
+    host = "redis-service"
+    port = 6379
+    
+    [monitoring]
+    enabled = true
+    metrics_port = 9090
+    
+    [logging]
+    level = "INFO"
+    format = "json"
+    output = "logs/app.log"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: hydrai-db-secret
+  namespace: hydrai
+type: Opaque
+data:
+  database-url: cG9zdGdyZXNxbDovL2h5ZHJhaV91c2VyOnBhc3N3b3JkQHBvc3RncmVzcWwtc2VydmljZTo1NDMyL2h5ZHJhaV9zd2U=  # base64 encoded
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: hydrai-redis-secret
+  namespace: hydrai
+type: Opaque
+data:
+  redis-url: cmVkaXM6Ly9yZWRpcy1zZXJ2aWNlOjYzNzk=  # base64 encoded
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: hydrai-registry-secret
+  namespace: hydrai
+type: kubernetes.io/dockerconfigjson
+data:
+  .dockerconfigjson: ewoJImF1dGhzIjoge30KfQ==  # base64 encoded empty auth
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: hydrai-swe-hpa
+  namespace: hydrai
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: hydrai-swe
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80

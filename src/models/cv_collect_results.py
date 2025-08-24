@@ -5,7 +5,10 @@ import os
 from pathlib import Path
 from typing import Dict, List
 
-from .predict import evaluate_run_dir
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+from src.models.predict import evaluate_run_dir
 
 
 def find_cv_run_dirs(runs_root: str = "src/neuralhydrology/runs") -> List[Path]:

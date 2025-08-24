@@ -1,0 +1,55 @@
+{
+  "timestamp": "2025-08-21 11:56:35.850148",
+  "username": "lixiaowww",
+  "tests": {
+    "applications_page": {
+      "status": "success",
+      "page_accessible": true,
+      "has_applications": true,
+      "has_create_button": true,
+      "has_eula_prompt": true,
+      "content_preview": "<!DOCTYPE html>\n<!--[if lt IE 7]><html class=\"no-js lt-ie9 lt-ie8 lt-ie7\"> <![endif]-->\n<!--[if IE 7]><html class=\"no-js lt-ie9 lt-ie8\"> <![endif]-->\n<!--[if IE 8]><html class=\"no-js lt-ie9\"> <![endif]-->\n<!--[if gt IE 8]><!--><html lang=\"en\" class=\"no-js\"><!--<![endif]-->\n  <head>\n    <meta charset=\"utf-8\">\n    <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge,chrome=1\">\n    <title>Earthdata Login</title>\n    <meta name=\"description\" content=\"Earthdata Login\">\n    <meta name=\"viewport\" conten..."
+    },
+    "new_app_form": {
+      "status": "success",
+      "form_accessible": true,
+      "has_name_field": true,
+      "has_redirect_field": true,
+      "has_submit_button": true,
+      "has_eula_prompt": true,
+      "content_preview": "<!DOCTYPE html>\n<!--[if lt IE 7]><html class=\"no-js lt-ie9 lt-ie8 lt-ie7\"> <![endif]-->\n<!--[if IE 7]><html class=\"no-js lt-ie9 lt-ie8\"> <![endif]-->\n<!--[if IE 8]><html class=\"no-js lt-ie9\"> <![endif]-->\n<!--[if gt IE 8]><!--><html lang=\"en\" class=\"no-js\"><!--<![endif]-->\n  <head>\n    <meta charset=\"utf-8\">\n    <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge,chrome=1\">\n    <title>Earthdata Login</title>\n    <meta name=\"description\" content=\"Earthdata Login\">\n    <meta name=\"viewport\" conten..."
+    },
+    "oauth_endpoints": {
+      "status": "completed",
+      "oauth_results": {
+        "https://urs.earthdata.nasa.gov/oauth/applications": {
+          "status_code": 200,
+          "accessible": true,
+          "content_length": 10405
+        },
+        "https://urs.earthdata.nasa.gov/oauth/authorize": {
+          "status_code": 400,
+          "accessible": false,
+          "content_length": 97
+        },
+        "https://urs.earthdata.nasa.gov/oauth/token": {
+          "status_code": 200,
+          "accessible": true,
+          "content_length": 8846
+        }
+      },
+      "summary": {
+        "total_urls": 3,
+        "accessible": 2
+      }
+    }
+  },
+  "overall_assessment": {
+    "app_status": "ready_for_app_creation",
+    "recommendation": "所有测试通过，可以创建OAuth应用",
+    "apps_page_ok": true,
+    "form_ok": true,
+    "oauth_ok": true,
+    "ready_for_creation": true
+  }
+}
