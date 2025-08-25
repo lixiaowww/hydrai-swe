@@ -83,23 +83,35 @@
             align-items: center;
             gap: 0.8rem;
         }
-
-        .logo i {
-            font-size: 2rem;
-            color: #4A90E2;
+        
+        .logo-svg {
+            flex-shrink: 0;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
         }
-
+        
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
         .logo h1 {
-            font-size: 1.5rem;
-            font-weight: 700;
+            font-size: 1.4rem;
+            font-weight: 600;
             color: #2c3e50;
+            margin: 0;
+            line-height: 1.2;
+            letter-spacing: -0.3px;
         }
+        
 
-        .logo .subtitle {
-            font-size: 0.85rem;
+        
+        .subtitle-swe {
+            font-size: 0.75rem;
             color: #7f8c8d;
-            font-weight: normal;
-            margin-left: 0.5rem;
+            font-weight: 400;
+            margin-left: 0.8rem;
+            letter-spacing: 0.2px;
         }
 
         .nav-links {
@@ -861,8 +873,56 @@
     <div class="header">
         <div class="header-content">
             <div class="logo">
-                <i class="fas fa-mountain-snow"></i>
-                <h1>HydrAI-SWE <span class="subtitle">Enhanced System</span></h1>
+                <div class="logo-svg">
+                    <svg width="48" height="48" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+                        <!-- 背景圆形 -->
+                        <circle cx="30" cy="30" r="28" fill="url(#sweGradient)" stroke="#2c3e50" stroke-width="2"/>
+                        
+                        <!-- 渐变定义 -->
+                        <defs>
+                            <linearGradient id="sweGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#74b9ff;stop-opacity:1" />
+                                <stop offset="50%" style="stop-color:#0984e3;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#2d3436;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        
+                        <!-- 主雪花 -->
+                        <g transform="translate(30, 30)">
+                            <!-- 水平线 -->
+                            <path d="M-12 0 L12 0" stroke="#ecf0f1" stroke-width="2.5" stroke-linecap="round"/>
+                            <!-- 垂直线 -->
+                            <path d="M0 -12 L0 12" stroke="#ecf0f1" stroke-width="2.5" stroke-linecap="round"/>
+                            <!-- 对角线 -->
+                            <path d="M-8.5 -8.5 L8.5 8.5" stroke="#ecf0f1" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M-8.5 8.5 L8.5 -8.5" stroke="#ecf0f1" stroke-width="2" stroke-linecap="round"/>
+                            
+                            <!-- 雪花装饰点 -->
+                            <circle cx="0" cy="0" r="1.5" fill="#74b9ff"/>
+                            <circle cx="-8" cy="0" r="1" fill="#74b9ff"/>
+                            <circle cx="8" cy="0" r="1" fill="#74b9ff"/>
+                            <circle cx="0" cy="-8" r="1" fill="#74b9ff"/>
+                            <circle cx="0" cy="8" r="1" fill="#74b9ff"/>
+                        </g>
+                        
+                        <!-- 小雪花装饰 -->
+                        <g transform="translate(15, 15)">
+                            <path d="M-3 0 L3 0 M0 -3 L0 3" stroke="#74b9ff" stroke-width="1" stroke-linecap="round" opacity="0.7"/>
+                        </g>
+                        <g transform="translate(45, 15)">
+                            <path d="M-3 0 L3 0 M0 -3 L0 3" stroke="#74b9ff" stroke-width="1" stroke-linecap="round" opacity="0.7"/>
+                        </g>
+                        <g transform="translate(15, 45)">
+                            <path d="M-3 0 L3 0 M0 -3 L0 3" stroke="#74b9ff" stroke-width="1" stroke-linecap="round" opacity="0.7"/>
+                        </g>
+                        <g transform="translate(45, 45)">
+                            <path d="M-3 0 L3 0 M0 -3 L0 3" stroke="#74b9ff" stroke-width="1" stroke-linecap="round" opacity="0.7"/>
+                        </g>
+                    </svg>
+                </div>
+                <div class="logo-text">
+                    <h1>HydrAI-SWE <span class="subtitle-swe">Snow Water Equivalent</span></h1>
+                </div>
             </div>
             <div class="nav-links">
                 <a href="/hydrological-center"><i class="fas fa-chart-line"></i> Hydrological Center</a>
@@ -1185,16 +1245,7 @@
                             </div>
                         </div>
                         
-                        <div class="text-center mt-3">
-                            <a href="/ui/flood-warning" class="btn btn-primary me-2">
-                                <i class="fas fa-external-link-alt me-2"></i>
-                                查看详细洪水预警仪表板
-                            </a>
-                            <a href="/ui/flood-warning-demo" class="btn btn-info">
-                                <i class="fas fa-rocket me-2"></i>
-                                功能演示
-                            </a>
-                        </div>
+
                     </div>
 
                     <!-- Runoff Predictions -->
@@ -1891,46 +1942,24 @@ function initializeForecastControls() {
                 // Check if all values are zero (no snow season)
                 const allZero = data.forecast_values.every(val => val === 0);
                 
+                // Check if we have real forecast data (not all zeros)
+                const hasRealData = data.forecast_values.some(val => val !== 0);
+                
                 if (allZero && forecastType === 'swe') {
-                    // Create a sophisticated seasonal information chart
-                    const currentMonth = new Date().getMonth();
-                    const isCurrentSummer = currentMonth >= 5 && currentMonth <= 9; // Jun-Sep
-                    
-                    // Generate seasonal reference curve to show typical SWE pattern
-                    const seasonalReference = data.dates.map((date, index) => {
-                        const forecastDate = new Date(date);
-                        const month = forecastDate.getMonth();
-                        
-                        // Typical SWE seasonal pattern for the region
-                        if (month >= 10 || month <= 3) { // Oct-Mar (winter)
-                            const winterProgress = month >= 10 ? (month - 10) / 6 : (month + 3) / 6;
-                            return Math.max(0, 80 * Math.sin(winterProgress * Math.PI) + Math.random() * 10);
-                        }
-                        return 0; // Summer months
-                    });
-                    
+                    // Create a special chart showing seasonal information for current summer
                     forecastChart = new Chart(forecastCtx, {
                         type: 'line',
                         data: {
                             labels: data.dates,
                             datasets: [{
-                                label: isCurrentSummer ? 'Current Summer Period (No Snow)' : 'No Snow Expected',
+                                label: 'Current Summer Season (No Snow)',
                                 data: data.forecast_values,
                                 borderColor: '#ffc107',
                                 backgroundColor: 'rgba(255, 193, 7, 0.1)',
-                                borderWidth: 3,
+                                borderWidth: 2,
                                 fill: true,
                                 tension: 0.4,
                                 pointRadius: 0
-                            }, {
-                                label: 'Typical Seasonal Pattern (Reference)',
-                                data: seasonalReference,
-                                borderColor: '#6c757d',
-                                backgroundColor: 'transparent',
-                                borderWidth: 1,
-                                borderDash: [5, 5],
-                                pointRadius: 0,
-                                tension: 0.3
                             }]
                         },
                         options: {
@@ -1939,39 +1968,20 @@ function initializeForecastControls() {
                             plugins: {
                                 title: {
                                     display: true,
-                                    text: isCurrentSummer ? 
-                                        'Summer Season - No Snow Expected (Showing Seasonal Context)' :
-                                        'Non-Winter Period - Snow Season Starts October-November',
-                                    font: { size: 14, weight: 'bold' }
+                                    text: 'Current Period - No Snow Expected'
                                 },
                                 subtitle: {
                                     display: true,
-                                    text: isCurrentSummer ?
-                                        'Use winter date presets (November/December/January) to see snow accumulation forecasts' :
-                                        'Select a date range during winter months (Nov-Mar) for meaningful SWE predictions',
-                                    color: '#666',
-                                    font: { size: 12 }
-                                },
-                                legend: {
-                                    display: true,
-                                    position: 'bottom'
+                                    text: 'Select a winter date (Nov-Mar) to see snow forecasts'
                                 }
                             },
                             scales: {
                                 y: {
                                     beginAtZero: true,
-                                    max: Math.max(100, Math.max(...seasonalReference) * 1.2),
+                                    max: 50,
                                     title: {
                                         display: true,
                                         text: data.y_axis_label
-                                    },
-                                    grid: {
-                                        color: 'rgba(0,0,0,0.1)'
-                                    }
-                                },
-                                x: {
-                                    grid: {
-                                        color: 'rgba(0,0,0,0.1)'
                                     }
                                 }
                             }
@@ -1980,12 +1990,7 @@ function initializeForecastControls() {
                     return;
                 }
                 
-                console.log(`🎨 创建预测图表...`);
-                console.log(`📊 图表数据:`, {
-                    labels: data.dates,
-                    datasets: data.forecast_values
-                });
-                
+                // Create normal forecast chart with real data
                 forecastChart = new Chart(forecastCtx, {
                     type: 'line',
                     data: {
@@ -1997,7 +2002,8 @@ function initializeForecastControls() {
                             backgroundColor: 'rgba(74, 144, 226, 0.1)',
                             borderWidth: 2,
                             fill: true,
-                            tension: 0.4
+                            tension: 0.4,
+                            pointRadius: 3
                         }]
                     },
                     options: {
@@ -2006,12 +2012,16 @@ function initializeForecastControls() {
                         plugins: {
                             title: {
                                 display: true,
-                                text: `${days}-Day ${data.forecast_type} Forecast`
+                                text: `${days}-Day ${data.forecast_type} Forecast from ${new Date().toLocaleDateString()}`
+                            },
+                            subtitle: {
+                                display: true,
+                                text: `Model: ${data.model_version} | Confidence: ${data.confidence_level}%`
                             }
                         },
                         scales: {
                             y: {
-                                beginAtZero: true,
+                                beginAtZero: false, // Allow negative values for SWE
                                 title: {
                                     display: true,
                                     text: data.y_axis_label
@@ -2790,9 +2800,7 @@ function initializeForecastControls() {
                         plugins: {
                             title: {
                                 display: true,
-                                text: startDate ? 
-                                    `${days}-Day ${data.forecast_type} Forecast from ${new Date(startDate).toLocaleDateString()}` :
-                                    `${days}-Day ${data.forecast_type} Forecast`
+                                text: `${days}-Day ${data.forecast_type} Forecast`
                             }
                         },
                         scales: {

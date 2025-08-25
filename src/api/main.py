@@ -1,3 +1,9 @@
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import HTMLResponse
@@ -6,7 +12,7 @@ from fastapi.staticfiles import StaticFiles
 
 # Import only the SWE router for now
 try:
-    from routers import swe
+    from src.api.routers import swe
     SWE_AVAILABLE = True
 except ImportError as e:
     print(f"Warning: Could not import SWE router: {e}")
@@ -14,23 +20,29 @@ except ImportError as e:
 
 # Try to import other routers
 try:
-    from routers import flood_warning
+    from src.api.routers import flood_warning
     FLOOD_AVAILABLE = True
 except ImportError:
     FLOOD_AVAILABLE = False
 
 try:
-    from routers import advanced_flood_warning
+    from src.api.routers import advanced_flood_warning
     ADVANCED_FLOOD_AVAILABLE = True
 except ImportError:
     ADVANCED_FLOOD_AVAILABLE = False
 
 try:
-    from routers import agriculture
+    from src.api.routers import agriculture
     AGRICULTURE_AVAILABLE = True
 except ImportError as e:
     print(f"Warning: Could not import agriculture router: {e}")
     AGRICULTURE_AVAILABLE = False
+
+try:
+    from src.api.routers import pipeline
+    PIPELINE_AVAILABLE = True
+except ImportError:
+    PIPELINE_AVAILABLE = False
 
 app = FastAPI(
     title="HydrAI-SWE API",
@@ -56,6 +68,9 @@ if AGRICULTURE_AVAILABLE:
 # if ADVANCED_FLOOD_AVAILABLE:
 #     app.include_router(advanced_flood_warning.router, prefix="/api/v2/flood", tags=["advanced_flood_warning"])
 #     app.include_router(advanced_flood_warning.router, prefix="/api/manitoba-flood/advanced", tags=["manitoba_flood_advanced"])
+
+if PIPELINE_AVAILABLE:
+    app.include_router(pipeline.router, prefix="/api/v1", tags=["pipeline"])
 
 @app.get("/")
 def read_root():
@@ -130,10 +145,25 @@ def hydrological_center_dashboard(request: Request):
     # Manitoba Real-time Hydrological Data Center with Flood Warning System
     return templates.TemplateResponse("ui/flood_warning_dashboard.html", {"request": request})
 
+@app.get("/ui/flood-warning-demo", response_class=HTMLResponse)
+def flood_warning_demo(request: Request):
+    # Flood Warning Feature Demo
+    return templates.TemplateResponse("ui/flood_warning_demo.html", {"request": request})
+
 @app.get("/agriculture", response_class=HTMLResponse)
 def agriculture(request: Request):
     # Agriculture Intelligence Suite - dedicated applications interface
     return templates.TemplateResponse("ui/applications.html", {"request": request})
+
+@app.get("/applications", response_class=HTMLResponse)
+def applications(request: Request):
+    # Applications interface - alternative route
+    return templates.TemplateResponse("ui/applications.html", {"request": request})
+
+@app.get("/applications/data-authenticity", response_class=HTMLResponse)
+def applications_data_authenticity_report(request: Request):
+    # Data Authenticity Analysis Report for Applications Module
+    return templates.TemplateResponse("ui/data_authenticity_report.html", {"request": request})
 
 @app.get("/agriculture/data-authenticity", response_class=HTMLResponse)
 def agriculture_data_authenticity_report(request: Request):
@@ -145,10 +175,7 @@ def user_guide(request: Request):
     # Comprehensive User Guide for HydrAI-SWE System
     return templates.TemplateResponse("ui/user_guide.html", {"request": request})
 
-@app.get("/ui/flood-warning-demo", response_class=HTMLResponse)
-def flood_warning_demo(request: Request):
-    # Flood Warning Feature Demo
-    return templates.TemplateResponse("ui/flood_warning_demo.html", {"request": request})
+
 
 @app.get("/api-docs", response_class=HTMLResponse)
 def api_documentation(request: Request):

@@ -1,0 +1,34 @@
+[Unit]
+Description=HydrAI-SWE Data Pipeline Update Service
+Documentation=https://github.com/your-org/hydrai-swe
+After=network.target
+Wants=network.target
+
+[Service]
+Type=oneshot
+User=sean
+Group=sean
+WorkingDirectory=/home/sean/hydrai_swe
+Environment=PATH=/home/sean/hydrai_swe/venv/bin:/usr/local/bin:/usr/bin:/bin
+Environment=EARTHDATA_BEARER=eyJ0eXAiOiJKV1QiLCJvcmlnaW4iOiJFYXJ0aGRhdGEgTG9naW4iLCJzaWciOiJlZGxqd3RwdWJrZXlfb3BzIiwiYWxnIjoiUlMyNTYifQ.eyJ0eXBlIjoiVXNlciIsInVpZCI6ImxpeGlhb3d3dyIsImV4cCI6MTc2MTM1MDM5OSwiaWF0IjoxNzU2MTQwMzM4LCJpc3MiOiJodHRwczovL3Vycy5lYXJ0aGRhdGEubmFzYS5nb3YiLCJpZGVudGl0eV9wcm92aWRlciI6ImVkbF9vcHMiLCJhY3IiOiJlZGwiLCJhc3N1cmFuY2VfbGV2ZWwiOjN9.yooy6LUCWS8R3bY4sIbVlcFG0jncsqIVZn7a-9DGbSX1y3U4Y0MXSmVjDIeMv3vsXSqVqvEMhHkTUzeDm9su9thRU4q38JWeI_7XrU3yNtU5zGDsABqCJsBMtQKVSz7cIsOBA60XCuUfmxOxt1vSAFSFttj5-FATnL2tpFRMNyZ7tbmEAibK3j8UyyFZHHDghmLhBxfS4nHFF9F30e2YTmd2nJtZs0icoJsFjh-ro0E41uxscnmVGS7UJE8ZPGwLst_xdeaDEc38PZukfgAnWNJymqb3ZwgyZNgR6FF8fJtWXfKeDvkrZICbRWYyroXHYukv7fGJvOejDTOkYUhcsg
+Environment=SAT_START=2023-01-01
+Environment=SAT_END=2023-12-31
+Environment=SAT_BBOX=-102,48,-95,51
+Environment=SAT_LIMIT=50
+
+# Execute pipeline update script
+ExecStart=/home/sean/hydrai_swe/venv/bin/python /home/sean/hydrai_swe/scripts/auto_pipeline_update.py
+
+# Standard output/error logging
+StandardOutput=journal
+StandardError=journal
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/home/sean/hydrai_swe/data
+
+[Install]
+WantedBy=multi-user.target

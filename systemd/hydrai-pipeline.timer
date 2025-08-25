@@ -1,0 +1,27 @@
+[Unit]
+Description=HydrAI-SWE Data Pipeline Update Timer
+Documentation=https://github.com/your-org/hydrai-swe
+Requires=hydrai-pipeline.service
+
+[Timer]
+# Update satellite data every 6 hours (4 times per day)
+OnCalendar=*-*-* 00:00:00
+OnCalendar=*-*-* 06:00:00
+OnCalendar=*-*-* 12:00:00
+OnCalendar=*-*-* 18:00:00
+
+# Alternative: Use relative time (every 6 hours)
+# OnBootSec=1h
+# OnUnitActiveSec=6h
+
+# Randomize start time to avoid thundering herd
+RandomizedDelaySec=300
+
+# Persistent timer (survives reboots)
+Persistent=true
+
+# Accuracy (allow 5 minutes of jitter)
+AccuracySec=300
+
+[Install]
+WantedBy=timers.target

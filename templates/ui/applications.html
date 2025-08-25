@@ -707,19 +707,49 @@
                     body: JSON.stringify(payload)
                 });
                 
-                resultsDiv.innerHTML = `
-                    <div class="alert alert-success">
-                        <i class="fas fa-check-circle"></i>
-                        <div>
-                            <strong>Soil Moisture Prediction Results:</strong><br>
-                            <strong>Location:</strong> ${data.location}<br>
-                            <strong>Mean Moisture:</strong> ${data.prediction_stats.mean.toFixed(2)}%<br>
-                            <strong>Range:</strong> ${data.prediction_stats.min.toFixed(2)}% - ${data.prediction_stats.max.toFixed(2)}%<br>
-                            <strong>Model:</strong> ${data.model_info.type} (${data.model_info.layers} layers, ${data.model_info.hidden_size} hidden units)<br>
-                            <strong>Predictions:</strong> ${data.prediction_stats.predictions_count} data points
+                // 检查API返回状态
+                if (data.status === 'error') {
+                    // 处理错误状态
+                    resultsDiv.innerHTML = `
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <div>
+                                <strong>${data.error}:</strong><br>
+                                ${data.message}<br><br>
+                                <strong>Suggestion:</strong> ${data.suggestion}<br>
+                                <strong>Available Features:</strong> ${data.available_features.join(', ')}<br>
+                                <strong>Data Source:</strong> ${data.data_source}<br>
+                                <small class="text-muted">Timestamp: ${data.timestamp}</small>
+                            </div>
                         </div>
-                    </div>
-                `;
+                    `;
+                } else if (data.status === 'success') {
+                    // 处理成功状态
+                    resultsDiv.innerHTML = `
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i>
+                            <div>
+                                <strong>Soil Moisture Prediction Results:</strong><br>
+                                <strong>Location:</strong> ${data.location}<br>
+                                <strong>Mean Moisture:</strong> ${data.prediction_stats.mean.toFixed(2)}%<br>
+                                <strong>Range:</strong> ${data.prediction_stats.min.toFixed(2)}% - ${data.prediction_stats.max.toFixed(2)}%<br>
+                                <strong>Model:</strong> ${data.model_info.type} (${data.model_info.layers} layers, ${data.model_info.hidden_size} hidden units)<br>
+                                <strong>Predictions:</strong> ${data.prediction_stats.predictions_count} data points
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    // 处理未知状态
+                    resultsDiv.innerHTML = `
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <div>
+                                <strong>Response Status:</strong> ${data.status}<br>
+                                <pre>${JSON.stringify(data, null, 2)}</pre>
+                            </div>
+                        </div>
+                    `;
+                }
                 
             } catch (error) {
                 resultsDiv.innerHTML = `<div class="alert alert-danger"><i class="fas fa-times-circle"></i><div><strong>Error:</strong> ${error.message}</div></div>`;

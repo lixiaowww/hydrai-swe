@@ -1784,3 +1784,261 @@ async def get_model_status():
     except Exception as e:
         print(f"❌ 获取模型状态失败: {e}")
         raise HTTPException(status_code=500, detail=f"获取状态失败: {str(e)}")
+
+@router.get("/historical-analysis")
+def get_historical_analysis(
+    analysis_type: str = Query("trend", description="Analysis type: trend, seasonal, anomaly, summary"),
+    start_date: str = Query(None, description="Start date (YYYY-MM-DD)"),
+    end_date: str = Query(None, description="End date (YYYY-MM-DD)"),
+    station: str = Query(None, description="Station name for analysis")
+):
+    """Get real historical data analysis based on actual data"""
+    try:
+        import pandas as pd
+        import numpy as np
+        from datetime import datetime, timedelta
+        
+        # Load real historical data
+        data_paths = [
+            "data/processed/eccc_manitoba_snow_processed.csv",
+            "data/raw/eccc_recent/eccc_recent_combined.csv",
+            "data/processed/comprehensive_training_dataset.csv"
+        ]
+        
+        # Find available data
+        available_data = None
+        for path in data_paths:
+            if os.path.exists(path):
+                try:
+                    available_data = pd.read_csv(path)
+                    print(f"✅ Loaded data from: {path}")
+                    break
+                except Exception as e:
+                    print(f"⚠️ Failed to load {path}: {e}")
+                    continue
+        
+        if available_data is None:
+            raise HTTPException(status_code=404, detail="No historical data available")
+        
+        # Prepare data
+        if 'date' in available_data.columns:
+            date_col = 'date'
+        elif 'Date/Time' in available_data.columns:
+            date_col = 'Date/Time'
+        else:
+            raise HTTPException(status_code=422, detail="No date column found in data")
+        
+        # Convert date column
+        available_data[date_col] = pd.to_datetime(available_data[date_col], errors='coerce')
+        available_data = available_data.dropna(subset=[date_col])
+        
+        # Filter by date range if provided
+        if start_date:
+            start_dt = datetime.strptime(start_date, "%Y-%m-%d")
+            available_data = available_data[available_data[date_col] >= start_dt]
+        
+        if end_date:
+            end_dt = datetime.strptime(end_date, "%Y-%m-%d")
+            available_data = available_data[available_data[date_col] <= end_dt]
+        
+        # Filter by station if provided
+        if station and 'station_name' in available_data.columns:
+            available_data = available_data[available_data['station_name'] == station]
+        
+        if len(available_data) == 0:
+            raise HTTPException(status_code=404, detail="No data found for specified criteria")
+        
+        # Sort by date
+        available_data = available_data.sort_values(date_col)
+        
+        # Perform analysis based on type
+        if analysis_type == "trend":
+            result = _analyze_trend(available_data, date_col)
+        elif analysis_type == "seasonal":
+            result = _analyze_seasonal(available_data, date_col)
+        elif analysis_type == "anomaly":
+            result = _analyze_anomaly(available_data, date_col)
+        elif analysis_type == "summary":
+            result = _analyze_summary(available_data, date_col)
+        else:
+            raise HTTPException(status_code=400, detail="Invalid analysis type")
+        
+        return {
+            "status": "success",
+            "analysis_type": analysis_type,
+            "data_points": len(available_data),
+            "date_range": {
+                "start": available_data[date_col].min().strftime("%Y-%m-%d"),
+                "end": available_data[date_col].max().strftime("%Y-%m-%d")
+            },
+            "result": result
+        }
+        
+    except Exception as e:
+        logger.error(f"Historical analysis failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
+
+def _analyze_trend(data: pd.DataFrame, date_col: str) -> dict:
+    """Analyze temporal trends in the data"""
+    try:
+        # Find numeric columns for trend analysis
+        numeric_cols = data.select_dtypes(include=[np.number]).columns.tolist()
+        numeric_cols = [col for col in numeric_cols if col != 'latitude' and col != 'longitude']
+        
+        trends = {}
+        for col in numeric_cols[:3]:  # Limit to first 3 numeric columns
+            if col in data.columns and data[col].notna().sum() > 10:
+                # Calculate trend using linear regression
+                x = np.arange(len(data))
+                y = data[col].fillna(method='ffill').fillna(method='bfill').values
+                
+                if len(y) > 1:
+                    slope, intercept = np.polyfit(x, y, 1)
+                    trend_per_year = slope * 365  # Convert to per year
+                    
+                    trends[col] = {
+                        "trend_per_year": round(float(trend_per_year), 4),
+                        "slope": round(float(slope), 6),
+                        "data_points": int(data[col].notna().sum()),
+                        "mean_value": round(float(data[col].mean()), 4),
+                        "std_value": round(float(data[col].std()), 4)
+                    }
+        
+        return {
+            "trends": trends,
+            "analysis_method": "Linear regression on time series",
+            "note": "Trends calculated from actual historical data"
+        }
+        
+    except Exception as e:
+        return {"error": f"Trend analysis failed: {str(e)}"}
+
+def _analyze_seasonal(data: pd.DataFrame, date_col: str) -> dict:
+    """Analyze seasonal patterns in the data"""
+    try:
+        # Extract month and day of year
+        data['month'] = data[date_col].dt.month
+        data['day_of_year'] = data[date_col].dt.dayofyear
+        
+        # Find numeric columns for seasonal analysis
+        numeric_cols = data.select_dtypes(include=[np.number]).columns.tolist()
+        numeric_cols = [col for col in numeric_cols if col not in ['latitude', 'longitude', 'month', 'day_of_year']]
+        
+        seasonal_patterns = {}
+        for col in numeric_cols[:2]:  # Limit to first 2 numeric columns
+            if col in data.columns and data[col].notna().sum() > 30:
+                # Monthly averages
+                monthly_avg = data.groupby('month')[col].mean()
+                monthly_std = data.groupby('month')[col].std()
+                
+                # Find peak month
+                peak_month = monthly_avg.idxmax()
+                peak_value = monthly_avg.max()
+                
+                seasonal_patterns[col] = {
+                    "monthly_averages": {str(m): round(float(v), 4) for m, v in monthly_avg.items()},
+                    "monthly_std": {str(m): round(float(v), 4) for m, v in monthly_std.items()},
+                    "peak_month": int(peak_month),
+                    "peak_value": round(float(peak_value), 4),
+                    "annual_cycle_strength": round(float(monthly_avg.std() / monthly_avg.mean()), 4) if monthly_avg.mean() != 0 else 0
+                }
+        
+        return {
+            "seasonal_patterns": seasonal_patterns,
+            "analysis_method": "Monthly aggregation and peak detection",
+            "note": "Seasonal analysis based on actual monthly patterns"
+        }
+        
+    except Exception as e:
+        return {"error": f"Seasonal analysis failed: {str(e)}"}
+
+def _analyze_anomaly(data: pd.DataFrame, date_col: str) -> dict:
+    """Detect anomalies in the data"""
+    try:
+        # Find numeric columns for anomaly detection
+        numeric_cols = data.select_dtypes(include=[np.number]).columns.tolist()
+        numeric_cols = [col for col in numeric_cols if col not in ['latitude', 'longitude']]
+        
+        anomalies = {}
+        for col in numeric_cols[:2]:  # Limit to first 2 numeric columns
+            if col in data.columns and data[col].notna().sum() > 20:
+                values = data[col].dropna()
+                
+                if len(values) > 0:
+                    # Statistical anomaly detection (3-sigma rule)
+                    mean_val = values.mean()
+                    std_val = values.std()
+                    
+                    if std_val > 0:
+                        lower_bound = mean_val - 3 * std_val
+                        upper_bound = mean_val + 3 * std_val
+                        
+                        # Count anomalies
+                        anomalies_count = len(values[(values < lower_bound) | (values > upper_bound)])
+                        anomaly_rate = anomalies_count / len(values)
+                        
+                        # Find extreme values
+                        extreme_low = values.min()
+                        extreme_high = values.max()
+                        
+                        anomalies[col] = {
+                            "anomaly_count": int(anomalies_count),
+                            "anomaly_rate": round(float(anomaly_rate), 4),
+                            "threshold_lower": round(float(lower_bound), 4),
+                            "threshold_upper": round(float(upper_bound), 4),
+                            "extreme_low": round(float(extreme_low), 4),
+                            "extreme_high": round(float(extreme_high), 4),
+                            "data_points": int(len(values))
+                        }
+        
+        return {
+            "anomalies": anomalies,
+            "detection_method": "3-sigma statistical threshold",
+            "note": "Anomaly detection based on actual data distribution"
+        }
+        
+    except Exception as e:
+        return {"error": f"Anomaly analysis failed: {str(e)}"}
+
+def _analyze_summary(data: pd.DataFrame, date_col: str) -> dict:
+    """Provide summary statistics for the data"""
+    try:
+        # Find numeric columns for summary
+        numeric_cols = data.select_dtypes(include=[np.number]).columns.tolist()
+        numeric_cols = [col for col in numeric_cols if col not in ['latitude', 'longitude']]
+        
+        summary = {}
+        for col in numeric_cols[:3]:  # Limit to first 3 numeric columns
+            if col in data.columns and data[col].notna().sum() > 0:
+                values = data[col].dropna()
+                
+                if len(values) > 0:
+                    summary[col] = {
+                        "count": int(len(values)),
+                        "mean": round(float(values.mean()), 4),
+                        "median": round(float(values.median()), 4),
+                        "std": round(float(values.std()), 4),
+                        "min": round(float(values.min()), 4),
+                        "max": round(float(values.max()), 4),
+                        "missing_rate": round(float(data[col].isna().sum() / len(data)), 4)
+                    }
+        
+        # Overall data summary
+        overall_summary = {
+            "total_records": len(data),
+            "date_range": {
+                "start": data[date_col].min().strftime("%Y-%m-%d"),
+                "end": data[date_col].max().strftime("%Y-%m-%d"),
+                "days": (data[date_col].max() - data[date_col].min()).days
+            },
+            "columns_analyzed": list(summary.keys())
+        }
+        
+        return {
+            "overall_summary": overall_summary,
+            "column_summaries": summary,
+            "note": "Summary statistics calculated from actual data"
+        }
+        
+    except Exception as e:
+        return {"error": f"Summary analysis failed: {str(e)}"}

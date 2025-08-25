@@ -131,3 +131,4 @@ config/credentials.env
 # 忽略嵌入的git仓库
 agriculture_integration/SoilWeatherPredictor/
 agriculture_integration/crop_yield_prediction/
+flood-warning-system/

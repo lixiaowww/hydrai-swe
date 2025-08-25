@@ -715,39 +715,15 @@
                         <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td>HYDAT Stations</td>
-                        <td><span style="color: #27ae60;">✓ Active</span></td>
-                        <td>2 min ago</td>
-                        <td>1,247,832</td>
-                        <td><button class="btn btn-secondary" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;">Sync</button></td>
-                    </tr>
-                    <tr>
-                        <td>ECCC Weather</td>
-                        <td><span style="color: #27ae60;">✓ Active</span></td>
-                        <td>15 min ago</td>
-                        <td>2,841,567</td>
-                        <td><button class="btn btn-secondary" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;">Sync</button></td>
-                    </tr>
-                    <tr>
-                        <td>MODIS Satellite</td>
-                        <td><span style="color: #f39c12;">⚠ Syncing</span></td>
-                        <td>1 hour ago</td>
-                        <td>567,234</td>
-                        <td><button class="btn btn-secondary" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;" disabled>Syncing...</button></td>
-                    </tr>
-                    <tr>
-                        <td>Sentinel-2 Imagery</td>
-                        <td><span style="color: #27ae60;">✓ Active</span></td>
-                        <td>6 hours ago</td>
-                        <td>125,678</td>
-                        <td><button class="btn btn-secondary" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;">Sync</button></td>
-                    </tr>
+                <tbody id="pipeline-table-body">
+                    <!-- Table content will be populated by JavaScript -->
                 </tbody>
             </table>
 
             <div style="margin-top: 1rem; text-align: center;">
+                <button class="btn btn-secondary" onclick="loadPipelineStatus()" style="margin-right: 1rem;">
+                    <i class="fas fa-sync-alt"></i> Refresh Pipeline Status
+                </button>
                 <button class="btn" onclick="refreshAllData()">
                     <i class="fas fa-sync-alt"></i> Refresh All Data Sources
                 </button>
@@ -1061,12 +1037,6 @@
             console.log('Exporting ensemble model...');
             showNotification('Ensemble model export started', 'info');
             // Add actual export functionality
-        }
-
-        function refreshAllData() {
-            console.log('Refreshing all data sources...');
-            // Add actual API call here
-            showNotification('Data refresh initiated', 'info');
         }
 
         function clearLogs() {
@@ -1757,7 +1727,252 @@
             setTimeout(() => {
                 initializeEnsemblePerformance();
             }, 1000);
+            
+            // Initialize pipeline management
+            initializePipelineManagement();
         });
+        
+        // ========================================
+        // PIPELINE MANAGEMENT FUNCTIONS
+        // ========================================
+        
+        // Initialize pipeline management
+        function initializePipelineManagement() {
+            console.log('Initializing pipeline management...');
+            // Add a small delay to ensure DOM is fully ready
+            setTimeout(() => {
+                loadPipelineStatus();
+                // Refresh status every 30 seconds
+                setInterval(loadPipelineStatus, 30000);
+            }, 500);
+        }
+        
+        // Load pipeline status from API
+        async function loadPipelineStatus() {
+            try {
+                console.log('Loading pipeline status...');
+                const response = await fetch('/api/v1/pipeline/status');
+                const data = await response.json();
+                console.log('Pipeline status response:', data);
+                
+                if (data.status === 'success') {
+                    console.log('Updating pipeline table with sources:', Object.keys(data.sources));
+                    updatePipelineTable(data.sources);
+                } else {
+                    console.error('Pipeline status not successful:', data);
+                }
+            } catch (error) {
+                console.error('Failed to load pipeline status:', error);
+                showNotification('Failed to load pipeline status', 'danger');
+            }
+        }
+        
+        // Update pipeline table with real data
+        function updatePipelineTable(sources) {
+            console.log('updatePipelineTable called with sources:', sources);
+            const tbody = document.getElementById('pipeline-table-body');
+            console.log('Found tbody:', tbody);
+            if (!tbody) {
+                console.error('pipeline-table-body not found!');
+                return;
+            }
+            
+            tbody.innerHTML = '';
+            console.log('Cleared tbody, processing sources...');
+            
+            Object.entries(sources).forEach(([source, info]) => {
+                console.log('Processing source:', source, 'info:', info);
+                const row = document.createElement('tr');
+                
+                // Format source name
+                const sourceName = formatSourceName(source);
+                
+                // Format status with appropriate color and icon
+                const statusColor = getStatusColor(info.status, info.health_status);
+                const statusText = formatStatusText(info.status, info.health_status);
+                const statusIcon = getStatusIcon(info.status, info.health_status);
+                
+                // Format last update time
+                const lastUpdate = formatLastUpdate(info.last_update);
+                
+                // Format records count
+                const records = formatRecords(info.records);
+                
+                // Create status cell with enhanced information
+                const statusCell = document.createElement('td');
+                statusCell.innerHTML = `
+                    <div style="display: flex; flex-direction: column; gap: 2px;">
+                        <span style="color: ${statusColor}; font-weight: bold;">
+                            ${statusIcon} ${statusText}
+                        </span>
+                        ${info.quality_score !== undefined ? `
+                            <small style="color: #666;">
+                                Quality: ${info.quality_score}/100 | Health: ${info.health_status || 'Unknown'}
+                            </small>
+                        ` : ''}
+                        ${info.type ? `<small style="color: #888;">${info.type}</small>` : ''}
+                    </div>
+                `;
+                
+                // Create sync button
+                const syncButton = document.createElement('button');
+                syncButton.className = 'btn btn-secondary';
+                syncButton.style.cssText = 'padding: 0.3rem 0.8rem; font-size: 0.8rem;';
+                syncButton.textContent = 'Sync';
+                syncButton.onclick = () => syncDataSource(source);
+                
+                // Disable button if syncing or offline
+                if (info.status.includes('Syncing') || info.status.includes('Running') || info.status === 'Offline') {
+                    syncButton.disabled = true;
+                    if (info.status === 'Offline') {
+                        syncButton.textContent = 'Offline';
+                    } else {
+                        syncButton.textContent = 'Syncing...';
+                    }
+                }
+                
+                const actionsCell = document.createElement('td');
+                actionsCell.appendChild(syncButton);
+                
+                // Build row
+                row.innerHTML = `
+                    <td>${sourceName}</td>
+                    <td></td>
+                    <td>${lastUpdate}</td>
+                    <td>${records}</td>
+                    <td></td>
+                `;
+                
+                // Replace placeholder cells with actual content
+                row.replaceChild(statusCell, row.children[1]);
+                row.replaceChild(actionsCell, row.children[4]);
+                
+                tbody.appendChild(row);
+                console.log('Added row for source:', source);
+            });
+            
+            console.log('Finished updating pipeline table');
+        }
+        
+        // Format source name for display
+        function formatSourceName(source) {
+            const nameMap = {
+                'hydat': 'HYDAT Stations',
+                'eccc': 'ECCC Weather',
+                'modis': 'MODIS Satellite',
+                'era5_land': 'ERA5-Land',
+                'smap': 'SMAP Soil Moisture',
+                'hls': 'HLS L30/S30'
+            };
+            return nameMap[source] || source;
+        }
+        
+        // Get status color based on status text and health status
+        function getStatusColor(status, healthStatus) {
+            if (status === 'Offline') return '#e74c3c';
+            if (status === 'Degraded') return '#f39c12';
+            if (status.includes('Active')) return '#27ae60';
+            if (status.includes('Syncing') || status.includes('Running')) return '#f39c12';
+            if (status.includes('Error')) return '#e74c3c';
+            if (status.includes('Idle')) return '#95a5a6';
+            return '#95a5a6';
+        }
+        
+        // Format status text with health status
+        function formatStatusText(status, healthStatus) {
+            if (status === 'Offline') return 'Offline';
+            if (status === 'Degraded') return 'Degraded';
+            if (status.includes('Active')) {
+                if (status.includes('Backup')) return 'Active (Backup)';
+                return 'Active';
+            }
+            if (status.includes('Syncing') || status.includes('Running')) return 'Syncing';
+            if (status.includes('Error')) return 'Error';
+            if (status.includes('Idle')) return 'Idle';
+            return status;
+        }
+        
+        // Get status icon based on status text and health status
+        function getStatusIcon(status, healthStatus) {
+            if (status === 'Offline') return '🔴';
+            if (status === 'Degraded') return '🟡';
+            if (status.includes('Active')) return '🟢';
+            if (status.includes('Syncing') || status.includes('Running')) return '⚠';
+            if (status.includes('Error')) return '✗';
+            if (status.includes('Idle')) return '○';
+            return '○';
+        }
+        
+        // Format last update time
+        function formatLastUpdate(lastUpdate) {
+            if (!lastUpdate) return 'Never';
+            let ts = lastUpdate;
+            if (typeof lastUpdate === 'number') {
+                // Convert seconds to milliseconds when needed
+                ts = lastUpdate > 1e12 ? lastUpdate : lastUpdate * 1000;
+            }
+            const updateTime = new Date(ts);
+            if (isNaN(updateTime.getTime())) return 'Never';
+            const now = new Date();
+            const diffMs = now - updateTime;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins} min ago`;
+            if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+            return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+        }
+        
+        // Format records count
+        function formatRecords(records) {
+            if (records === 0) return '0';
+            if (records < 1000) return records.toString();
+            if (records < 1000000) return `${(records / 1000).toFixed(1)}K`;
+            return `${(records / 1000000).toFixed(1)}M`;
+        }
+        
+        // Sync individual data source
+        async function syncDataSource(source) {
+            try {
+                const response = await fetch(`/api/v1/pipeline/sync?source=${source}`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.status === 'queued') {
+                    showNotification(`Started sync for ${formatSourceName(source)}`, 'info');
+                    // Refresh status after a short delay
+                    setTimeout(loadPipelineStatus, 2000);
+                } else {
+                    showNotification(`Failed to start sync for ${formatSourceName(source)}`, 'danger');
+                }
+            } catch (error) {
+                console.error(`Failed to sync ${source}:`, error);
+                showNotification(`Failed to sync ${formatSourceName(source)}`, 'danger');
+            }
+        }
+        
+        // Refresh all data sources
+        async function refreshAllData() {
+            try {
+                const response = await fetch('/api/v1/pipeline/sync-all', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.status === 'queued') {
+                    showNotification('Started sync for all data sources', 'info');
+                    // Refresh status after a short delay
+                    setTimeout(loadPipelineStatus, 2000);
+                } else {
+                    showNotification('Failed to start sync for all sources', 'danger');
+                }
+            } catch (error) {
+                console.error('Failed to sync all sources:', error);
+                showNotification('Failed to sync all sources', 'danger');
+            }
+        }
     </script>
 </body>
 </html>

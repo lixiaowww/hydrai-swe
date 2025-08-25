@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pipeline Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Pipeline API Test</h1>
+    
+    <div>
+        <button onclick="testAPI()">Test API</button>
+        <button onclick="loadStatus()">Load Status</button>
+        <button onclick="clearTable()">Clear Table</button>
+    </div>
+    
+    <div id="status"></div>
+    
+    <table id="pipeline-table">
+        <thead>
+            <tr>
+                <th>Source</th>
+                <th>Status</th>
+                <th>Quality</th>
+                <th>Health</th>
+                <th>Last Update</th>
+                <th>Records</th>
+            </tr>
+        </thead>
+        <tbody id="pipeline-table-body">
+        </tbody>
+    </table>
+
+    <script>
+        async function testAPI() {
+            const statusDiv = document.getElementById('status');
+            try {
+                const response = await fetch('/api/v1/pipeline/status');
+                const data = await response.json();
+                
+                statusDiv.innerHTML = `
+                    <div class="status success">
+                        API Response: ${JSON.stringify(data, null, 2)}
+                    </div>
+                `;
+                
+                if (data.status === 'success') {
+                    updateTable(data.sources);
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `
+                    <div class="status error">
+                        API Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+        
+        function updateTable(sources) {
+            const tbody = document.getElementById('pipeline-table-body');
+            tbody.innerHTML = '';
+            
+            Object.entries(sources).forEach(([source, info]) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${source}</td>
+                    <td>${info.status}</td>
+                    <td>${info.quality_score || 'N/A'}</td>
+                    <td>${info.health_status || 'N/A'}</td>
+                    <td>${formatTime(info.last_update)}</td>
+                    <td>${info.records}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+        
+        function formatTime(timestamp) {
+            if (!timestamp) return 'Never';
+            const date = new Date(timestamp * 1000);
+            return date.toLocaleString();
+        }
+        
+        function loadStatus() {
+            testAPI();
+        }
+        
+        function clearTable() {
+            document.getElementById('pipeline-table-body').innerHTML = '';
+            document.getElementById('status').innerHTML = '';
+        }
+        
+        // Auto-load on page load
+        window.addEventListener('load', () => {
+            setTimeout(testAPI, 1000);
+        });
+    </script>
+</body>
+</html>

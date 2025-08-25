@@ -39,22 +39,49 @@
             gap: 0.8rem;
         }
         
-        .logo i {
-            font-size: 2rem;
-            color: #e74c3c;
+        .logo-svg {
+            flex-shrink: 0;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+        }
+        
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
         }
         
         .logo h1 {
-            font-size: 1.5rem;
-            font-weight: 700;
+            font-size: 1.4rem;
+            font-weight: 600;
             color: #2c3e50;
+            margin: 0;
+            line-height: 1.2;
+            letter-spacing: -0.3px;
         }
         
-        .logo .subtitle {
-            font-size: 0.85rem;
+        .logo-subtitle {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-top: 0.15rem;
+        }
+        
+        .subtitle-main {
+            font-size: 0.75rem;
             color: #7f8c8d;
-            font-weight: normal;
-            margin-left: 0.5rem;
+            font-weight: 400;
+            margin-left: 0.8rem;
+            letter-spacing: 0.2px;
+        }
+        
+        .subtitle-manitoba {
+            font-size: 0.65rem;
+            color: #e74c3c;
+            font-weight: 500;
+            font-style: normal;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            opacity: 0.9;
         }
         
         .nav-links {
@@ -105,8 +132,44 @@
     <div class="header">
         <div class="header-content">
             <div class="logo">
-                <i class="fas fa-exclamation-triangle"></i>
-                <h1>HydrAI-SWE <span class="subtitle">Hydrological Center</span></h1>
+                <div class="logo-svg">
+                    <svg width="48" height="48" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+                        <!-- 背景圆形 -->
+                        <circle cx="30" cy="30" r="28" fill="url(#gradient)" stroke="#2c3e50" stroke-width="2"/>
+                        
+                        <!-- 渐变定义 -->
+                        <defs>
+                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#3498db;stop-opacity:1" />
+                                <stop offset="50%" style="stop-color:#2980b9;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#2c3e50;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        
+                        <!-- 水滴（水文） -->
+                        <path d="M25 15 Q30 25 35 15 Q30 20 25 15" fill="#3498db" opacity="0.9"/>
+                        <path d="M25 15 Q30 25 35 15 Q30 20 25 15" fill="none" stroke="#2c3e50" stroke-width="0.5"/>
+                        
+                        <!-- 雪花（SWE） -->
+                        <g transform="translate(30, 35)">
+                            <path d="M-8 0 L8 0 M0 -8 L0 8" stroke="#ecf0f1" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M-5.66 -5.66 L5.66 5.66 M-5.66 5.66 L5.66 -5.66" stroke="#ecf0f1" stroke-width="1.5" stroke-linecap="round"/>
+                        </g>
+                        
+                        <!-- 枫叶（Manitoba/Canada） -->
+                        <g transform="translate(30, 45)">
+                            <path d="M0 -8 Q-3 -6 -4 -2 Q-3 2 0 4 Q3 2 4 -2 Q3 -6 0 -8" fill="#e74c3c" opacity="0.8"/>
+                            <path d="M0 -8 Q-3 -6 -4 -2 Q-3 2 0 4 Q3 2 4 -2 Q3 -6 0 -8" fill="none" stroke="#c0392b" stroke-width="0.3"/>
+                        </g>
+                        
+                        <!-- 中心点 -->
+                        <circle cx="30" cy="30" r="2" fill="#ecf0f1"/>
+                    </svg>
+                </div>
+                <div class="logo-text">
+                    <h1>HydrAI-SWE <span class="subtitle-main">Intelligence</span></h1>
+                    <div class="subtitle-manitoba">For Manitoba</div>
+                </div>
             </div>
             <div class="nav-links">
                 <a href="/hydrological-center" class="active"><i class="fas fa-chart-line"></i> Hydrological Center</a>
