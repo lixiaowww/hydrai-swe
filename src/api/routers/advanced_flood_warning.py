@@ -13,7 +13,10 @@ from typing import Dict, List, Optional
 import logging
 
 # 导入高级洪水预警系统
-from models.advanced_flood_warning import advanced_flood_system
+from src.models.advanced_flood_warning import AdvancedFloodWarningSystem
+
+# 创建高级洪水预警系统实例
+advanced_flood_system = AdvancedFloodWarningSystem()
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
@@ -146,7 +149,7 @@ async def get_real_time_advanced_risk():
                 "level": risk_status,
                 "probability": round(latest_probability * 100, 2),
                 "alert_level": latest_alert['alert_level'],
-                "alert_color": latest_alert['color'],
+                "alert_color": latest_alert.get("color", "blue"),
                 "action": latest_alert['action'],
                 "intensity": latest_alert['intensity']
             },
@@ -219,7 +222,7 @@ async def get_advanced_flood_timeline(
                 "risk_level": "HIGH" if risk_prob >= 0.5 else "LOW",  # 基于概率值判断
                 "risk_probability": round(risk_prob * 100, 2),
                 "alert_level": alert['alert_level'],
-                "alert_color": alert['color"],
+                "alert_color": alert.get('color', 'blue'),
                 "action": alert['action'],
                 "intensity": alert['intensity'],
                 "cluster_info": cluster_info

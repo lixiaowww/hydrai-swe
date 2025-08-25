@@ -372,10 +372,11 @@
                 <h1>HydrAI-SWE <span class="subtitle">Agriculture Intelligence</span></h1>
             </div>
             <div class="nav-links">
-                <a href="/ui"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
-                <a href="/applications" class="active"><i class="fas fa-seedling"></i> Applications</a>
+                <a href="/hydrological-center"><i class="fas fa-chart-line"></i> Hydrological Center</a>
+                <a href="/ui"><i class="fas fa-snowflake"></i> SWE (Snow Water Equivalent)</a>
+                <a href="/agriculture" class="active"><i class="fas fa-leaf"></i> Agriculture</a>
                 <a href="/model"><i class="fas fa-brain"></i> Model Training</a>
-                <a href="/guides" target="_blank"><i class="fas fa-book-open"></i> User Guide</a>
+                <a href="/guides"><i class="fas fa-book-open"></i> User Guide</a>
                 <a href="/docs" target="_blank"><i class="fas fa-code"></i> API Reference</a>
             </div>
         </div>
@@ -654,6 +655,10 @@
 
                 if (!response.ok) {
                     const errorData = await response.json();
+                    // Handle structured error responses
+                    if (errorData.detail && typeof errorData.detail === 'object') {
+                        throw new Error(errorData.detail.message || errorData.detail.error || 'Service error');
+                    }
                     throw new Error(errorData.detail || `HTTP ${response.status}`);
                 }
 

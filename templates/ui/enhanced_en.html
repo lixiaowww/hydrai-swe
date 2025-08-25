@@ -865,13 +865,12 @@
                 <h1>HydrAI-SWE <span class="subtitle">Enhanced System</span></h1>
             </div>
             <div class="nav-links">
-                <!-- 语言选择器已移除，减少页面加载 -->
-                <a href="/ui" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
-                <a href="/applications"><i class="fas fa-water"></i> Applications</a>
+                <a href="/hydrological-center"><i class="fas fa-chart-line"></i> Hydrological Center</a>
+                <a href="/ui" class="active"><i class="fas fa-snowflake"></i> SWE (Snow Water Equivalent)</a>
+                <a href="/agriculture"><i class="fas fa-leaf"></i> Agriculture</a>
                 <a href="/model"><i class="fas fa-brain"></i> Model Training</a>
-                <a href="/guides" target="_blank"><i class="fas fa-book-open"></i> User Guide</a>
-                <a href="/ui/flood-warning"><i class="fas fa-exclamation-triangle"></i> Flood Warning</a>
-                <a href="/docs" target="_blank"><i class="fas fa-code"></i> API Reference</a>
+                <a href="/guides"><i class="fas fa-book-open"></i> User Guide</a>
+                <a href="/api-docs"><i class="fas fa-code"></i> API Reference</a>
             </div>
         </div>
     </div>
@@ -2591,6 +2590,11 @@ function initializeForecastControls() {
             }
             
             document.getElementById('forecast-start-date').value = forecastDate.toISOString().split('T')[0];
+            
+            // Automatically update the forecast after setting the date
+            setTimeout(() => {
+                updateForecastChart();
+            }, 100);
         }
 
         // Initialize forecast date

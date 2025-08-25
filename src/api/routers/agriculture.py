@@ -155,15 +155,49 @@ async def predict_soil_moisture(request: SoilMoistureRequest):
     try:
         predictor, data_processor = get_agriculture_modules()
         
-        # 加载数据
-        data_path = "src/neuralhydrology/data/red_river_basin/timeseries.csv"
+        # 检查多个可能的数据路径
+        data_paths = [
+            "src/neuralhydrology/data/red_river_basin/timeseries.csv",
+            "../../neuralhydrology/data/red_river_basin/timeseries.csv",
+            "neuralhydrology/data/red_river_basin/timeseries.csv",
+            "data/timeseries.csv"
+        ]
         
-        if not os.path.exists(data_path):
-            raise HTTPException(status_code=404, detail="数据文件不存在")
+        data_path = None
+        for path in data_paths:
+            if os.path.exists(path):
+                data_path = path
+                break
+        
+        if data_path is None:
+            # 返回服务不可用的友好错误消息
+            raise HTTPException(
+                status_code=404, 
+                detail={
+                    "error": "Data Not Available",
+                    "message": "Historical soil moisture training data is not available. Please ensure the required data files are properly installed.",
+                    "suggestion": "Contact the system administrator to install the required hydrology data files.",
+                    "status": "service_unavailable"
+                }
+            )
         
         # 准备数据
-        X_train, y_train, X_val, y_val, X_test, y_test, scalers = \
-            data_processor.prepare_soil_moisture_data(data_path)
+        try:
+            X_train, y_train, X_val, y_val, X_test, y_test, scalers = \
+                data_processor.prepare_soil_moisture_data(data_path)
+        except ValueError as ve:
+            if "soil moisture data" in str(ve):
+                raise HTTPException(
+                    status_code=422,
+                    detail={
+                        "error": "Missing Soil Moisture Data",
+                        "message": "The dataset does not contain real soil moisture observations required for prediction.",
+                        "suggestion": "Please provide a dataset with authentic soil moisture measurements.",
+                        "status": "data_incomplete"
+                    }
+                )
+            else:
+                raise ve
         
         # 从data_processor获取input_size并设置到predictor
         predictor.config['input_size'] = data_processor.config['input_size']
@@ -198,6 +232,9 @@ async def predict_soil_moisture(request: SoilMoistureRequest):
             }
         }
         
+    except HTTPException:
+        # Re-raise HTTP exceptions as-is
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"土壤水分预测失败: {str(e)}")
 
