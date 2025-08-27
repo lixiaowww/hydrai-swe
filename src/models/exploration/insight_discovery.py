@@ -83,6 +83,10 @@ class InsightDiscoveryModule:
             logger.info("🔍 步骤8: 相关性网络分析...")
             correlation_insights = self._analyze_correlation_network(data, target_col)
             
+            # 步骤9: SWE冷门因素发现
+            logger.info("🔍 步骤9: SWE冷门因素发现...")
+            swe_cold_factors = self._discover_swe_cold_factors(data, target_col)
+            
             # 整合所有洞察
             self.insights = {
                 'timestamp': datetime.now().isoformat(),
@@ -92,11 +96,12 @@ class InsightDiscoveryModule:
                 'temporal': temporal_insights,
                 'risk_mechanisms': risk_insights,
                 'important_factors': factor_insights,
-                'correlation_network': correlation_insights
+                'correlation_network': correlation_insights,
+                'swe_cold_factors': swe_cold_factors
             }
             
-            # 步骤9: 生成摘要 (在所有洞察构建完成后)
-            logger.info("🔍 步骤9: 生成摘要...")
+            # 步骤10: 生成摘要 (在所有洞察构建完成后)
+            logger.info("🔍 步骤10: 生成摘要...")
             summary_insights = self._generate_summary()
             self.insights['summary'] = summary_insights
             
@@ -643,6 +648,31 @@ class InsightDiscoveryModule:
                     summary['key_findings'].append(f"网络中心特征: {top_central['feature']} (中心性得分: {top_central['centrality_score']:.3f})")
                     summary['recommendations'].append(f"重点关注 {top_central['feature']} 作为关键影响因素")
             
+            # SWE冷门因素洞察
+            if 'swe_cold_factors' in self.insights and 'potential_discoveries' in self.insights['swe_cold_factors']:
+                insight_count += 1
+                potential_discoveries = self.insights['swe_cold_factors']['potential_discoveries']
+                
+                if potential_discoveries:
+                    # 显示前2个最重要的发现
+                    for discovery in potential_discoveries[:2]:
+                        if discovery.get('type') == 'hidden_effect':
+                            summary['key_findings'].append(f"隐藏效应发现: {discovery['feature']} (残差相关性: {discovery['residual_correlation']:.3f})")
+                        elif discovery.get('type') == 'nonlinear_interaction':
+                            summary['key_findings'].append(f"非线性交互: {discovery['cold_feature']} × {discovery['main_feature']} (强度: {discovery['interaction_strength']:.3f})")
+                        else:
+                            summary['key_findings'].append(f"冷门因素: {discovery.get('description', '未知')} (重要性: {discovery.get('potential_importance', 0):.3f})")
+                    
+                    # 添加基于冷门因素的建议
+                    summary['recommendations'].append("发现潜在冷门因素，建议在SWE预测模型中考虑土壤湿度、空间变异性等被忽视的因素")
+                    summary['recommendations'].append("建议进行标准化分析，去除已知主效应以发现隐藏的影响因素")
+                
+                # 添加研究洞察
+                if 'research_insights' in self.insights['swe_cold_factors']:
+                    research_insights = self.insights['swe_cold_factors']['research_insights']
+                    for insight in research_insights[:2]:  # 显示前2个研究洞察
+                        summary['recommendations'].append(f"研究建议: {insight}")
+            
             summary['total_insights'] = insight_count
             
             # 如果没有关键发现，添加默认信息
@@ -1007,6 +1037,250 @@ class InsightDiscoveryModule:
             })
         
         return paths
+    
+    def _discover_swe_cold_factors(self, data: pd.DataFrame, target_col: str) -> Dict:
+        """发现SWE冷门因素 - 基于研究文献的潜在重要影响因素"""
+        try:
+            logger.info("🔍 开始SWE冷门因素发现...")
+            
+            # 获取数值特征
+            numeric_cols = data.select_dtypes(include=[np.number]).columns.tolist()
+            if target_col in numeric_cols:
+                numeric_cols.remove(target_col)
+            
+            # 移除缺失率过高的特征
+            missing_rates = data[numeric_cols].isnull().sum() / len(data)
+            valid_features = missing_rates[missing_rates < 0.5].index.tolist()
+            
+            if len(valid_features) == 0:
+                return {'status': 'warning', 'message': '没有足够的有效特征进行SWE冷门因素分析'}
+            
+            # 准备数据
+            X = data[valid_features].fillna(data[valid_features].median())
+            y = data[target_col].fillna(data[target_col].median()) if target_col in data.columns else None
+            
+            swe_cold_factors = {
+                'target_analysis': target_col,
+                'candidate_cold_factors': {},
+                'standardized_analysis': {},
+                'nonlinear_interactions': {},
+                'potential_discoveries': [],
+                'research_insights': []
+            }
+            
+            # 1. 定义SWE冷门因素候选特征
+            cold_factor_candidates = {
+                'soil_moisture_related': {
+                    'description': '土壤湿度相关因素',
+                    'research_basis': '土壤湿度对雪盖动态具有重要影响，特别是在复杂地形区域',
+                    'candidate_features': [col for col in valid_features if any(keyword in col.lower() 
+                                    for keyword in ['moisture', 'humidity', 'precip', 'rain'])]
+                },
+                'spatial_variability': {
+                    'description': '空间变异性因素',
+                    'research_basis': '雪密度和SWE的空间变异性对估计准确性有显著影响',
+                    'candidate_features': [col for col in valid_features if any(keyword in col.lower() 
+                                    for keyword in ['lat', 'lon', 'longitude', 'latitude', 'elevation', 'altitude'])]
+                },
+                'forest_cover_impact': {
+                    'description': '森林覆盖影响',
+                    'research_basis': '森林覆盖影响遥感数据对雪盖的测量精度',
+                    'candidate_features': [col for col in valid_features if any(keyword in col.lower() 
+                                    for keyword in ['forest', 'tree', 'vegetation', 'cover'])]
+                },
+                'snow_type_changes': {
+                    'description': '雪盖类型变化',
+                    'research_basis': '雪盖类型变化可能导致SWE变化，特别是在气候变化影响下',
+                    'candidate_features': [col for col in valid_features if any(keyword in col.lower() 
+                                    for keyword in ['snow', 'ice', 'density', 'type'])]
+                },
+                'temporal_changes': {
+                    'description': '时间变化因素',
+                    'research_basis': 'SWE的时间变化影响水资源可用性，北半球SWE在1951-2022年期间下降',
+                    'candidate_features': [col for col in valid_features if any(keyword in col.lower() 
+                                    for keyword in ['time', 'date', 'year', 'month', 'day', 'season'])]
+                }
+            }
+            
+            # 2. 分析每个冷门因素类别
+            for category, info in cold_factor_candidates.items():
+                candidate_features = info['candidate_features']
+                
+                if candidate_features:
+                    category_analysis = {
+                        'description': info['description'],
+                        'research_basis': info['research_basis'],
+                        'candidate_features': candidate_features,
+                        'feature_analysis': {},
+                        'potential_importance': 0.0
+                    }
+                    
+                    # 分析每个候选特征
+                    for feature in candidate_features:
+                        if feature in X.columns:
+                            # 计算特征统计
+                            feature_stats = {
+                                'variance': float(X[feature].var()),
+                                'mean': float(X[feature].mean()),
+                                'std': float(X[feature].std()),
+                                'skewness': float(X[feature].skew()),
+                                'kurtosis': float(X[feature].kurtosis())
+                            }
+                            
+                            # 计算与目标的相关性（如果有目标变量）
+                            if y is not None:
+                                correlation = X[feature].corr(y)
+                                feature_stats['correlation_with_target'] = float(correlation) if not pd.isna(correlation) else 0.0
+                            else:
+                                feature_stats['correlation_with_target'] = 0.0
+                            
+                            # 计算变异系数
+                            cv = X[feature].std() / X[feature].mean() if X[feature].mean() != 0 else 0
+                            feature_stats['coefficient_of_variation'] = float(cv)
+                            
+                            # 计算潜在重要性得分
+                            importance_score = abs(feature_stats['correlation_with_target']) * feature_stats['variance'] * (1 + abs(cv))
+                            feature_stats['potential_importance'] = float(importance_score)
+                            
+                            category_analysis['feature_analysis'][feature] = feature_stats
+                            category_analysis['potential_importance'] += importance_score
+                    
+                    swe_cold_factors['candidate_cold_factors'][category] = category_analysis
+            
+            # 3. 标准化分析 - 去除已知主效应
+            logger.info("🔍 进行标准化分析，去除已知主效应...")
+            
+            # 识别主要影响因素（温度、降水等）
+            main_effects = []
+            for col in valid_features:
+                if any(keyword in col.lower() for keyword in ['temp', 'precip', 'rain', 'snow']):
+                    main_effects.append(col)
+            
+            if main_effects and y is not None:
+                # 计算主效应的线性组合
+                main_effect_values = X[main_effects].mean(axis=1)
+                
+                # 从目标变量中去除主效应
+                y_residual = y - main_effect_values.corr(y) * main_effect_values if len(main_effects) > 0 else y
+                
+                # 重新计算冷门因素与残差的相关性
+                standardized_analysis = {}
+                for category, info in swe_cold_factors['candidate_cold_factors'].items():
+                    if 'feature_analysis' in info:
+                        standardized_features = {}
+                        for feature, stats in info['feature_analysis'].items():
+                            if feature in X.columns:
+                                # 计算与残差的相关性
+                                residual_correlation = X[feature].corr(y_residual)
+                                standardized_features[feature] = {
+                                    'original_correlation': stats['correlation_with_target'],
+                                    'residual_correlation': float(residual_correlation) if not pd.isna(residual_correlation) else 0.0,
+                                    'correlation_change': float(residual_correlation - stats['correlation_with_target']) if not pd.isna(residual_correlation) else 0.0,
+                                    'potential_hidden_effect': abs(residual_correlation) > abs(stats['correlation_with_target']) if not pd.isna(residual_correlation) else False
+                                }
+                        standardized_analysis[category] = standardized_features
+                
+                swe_cold_factors['standardized_analysis'] = standardized_analysis
+            
+            # 4. 非线性交互效应发现
+            logger.info("🔍 发现非线性交互效应...")
+            
+            nonlinear_interactions = {}
+            top_cold_features = []
+            
+            # 收集所有冷门特征的潜在重要性
+            for category, info in swe_cold_factors['candidate_cold_factors'].items():
+                if 'feature_analysis' in info:
+                    for feature, stats in info['feature_analysis'].items():
+                        if stats['potential_importance'] > 0:
+                            top_cold_features.append((feature, stats['potential_importance']))
+            
+            # 按重要性排序
+            top_cold_features.sort(key=lambda x: x[1], reverse=True)
+            top_cold_features = [f[0] for f in top_cold_features[:5]]  # 前5个冷门特征
+            
+            # 分析冷门特征与主要特征的交互效应
+            for cold_feature in top_cold_features:
+                if cold_feature in X.columns:
+                    interactions = {}
+                    for main_feature in main_effects[:3]:  # 前3个主要特征
+                        if main_feature in X.columns:
+                            # 计算交互项
+                            interaction_term = X[cold_feature] * X[main_feature]
+                            
+                            # 计算交互项与目标的相关性
+                            if y is not None:
+                                interaction_correlation = interaction_term.corr(y)
+                                interactions[main_feature] = {
+                                    'interaction_correlation': float(interaction_correlation) if not pd.isna(interaction_correlation) else 0.0,
+                                    'interaction_strength': abs(interaction_correlation) if not pd.isna(interaction_correlation) else 0.0,
+                                    'interpretation': f"{cold_feature} × {main_feature} 的交互效应"
+                                }
+                    
+                    if interactions:
+                        nonlinear_interactions[cold_feature] = interactions
+            
+            swe_cold_factors['nonlinear_interactions'] = nonlinear_interactions
+            
+            # 5. 潜在发现总结
+            potential_discoveries = []
+            
+            # 发现高潜在重要性的冷门因素
+            for category, info in swe_cold_factors['candidate_cold_factors'].items():
+                if info['potential_importance'] > 0:
+                    potential_discoveries.append({
+                        'category': category,
+                        'description': info['description'],
+                        'potential_importance': info['potential_importance'],
+                        'research_basis': info['research_basis']
+                    })
+            
+            # 发现标准化后的隐藏效应
+            if 'standardized_analysis' in swe_cold_factors:
+                for category, features in swe_cold_factors['standardized_analysis'].items():
+                    for feature, analysis in features.items():
+                        if analysis['potential_hidden_effect']:
+                            potential_discoveries.append({
+                                'type': 'hidden_effect',
+                                'feature': feature,
+                                'category': category,
+                                'original_correlation': analysis['original_correlation'],
+                                'residual_correlation': analysis['residual_correlation'],
+                                'interpretation': f"{feature} 在去除主效应后显示出隐藏的影响"
+                            })
+            
+            # 发现显著的非线性交互
+            for cold_feature, interactions in nonlinear_interactions.items():
+                for main_feature, interaction in interactions.items():
+                    if interaction['interaction_strength'] > 0.3:  # 显著交互
+                        potential_discoveries.append({
+                            'type': 'nonlinear_interaction',
+                            'cold_feature': cold_feature,
+                            'main_feature': main_feature,
+                            'interaction_strength': interaction['interaction_strength'],
+                            'interpretation': interaction['interpretation']
+                        })
+            
+            swe_cold_factors['potential_discoveries'] = potential_discoveries
+            
+            # 6. 研究洞察总结
+            research_insights = [
+                "基于文献研究，土壤湿度、雪密度空间变异性、森林覆盖影响等冷门因素可能对SWE估计有重要影响",
+                "通过标准化分析去除已知主效应，可以更敏感地发现次要或潜在因素",
+                "冷门因素可能与其他特征存在非线性组合效应，需要完整特征集才能捕捉",
+                "建议采用广泛候选特征→标准化→降维→潜在贡献分析的策略"
+            ]
+            
+            swe_cold_factors['research_insights'] = research_insights
+            
+            logger.info(f"✅ SWE冷门因素发现完成: 分析了 {len(cold_factor_candidates)} 个因素类别")
+            logger.info(f"🔍 发现 {len(potential_discoveries)} 个潜在重要发现")
+            
+            return swe_cold_factors
+            
+        except Exception as e:
+            logger.error(f"❌ SWE冷门因素发现失败: {e}")
+            return {'status': 'error', 'error': str(e)}
     
     def save_insights(self, output_dir: str = "insights") -> str:
         """保存洞察结果"""
