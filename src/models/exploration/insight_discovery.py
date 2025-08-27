@@ -14,8 +14,13 @@ import logging
 from datetime import datetime
 import json
 from typing import Dict, List, Tuple, Optional
-import matplotlib.pyplot as plt
-import seaborn as sns
+try:
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    PLOTTING_AVAILABLE = True
+except ImportError:
+    PLOTTING_AVAILABLE = False
+    logger.warning("⚠️ 绘图库未安装，跳过可视化功能")
 from sklearn.cluster import KMeans, DBSCAN
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
@@ -70,6 +75,14 @@ class InsightDiscoveryModule:
             logger.info("🔍 步骤6: 风险机制识别...")
             risk_insights = self._identify_risk_mechanisms(data, target_col)
             
+            # 步骤7: 重要影响因素发现
+            logger.info("🔍 步骤7: 重要影响因素发现...")
+            factor_insights = self._discover_important_factors(data, target_col)
+            
+            # 步骤8: 相关性网络分析
+            logger.info("🔍 步骤8: 相关性网络分析...")
+            correlation_insights = self._analyze_correlation_network(data, target_col)
+            
             # 整合所有洞察
             self.insights = {
                 'timestamp': datetime.now().isoformat(),
@@ -77,11 +90,13 @@ class InsightDiscoveryModule:
                 'clusters': cluster_insights,
                 'dimensions': dimension_insights,
                 'temporal': temporal_insights,
-                'risk_mechanisms': risk_insights
+                'risk_mechanisms': risk_insights,
+                'important_factors': factor_insights,
+                'correlation_network': correlation_insights
             }
             
-            # 步骤7: 生成摘要 (在所有洞察构建完成后)
-            logger.info("🔍 步骤7: 生成摘要...")
+            # 步骤9: 生成摘要 (在所有洞察构建完成后)
+            logger.info("🔍 步骤9: 生成摘要...")
             summary_insights = self._generate_summary()
             self.insights['summary'] = summary_insights
             
@@ -606,6 +621,28 @@ class InsightDiscoveryModule:
                     summary['recommendations'].append("数据质量良好，可继续现有流程")
                     summary['recommendations'].append("建议定期进行模式分析")
             
+            # 重要影响因素洞察
+            if 'important_factors' in self.insights and 'new_discoveries' in self.insights['important_factors']:
+                insight_count += 1
+                new_discoveries = self.insights['important_factors']['new_discoveries']
+                for discovery in new_discoveries[:2]:  # 显示前2个重要发现
+                    summary['key_findings'].append(f"重要发现: {discovery}")
+                
+                # 添加基于发现的建议
+                if any("交互效应" in discovery for discovery in new_discoveries):
+                    summary['recommendations'].append("发现显著交互效应，建议在预测模型中考虑特征交互项")
+                if any("季节性" in discovery for discovery in new_discoveries):
+                    summary['recommendations'].append("发现强季节性特征，建议建立季节性预测模型")
+            
+            # 相关性网络洞察
+            if 'correlation_network' in self.insights and 'central_features' in self.insights['correlation_network']:
+                insight_count += 1
+                central_features = self.insights['correlation_network']['central_features']
+                if central_features:
+                    top_central = central_features[0]
+                    summary['key_findings'].append(f"网络中心特征: {top_central['feature']} (中心性得分: {top_central['centrality_score']:.3f})")
+                    summary['recommendations'].append(f"重点关注 {top_central['feature']} 作为关键影响因素")
+            
             summary['total_insights'] = insight_count
             
             # 如果没有关键发现，添加默认信息
@@ -624,6 +661,352 @@ class InsightDiscoveryModule:
                 'risk_assessment': 'unknown',
                 'recommendations': ['请检查系统状态']
             }
+    
+    def _discover_important_factors(self, data: pd.DataFrame, target_col: str) -> Dict:
+        """发现重要影响因素 - 核心功能：解释数据关系"""
+        try:
+            logger.info("🔍 开始重要影响因素发现...")
+            
+            # 获取数值特征
+            numeric_cols = data.select_dtypes(include=[np.number]).columns.tolist()
+            if target_col in numeric_cols:
+                numeric_cols.remove(target_col)
+            
+            # 移除缺失率过高的特征
+            missing_rates = data[numeric_cols].isnull().sum() / len(data)
+            valid_features = missing_rates[missing_rates < 0.5].index.tolist()
+            
+            if len(valid_features) == 0:
+                return {'status': 'warning', 'message': '没有足够的有效特征进行影响因素分析'}
+            
+            # 准备数据
+            X = data[valid_features].fillna(data[valid_features].median())
+            y = data[target_col].fillna(data[target_col].median()) if target_col in data.columns else None
+            
+            factor_insights = {
+                'total_features_analyzed': len(valid_features),
+                'feature_importance': {},
+                'correlation_analysis': {},
+                'interaction_effects': {},
+                'seasonal_factors': {},
+                'new_discoveries': []
+            }
+            
+            # 1. 特征重要性分析 (基于方差和相关性)
+            feature_importance = {}
+            for col in valid_features:
+                if col in X.columns:
+                    # 计算方差 (高方差 = 高影响潜力)
+                    variance = X[col].var()
+                    
+                    # 计算与目标的相关性
+                    if y is not None:
+                        correlation = X[col].corr(y)
+                    else:
+                        correlation = 0
+                    
+                    # 计算变异系数 (稳定性指标)
+                    cv = X[col].std() / X[col].mean() if X[col].mean() != 0 else 0
+                    
+                    feature_importance[col] = {
+                        'variance': float(variance),
+                        'correlation_with_target': float(correlation) if not pd.isna(correlation) else 0,
+                        'coefficient_of_variation': float(cv),
+                        'importance_score': float(abs(correlation) * variance) if not pd.isna(correlation) else 0
+                    }
+            
+            # 按重要性排序
+            sorted_features = sorted(feature_importance.items(), 
+                                   key=lambda x: x[1]['importance_score'], reverse=True)
+            
+            factor_insights['feature_importance'] = dict(sorted_features)
+            
+            # 2. 相关性网络分析
+            correlation_matrix = X.corr()
+            strong_correlations = []
+            
+            for i, col1 in enumerate(valid_features):
+                for j, col2 in enumerate(valid_features[i+1:], i+1):
+                    corr_value = correlation_matrix.loc[col1, col2]
+                    if abs(corr_value) > 0.7:  # 强相关
+                        strong_correlations.append({
+                            'feature1': col1,
+                            'feature2': col2,
+                            'correlation': float(corr_value),
+                            'strength': 'strong' if abs(corr_value) > 0.8 else 'moderate'
+                        })
+            
+            factor_insights['correlation_analysis'] = {
+                'strong_correlations': strong_correlations,
+                'correlation_matrix': correlation_matrix.to_dict()
+            }
+            
+            # 3. 交互效应发现
+            interaction_effects = []
+            top_features = [f[0] for f in sorted_features[:5]]  # 前5个重要特征
+            
+            for i, feat1 in enumerate(top_features):
+                for feat2 in top_features[i+1:]:
+                    if feat1 in X.columns and feat2 in X.columns:
+                        # 计算交互项
+                        interaction = X[feat1] * X[feat2]
+                        if y is not None:
+                            interaction_corr = interaction.corr(y)
+                            if abs(interaction_corr) > 0.3:  # 显著交互效应
+                                interaction_effects.append({
+                                    'feature1': feat1,
+                                    'feature2': feat2,
+                                    'interaction_correlation': float(interaction_corr),
+                                    'interpretation': f"{feat1} 和 {feat2} 的交互效应显著"
+                                })
+            
+            factor_insights['interaction_effects'] = interaction_effects
+            
+            # 4. 季节性因素分析
+            seasonal_factors = {}
+            if 'Month' in data.columns:
+                monthly_stats = data.groupby('Month')[valid_features].mean()
+                seasonal_variation = monthly_stats.std() / monthly_stats.mean()
+                
+                seasonal_factors = {
+                    'monthly_variation': seasonal_variation.to_dict(),
+                    'most_seasonal_features': seasonal_variation.nlargest(3).to_dict()
+                }
+            
+            factor_insights['seasonal_factors'] = seasonal_factors
+            
+            # 5. 新发现总结
+            new_discoveries = []
+            
+            # 发现最重要的影响因素
+            if sorted_features:
+                top_factor = sorted_features[0]
+                new_discoveries.append(f"最重要的影响因素: {top_factor[0]} (重要性得分: {top_factor[1]['importance_score']:.3f})")
+            
+            # 发现强相关特征对
+            if strong_correlations:
+                strongest_corr = max(strong_correlations, key=lambda x: abs(x['correlation']))
+                new_discoveries.append(f"最强相关特征对: {strongest_corr['feature1']} ↔ {strongest_corr['feature2']} (相关系数: {strongest_corr['correlation']:.3f})")
+            
+            # 发现显著交互效应
+            if interaction_effects:
+                strongest_interaction = max(interaction_effects, key=lambda x: abs(x['interaction_correlation']))
+                new_discoveries.append(f"显著交互效应: {strongest_interaction['feature1']} × {strongest_interaction['feature2']} (交互相关系数: {strongest_interaction['interaction_correlation']:.3f})")
+            
+            # 发现季节性特征
+            if seasonal_factors and 'most_seasonal_features' in seasonal_factors:
+                most_seasonal = max(seasonal_factors['most_seasonal_features'].items(), key=lambda x: x[1])
+                new_discoveries.append(f"最强季节性特征: {most_seasonal[0]} (季节性变异系数: {most_seasonal[1]:.3f})")
+            
+            factor_insights['new_discoveries'] = new_discoveries
+            
+            logger.info(f"✅ 重要影响因素发现完成: 分析了 {len(valid_features)} 个特征")
+            logger.info(f"🔍 发现 {len(new_discoveries)} 个重要洞察")
+            
+            return factor_insights
+            
+        except Exception as e:
+            logger.error(f"❌ 重要影响因素发现失败: {e}")
+            return {'status': 'error', 'error': str(e)}
+    
+    def _analyze_correlation_network(self, data: pd.DataFrame, target_col: str) -> Dict:
+        """相关性网络分析 - 发现特征间的复杂关系"""
+        try:
+            logger.info("🔍 开始相关性网络分析...")
+            
+            # 获取数值特征
+            numeric_cols = data.select_dtypes(include=[np.number]).columns.tolist()
+            if target_col in numeric_cols:
+                numeric_cols.remove(target_col)
+            
+            # 移除缺失率过高的特征
+            missing_rates = data[numeric_cols].isnull().sum() / len(data)
+            valid_features = missing_rates[missing_rates < 0.5].index.tolist()
+            
+            if len(valid_features) < 3:
+                return {'status': 'warning', 'message': '特征数量不足，无法进行网络分析'}
+            
+            # 准备数据 - 确保没有NaN值
+            X = data[valid_features].fillna(data[valid_features].median())
+            
+            # 再次检查并处理任何剩余的NaN值
+            X = X.fillna(0)
+            
+            # 计算相关性矩阵
+            correlation_matrix = X.corr()
+            
+            network_insights = {
+                'network_statistics': {},
+                'central_features': [],
+                'feature_clusters': [],
+                'influence_paths': [],
+                'network_visualization': {}
+            }
+            
+            # 1. 网络统计
+            total_connections = 0
+            strong_connections = 0
+            moderate_connections = 0
+            
+            for i, col1 in enumerate(valid_features):
+                for j, col2 in enumerate(valid_features[i+1:], i+1):
+                    corr_value = abs(correlation_matrix.loc[col1, col2])
+                    if corr_value > 0.3:  # 有意义的连接
+                        total_connections += 1
+                        if corr_value > 0.7:
+                            strong_connections += 1
+                        elif corr_value > 0.5:
+                            moderate_connections += 1
+            
+            network_insights['network_statistics'] = {
+                'total_features': len(valid_features),
+                'total_connections': total_connections,
+                'strong_connections': strong_connections,
+                'moderate_connections': moderate_connections,
+                'network_density': total_connections / (len(valid_features) * (len(valid_features) - 1) / 2)
+            }
+            
+            # 2. 中心性特征 (与其他特征相关性最多的特征)
+            centrality_scores = {}
+            for col in valid_features:
+                connections = 0
+                total_corr = 0
+                for other_col in valid_features:
+                    if col != other_col:
+                        corr_value = abs(correlation_matrix.loc[col, other_col])
+                        if corr_value > 0.3:
+                            connections += 1
+                            total_corr += corr_value
+                
+                centrality_scores[col] = {
+                    'connection_count': connections,
+                    'average_correlation': total_corr / connections if connections > 0 else 0,
+                    'centrality_score': connections * (total_corr / connections if connections > 0 else 0)
+                }
+            
+            # 按中心性排序
+            central_features = sorted(centrality_scores.items(), 
+                                    key=lambda x: x[1]['centrality_score'], reverse=True)[:5]
+            
+            network_insights['central_features'] = [
+                {
+                    'feature': feat,
+                    'centrality_score': score['centrality_score'],
+                    'connection_count': score['connection_count'],
+                    'average_correlation': score['average_correlation']
+                }
+                for feat, score in central_features
+            ]
+            
+            # 3. 特征聚类 (基于相关性)
+            from sklearn.cluster import AgglomerativeClustering
+            
+            # 使用1-|correlation|作为距离
+            distance_matrix = 1 - abs(correlation_matrix)
+            
+            # 聚类
+            clustering = AgglomerativeClustering(n_clusters=min(3, len(valid_features)//2), 
+                                               metric='precomputed', linkage='average')
+            cluster_labels = clustering.fit_predict(distance_matrix)
+            
+            # 组织聚类结果
+            feature_clusters = {}
+            for i, label in enumerate(cluster_labels):
+                if label not in feature_clusters:
+                    feature_clusters[label] = []
+                feature_clusters[label].append(valid_features[i])
+            
+            network_insights['feature_clusters'] = [
+                {
+                    'cluster_id': cluster_id,
+                    'features': features,
+                    'cluster_size': len(features),
+                    'intra_cluster_correlation': self._calculate_intra_cluster_correlation(features, correlation_matrix)
+                }
+                for cluster_id, features in feature_clusters.items()
+            ]
+            
+            # 4. 影响路径分析
+            influence_paths = []
+            for central_feat, _ in central_features[:3]:  # 前3个中心特征
+                paths = self._find_influence_paths(central_feat, valid_features, correlation_matrix)
+                influence_paths.extend(paths)
+            
+            network_insights['influence_paths'] = influence_paths
+            
+            # 5. 网络可视化数据
+            network_insights['network_visualization'] = {
+                'nodes': [
+                    {
+                        'id': feat,
+                        'centrality': centrality_scores[feat]['centrality_score'],
+                        'cluster': cluster_labels[valid_features.index(feat)]
+                    }
+                    for feat in valid_features
+                ],
+                'edges': [
+                    {
+                        'source': valid_features[i],
+                        'target': valid_features[j],
+                        'weight': abs(correlation_matrix.loc[valid_features[i], valid_features[j]]),
+                        'correlation': correlation_matrix.loc[valid_features[i], valid_features[j]]
+                    }
+                    for i in range(len(valid_features))
+                    for j in range(i+1, len(valid_features))
+                    if abs(correlation_matrix.loc[valid_features[i], valid_features[j]]) > 0.3
+                ]
+            }
+            
+            logger.info(f"✅ 相关性网络分析完成: {len(valid_features)} 个特征, {total_connections} 个连接")
+            
+            return network_insights
+            
+        except Exception as e:
+            logger.error(f"❌ 相关性网络分析失败: {e}")
+            return {'status': 'error', 'error': str(e)}
+    
+    def _calculate_intra_cluster_correlation(self, features: List[str], correlation_matrix: pd.DataFrame) -> float:
+        """计算聚类内平均相关性"""
+        if len(features) < 2:
+            return 0.0
+        
+        total_corr = 0
+        count = 0
+        for i, feat1 in enumerate(features):
+            for feat2 in features[i+1:]:
+                if feat1 in correlation_matrix.columns and feat2 in correlation_matrix.columns:
+                    total_corr += abs(correlation_matrix.loc[feat1, feat2])
+                    count += 1
+        
+        return total_corr / count if count > 0 else 0.0
+    
+    def _find_influence_paths(self, central_feature: str, all_features: List[str], 
+                            correlation_matrix: pd.DataFrame, max_depth: int = 2) -> List[Dict]:
+        """发现影响路径"""
+        paths = []
+        
+        # 找到与中心特征强相关的特征
+        strong_connections = []
+        for feat in all_features:
+            if feat != central_feature:
+                corr = abs(correlation_matrix.loc[central_feature, feat])
+                if corr > 0.5:
+                    strong_connections.append((feat, corr))
+        
+        # 按相关性排序
+        strong_connections.sort(key=lambda x: x[1], reverse=True)
+        
+        # 构建影响路径
+        for connected_feat, corr in strong_connections[:3]:  # 前3个强连接
+            paths.append({
+                'central_feature': central_feature,
+                'connected_feature': connected_feat,
+                'correlation_strength': float(corr),
+                'path_type': 'direct_influence',
+                'interpretation': f"{central_feature} 直接影响 {connected_feat} (相关系数: {corr:.3f})"
+            })
+        
+        return paths
     
     def save_insights(self, output_dir: str = "insights") -> str:
         """保存洞察结果"""
