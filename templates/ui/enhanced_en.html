@@ -1038,6 +1038,7 @@
                                     <option value="clustering">Data Clustering</option>
                                     <option value="pca">Dimensionality Analysis</option>
                                     <option value="time_patterns">Time Patterns</option>
+                                    <option value="swe_cold_factors">SWE Cold Factors Discovery</option>
                                     <option value="comprehensive">All Insights</option>
                                 </select>
                             </div>
@@ -4618,6 +4619,11 @@ function initializeForecastControls() {
                     alertClass = 'alert-secondary';
                     iconClass = 'fas fa-clock';
                     break;
+                case 'swe_cold_factors':
+                    insightContent = renderSWEColdFactorsInsights(insights);
+                    alertClass = 'alert-info';
+                    iconClass = 'fas fa-microscope';
+                    break;
                 case 'comprehensive':
                     insightContent = renderComprehensiveInsights(insights);
                     alertClass = 'alert-success';
@@ -4737,6 +4743,114 @@ function initializeForecastControls() {
                     </div>
                 </div>
             `;
+        }
+        
+        // Render SWE Cold Factors Discovery results
+        function renderSWEColdFactorsInsights(insights) {
+            const sweColdFactors = insights.swe_cold_factors || {};
+            const candidateFactors = sweColdFactors.candidate_cold_factors || {};
+            const potentialDiscoveries = sweColdFactors.potential_discoveries || [];
+            const researchInsights = sweColdFactors.research_insights || [];
+            
+            let content = `
+                <div class="cold-factors-analysis">
+                    <h5><i class="fas fa-flask"></i> SWE Cold Factors Analysis</h5>
+                    <p class="text-muted">Based on research literature, discovering overlooked but potentially important factors for SWE estimation.</p>
+                    
+                    <div class="factors-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-top: 1rem;">
+            `;
+            
+            // Render each cold factor category
+            Object.entries(candidateFactors).forEach(([category, info]) => {
+                const features = info.candidate_features || [];
+                const importance = info.potential_importance || 0;
+                
+                if (features.length > 0) {
+                    content += `
+                        <div class="factor-card" style="border: 1px solid #ddd; border-radius: 8px; padding: 1rem; background: #f8f9fa;">
+                            <h6><i class="fas fa-search"></i> ${info.description}</h6>
+                            <p class="small text-muted">${info.research_basis}</p>
+                            <div class="factor-details">
+                                <strong>Candidate Features:</strong>
+                                <ul class="small">
+                                    ${features.map(feature => `<li>${feature}</li>`).join('')}
+                                </ul>
+                                <div class="importance-score">
+                                    <strong>Potential Importance:</strong> 
+                                    <span class="badge ${importance > 0 ? 'badge-warning' : 'badge-secondary'}">${importance.toFixed(3)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            
+            content += `</div>`;
+            
+            // Render potential discoveries
+            if (potentialDiscoveries.length > 0) {
+                content += `
+                    <div class="potential-discoveries" style="margin-top: 1.5rem;">
+                        <h5><i class="fas fa-lightbulb"></i> Potential Discoveries</h5>
+                        <div class="discoveries-list">
+                `;
+                
+                potentialDiscoveries.forEach(discovery => {
+                    if (discovery.type === 'hidden_effect') {
+                        content += `
+                            <div class="discovery-item alert alert-info">
+                                <strong>Hidden Effect:</strong> ${discovery.feature}
+                                <br><small>Residual correlation: ${discovery.residual_correlation.toFixed(3)}</small>
+                            </div>
+                        `;
+                    } else if (discovery.type === 'nonlinear_interaction') {
+                        content += `
+                            <div class="discovery-item alert alert-warning">
+                                <strong>Nonlinear Interaction:</strong> ${discovery.cold_feature} × ${discovery.main_feature}
+                                <br><small>Interaction strength: ${discovery.interaction_strength.toFixed(3)}</small>
+                            </div>
+                        `;
+                    } else {
+                        content += `
+                            <div class="discovery-item alert alert-primary">
+                                <strong>${discovery.description}:</strong> 
+                                <br><small>Importance: ${discovery.potential_importance.toFixed(3)}</small>
+                            </div>
+                        `;
+                    }
+                });
+                
+                content += `</div></div>`;
+            }
+            
+            // Render research insights
+            if (researchInsights.length > 0) {
+                content += `
+                    <div class="research-insights" style="margin-top: 1.5rem;">
+                        <h5><i class="fas fa-book"></i> Research Insights</h5>
+                        <div class="insights-list">
+                            ${researchInsights.map(insight => `
+                                <div class="insight-item" style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 0.75rem; margin: 0.5rem 0; border-radius: 4px;">
+                                    <i class="fas fa-quote-left"></i> ${insight}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            content += `
+                <div class="analysis-summary" style="margin-top: 1.5rem; padding: 1rem; background: #f0f8ff; border-radius: 8px;">
+                    <h6><i class="fas fa-chart-line"></i> Analysis Summary</h6>
+                    <p class="small">
+                        This analysis identifies potentially overlooked factors in SWE estimation based on current research literature. 
+                        Consider incorporating these factors into your SWE prediction models for improved accuracy, especially in complex terrain and climate conditions.
+                    </p>
+                </div>
+            </div>
+            `;
+            
+            return content;
         }
         
         // Show/hide analysis options based on selected mode

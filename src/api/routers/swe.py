@@ -1434,7 +1434,7 @@ def get_regional_forecast_details():
 def get_insight_discovery_info():
     """Get information about available insight discovery modes (for testing/info purposes)."""
     return {
-        "available_modes": ["anomaly", "clustering", "pca", "time_patterns", "comprehensive"],
+        "available_modes": ["anomaly", "clustering", "pca", "time_patterns", "swe_cold_factors", "comprehensive"],
         "default_mode": "anomaly",
         "supported_columns": ["Snow on Grnd (cm)", "snow_water_equivalent_mm", "temperature", "precipitation"],
         "data_sources": [
@@ -1442,12 +1442,13 @@ def get_insight_discovery_info():
             "data/raw/eccc_recent/eccc_recent_combined.csv",
             "data/real/environment_canada/environment_canada_merged.csv"
         ],
-        "description": "POST to this endpoint with mode, data_path, and target_column to run analysis"
+        "description": "POST to this endpoint with mode, data_path, and target_column to run analysis",
+        "swe_cold_factors_description": "Discovers overlooked but potentially important factors for SWE estimation based on research literature"
     }
 
 @router.post("/insight-discovery")
 def run_insight_discovery(
-    mode: str = Body("anomaly", embed=True, description="anomaly | clustering | pca | time_patterns | comprehensive"),
+    mode: str = Body("anomaly", embed=True, description="anomaly | clustering | pca | time_patterns | swe_cold_factors | comprehensive"),
     data_path: str | None = Body(None, embed=True, description="Optional CSV path; if None, use default dataset"),
     target_column: str = Body("Snow on Grnd (cm)", embed=True, description="Target column for analysis")
 ):
