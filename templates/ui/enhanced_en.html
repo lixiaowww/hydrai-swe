@@ -4606,21 +4606,11 @@ function initializeForecastControls() {
                 monitoringRecommendations = '变化相对稳定，可维持现有监测方案';
             }
             
-            interpretationDiv.innerHTML = `
-                <h6 class="mb-2"><i class="fas fa-chart-line text-primary"></i> 雪水当量时间序列分解 - 水文专业解读</h6>
-                <div class="row">
-                    <div class="col-md-6">
-                        <p><strong>水文趋势：</strong>${trendSignificance}${trendDirection}趋势，总体变化${trendChange > 0 ? '+' : ''}${trendChange.toFixed(1)}%</p>
-                        <p><strong>季节性特征：</strong>${seasonalPattern}，${seasonalData.length > 0 ? '融雪期和积雪期变化明显' : '季节性变化不明显'}</p>
-                        <p><strong>数值范围：</strong>${minY.toFixed(1)}-${maxY.toFixed(1)}mm，中位数${trendData.sort((a,b)=>a-b)[Math.floor(trendData.length/2)].toFixed(1)}mm</p>
-                    </div>
-                    <div class="col-md-6">
-                        <p><strong>水文影响：</strong>${hydrologicalImplications}</p>
-                        <p><strong>数据稳定性：</strong>标准差${volatility.toFixed(2)}mm，${volatility > trendStrength * 0.3 ? '波动较大，需关注异常值' : '相对稳定，数据可靠'}</p>
-                        <p><strong>监测建议：</strong>${monitoringRecommendations}</p>
-                    </div>
-                </div>
-            `;
+            // Get professional interpretation using the new system
+            const interpretation = getProfessionalInterpretation(trendData, seasonalData, anomalyScore, volatility, trendStrength);
+            
+            // Display professional interpretation
+            displayProfessionalInterpretation(container, interpretation);
             
             container.appendChild(interpretationDiv);
         }
@@ -4788,21 +4778,11 @@ function initializeForecastControls() {
                 climateImpact = '数据相对稳定，气候变化影响较小';
             }
             
-            interpretationDiv.innerHTML = `
-                <h6 class="mb-2"><i class="fas fa-exclamation-triangle text-warning"></i> 雪水当量异常检测 - 水文专业解读</h6>
-                <div class="row">
-                    <div class="col-md-6">
-                        <p><strong>异常程度：</strong>${anomalyLevel}，异常比例${anomalyRate.toFixed(1)}%</p>
-                        <p><strong>水文影响：</strong>${hydrologicalImplications}</p>
-                        <p><strong>极值异常：</strong>${extremeAnomalies}个极值点，${monitoringUrgency}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <p><strong>气候变化：</strong>${climateImpact}，标准差${stdDev.toFixed(3)}</p>
-                        <p><strong>检测阈值：</strong>${anomalyThreshold.toFixed(3)}，基于${avgScore.toFixed(3)}平均值</p>
-                        <p><strong>监测建议：</strong>${anomalyRate > 5 ? '建议深入分析异常原因，关注气候变化影响' : '数据质量良好，可正常用于水文预测'}</p>
-                    </div>
-                </div>
-            `;
+            // Get professional interpretation for anomaly detection
+            const interpretation = getProfessionalInterpretation([], [], anomalyScore, stdDev, Math.abs(avgScore));
+            
+            // Display professional interpretation
+            displayProfessionalInterpretation(container, interpretation);
             
             container.appendChild(interpretationDiv);
         }
@@ -4967,21 +4947,12 @@ function initializeForecastControls() {
                 hydrologicalApplications = '聚类结果需要优化，建议调整参数或增加数据';
             }
             
-            interpretationDiv.innerHTML = `
-                <h6 class="mb-2"><i class="fas fa-sitemap text-info"></i> 雪水当量聚类分析 - 水文专业解读</h6>
-                <div class="row">
-                    <div class="col-md-6">
-                        <p><strong>聚类质量：</strong>${clusteringQuality}，平衡度${(balanceRatio * 100).toFixed(1)}%</p>
-                        <p><strong>水文模式：</strong>${hydrologicalPatterns}</p>
-                        <p><strong>季节性特征：</strong>${seasonalInterpretation}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <p><strong>聚类分布：</strong>最大聚类${largestCluster}个点(${((largestCluster/total)*100).toFixed(1)}%)，最小聚类${smallestCluster}个点</p>
-                        <p><strong>数据覆盖：</strong>${total}个数据点，平均每类${avgClusterSize.toFixed(0)}个点</p>
-                        <p><strong>应用价值：</strong>${hydrologicalApplications}</p>
-                    </div>
-                </div>
-            `;
+            // Get professional interpretation for clustering analysis
+            const clusterData = [avgClusterSize, largestCluster, smallestCluster];
+            const interpretation = getProfessionalInterpretation(clusterData, [], balanceRatio, 0, total);
+            
+            // Display professional interpretation
+            displayProfessionalInterpretation(container, interpretation);
             
             container.appendChild(interpretationDiv);
         }
@@ -5133,21 +5104,12 @@ function initializeForecastControls() {
                 seasonalStationarity = '平稳性检验结果不明确';
             }
             
-            interpretationDiv.innerHTML = `
-                <h6 class="mb-2"><i class="fas fa-chart-bar text-success"></i> 雪水当量统计检验 - 水文专业解读</h6>
-                <div class="row">
-                    <div class="col-md-6">
-                        <p><strong>统计显著性：</strong>${overallSignificance}，${significanceRate.toFixed(1)}%的测试显著</p>
-                        <p><strong>数据质量：</strong>${dataQuality}，平均P值${avgPValue.toFixed(3)}</p>
-                        <p><strong>季节性特征：</strong>${seasonalStationarity}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <p><strong>检验类型：</strong>${testNames}</p>
-                        <strong>高度显著：</strong>${verySignificant}个测试(p<0.01)，可靠性${testReliability}</p>
-                        <p><strong>水文应用：</strong>${hydrologicalImplications}</p>
-                    </div>
-                </div>
-            `;
+            // Get professional interpretation for statistical tests
+            const testData = [avgPValue, significanceRate, verySignificant];
+            const interpretation = getProfessionalInterpretation(testData, [], significanceRate/100, 0, totalTests);
+            
+            // Display professional interpretation
+            displayProfessionalInterpretation(container, interpretation);
             
             container.appendChild(interpretationDiv);
         }
@@ -5310,26 +5272,289 @@ function initializeForecastControls() {
                 seasonalPrediction = '顶级因子特征多样，预测能力全面';
             }
             
-            interpretationDiv.innerHTML = `
-                <h6 class="mb-2"><i class="fas fa-lightbulb text-warning"></i> 雪水当量因子发现 - 水文专业解读</h6>
-                <div class="row">
-                    <div class="col-md-6">
-                        <p><strong>因子质量：</strong>${factorQuality}，平均分数${avgScore.toFixed(3)}</p>
-                        <p><strong>预测能力：</strong>${predictivePower}，${highScoreFactors}个因子高于平均值</p>
-                        <p><strong>因子类型：</strong>${factorTypes}，${seasonalPrediction}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <p><strong>顶级因子：</strong>${topFactors}等${Math.min(3, factors.length)}个因子表现最佳</p>
-                        <p><strong>分数分布：</strong>范围${scoreRange.toFixed(3)}，最高分${topFactor?.score?.toFixed(3) || 'N/A'}</p>
-                        <p><strong>水文应用：</strong>${hydrologicalApplications}</p>
-                    </div>
-                </div>
-            `;
+            // Get professional interpretation for factor discovery
+            const factorData = [avgScore, highScoreFactors, scoreRange];
+            const interpretation = getProfessionalInterpretation(factorData, [], avgScore, 0, factors.length);
+            
+            // Display professional interpretation
+            displayProfessionalInterpretation(container, interpretation);
             
             container.appendChild(interpretationDiv);
         }
         
         // ===== END FACTORS DISCOVERY FUNCTIONS =====
+
+        // Enhanced Interpretation System - English Only
+        // Integrates with Hydrology Knowledge Base for professional analysis
+        
+        // Professional interpretation templates
+        const interpretationTemplates = {
+            trend_analysis: {
+                strong_increasing: {
+                    title: "Strong Increasing Trend in SWE",
+                    description: "Strong increasing trend in SWE indicates significant accumulation patterns that may reflect climate change impacts or natural variability cycles.",
+                    implications: [
+                        "Potential for increased spring flood risk",
+                        "Enhanced water storage for summer months",
+                        "Possible climate change signal",
+                        "Need for updated flood protection standards"
+                    ]
+                },
+                moderate_increasing: {
+                    title: "Moderate Increasing Trend in SWE",
+                    description: "Moderate increasing trend suggests gradual changes in winter precipitation patterns or snow retention.",
+                    implications: [
+                        "Slight increase in flood risk",
+                        "Improved water resource availability",
+                        "Monitoring recommended for trend continuation"
+                    ]
+                },
+                stable: {
+                    title: "Stable SWE Patterns",
+                    description: "Stable SWE patterns indicate consistent winter climate conditions and predictable hydrological behavior.",
+                    implications: [
+                        "Reliable flood forecasting possible",
+                        "Consistent water resource planning",
+                        "Existing infrastructure adequate"
+                    ]
+                },
+                decreasing: {
+                    title: "Decreasing SWE Trend",
+                    description: "Decreasing SWE trend may indicate climate change impacts, reduced winter precipitation, or earlier melt onset.",
+                    implications: [
+                        "Reduced flood risk but potential drought concerns",
+                        "Earlier spring runoff timing",
+                        "Possible water resource challenges",
+                        "Need for adaptation strategies"
+                    ]
+                }
+            },
+            
+            seasonal_patterns: {
+                early_peak: {
+                    title: "Early Peak SWE Pattern",
+                    description: "Early peak SWE suggests rapid winter accumulation followed by early melt onset.",
+                    implications: [
+                        "Earlier spring flood risk",
+                        "Extended growing season potential",
+                        "Reduced summer water availability",
+                        "Altered ecosystem timing"
+                    ]
+                },
+                late_peak: {
+                    title: "Late Peak SWE Pattern",
+                    description: "Late peak SWE indicates prolonged winter conditions with delayed melt onset.",
+                    implications: [
+                        "Delayed spring flood risk",
+                        "Compressed growing season",
+                        "Extended winter recreation opportunities",
+                        "Potential for rapid melt events"
+                    ]
+                },
+                double_peak: {
+                    title: "Double Peak SWE Pattern",
+                    description: "Double peak pattern suggests complex winter weather with multiple accumulation and melt cycles.",
+                    implications: [
+                        "Multiple flood risk periods",
+                        "Complex forecasting requirements",
+                        "Variable water availability",
+                        "Need for adaptive management"
+                    ]
+                }
+            },
+            
+            anomaly_assessment: {
+                extreme_high: {
+                    title: "Extremely High SWE Values",
+                    description: "Extremely high SWE values represent significant departure from normal conditions.",
+                    causes: [
+                        "Exceptional winter precipitation",
+                        "Cold temperatures limiting melt",
+                        "Atmospheric river events",
+                        "Climate change impacts"
+                    ],
+                    risks: [
+                        "High flood potential",
+                        "Infrastructure stress",
+                        "Emergency response needs",
+                        "Economic impacts"
+                    ]
+                },
+                extreme_low: {
+                    title: "Extremely Low SWE Values",
+                    description: "Extremely low SWE values indicate drought conditions or unusual winter weather.",
+                    causes: [
+                        "Below-normal precipitation",
+                        "Early melt onset",
+                        "Warm winter temperatures",
+                        "Climate change trends"
+                    ],
+                    risks: [
+                        "Reduced water availability",
+                        "Agricultural impacts",
+                        "Ecosystem stress",
+                        "Economic consequences"
+                    ]
+                }
+            }
+        };
+        
+        // Get professional interpretation based on data
+        function getProfessionalInterpretation(trendData, seasonalData, anomalyScore, volatility, trendStrength) {
+            // Determine trend characteristics
+            const trendChange = trendData.length > 1 ? 
+                ((trendData[trendData.length - 1] - trendData[0]) / Math.abs(trendData[0])) * 100 : 0;
+            
+            let trendDirection = "stable";
+            let trendSignificance = "Stable";
+            let trendTemplate = interpretationTemplates.trend_analysis.stable;
+            
+            if (Math.abs(trendChange) > 20) {
+                trendDirection = trendChange > 0 ? "strong_increasing" : "decreasing";
+                trendSignificance = trendChange > 0 ? "Strong Increasing" : "Strong Decreasing";
+                trendTemplate = interpretationTemplates.trend_analysis[trendDirection] || interpretationTemplates.trend_analysis.stable;
+            } else if (Math.abs(trendChange) > 10) {
+                trendDirection = trendChange > 0 ? "moderate_increasing" : "decreasing";
+                trendSignificance = trendChange > 0 ? "Moderate Increasing" : "Moderate Decreasing";
+                trendTemplate = interpretationTemplates.trend_analysis[trendDirection] || interpretationTemplates.trend_analysis.stable;
+            }
+            
+            // Determine seasonal pattern
+            let seasonalPattern = "normal";
+            let seasonalTemplate = interpretationTemplates.seasonal_patterns.early_peak;
+            
+            if (seasonalData.length > 0) {
+                const seasonalStrength = Math.max(...seasonalData) - Math.min(...seasonalData);
+                if (seasonalStrength > trendStrength * 0.5) {
+                    seasonalPattern = "early_peak";
+                    seasonalTemplate = interpretationTemplates.seasonal_patterns.early_peak;
+                } else if (seasonalStrength > trendStrength * 0.2) {
+                    seasonalPattern = "late_peak";
+                    seasonalTemplate = interpretationTemplates.seasonal_patterns.late_peak;
+                }
+            }
+            
+            // Determine anomaly assessment
+            let anomalyTemplate = interpretationTemplates.anomaly_assessment.extreme_high;
+            if (Math.abs(anomalyScore) > 2.0) {
+                anomalyTemplate = anomalyScore > 0 ? 
+                    interpretationTemplates.anomaly_assessment.extreme_high :
+                    interpretationTemplates.anomaly_assessment.extreme_low;
+            }
+            
+            return {
+                trend: {
+                    title: trendTemplate.title,
+                    description: trendTemplate.description,
+                    magnitude: `${Math.abs(trendChange).toFixed(1)}%`,
+                    direction: trendSignificance,
+                    implications: trendTemplate.implications
+                },
+                seasonal: {
+                    title: seasonalTemplate.title,
+                    description: seasonalTemplate.description,
+                    pattern: seasonalPattern,
+                    implications: seasonalTemplate.implications
+                },
+                anomaly: {
+                    title: anomalyTemplate.title,
+                    description: anomalyTemplate.description,
+                    score: anomalyScore,
+                    severity: Math.abs(anomalyScore) > 2.0 ? "extreme" : Math.abs(anomalyScore) > 1.0 ? "moderate" : "normal",
+                    causes: anomalyTemplate.causes,
+                    risks: anomalyTemplate.risks
+                },
+                data_quality: {
+                    volatility: volatility.toFixed(2),
+                    stability: volatility > trendStrength * 0.3 ? "High variability, monitor for anomalies" : "Relatively stable, data reliable"
+                }
+            };
+        }
+        
+        // Generate monitoring recommendations
+        function generateMonitoringRecommendations(interpretation) {
+            const recommendations = [];
+            
+            // Based on trend
+            if (interpretation.trend.direction.includes("Increasing")) {
+                recommendations.push("Monitor flood protection infrastructure capacity");
+                recommendations.push("Update flood risk assessments and emergency plans");
+                recommendations.push("Consider adaptive management strategies for changing conditions");
+            } else if (interpretation.trend.direction.includes("Decreasing")) {
+                recommendations.push("Assess water resource availability for summer months");
+                recommendations.push("Monitor drought indicators and agricultural impacts");
+                recommendations.push("Consider water conservation and efficiency measures");
+            }
+            
+            // Based on anomaly
+            if (interpretation.anomaly.severity === "extreme") {
+                recommendations.push("Implement enhanced monitoring and early warning systems");
+                recommendations.push("Prepare emergency response protocols");
+                recommendations.push("Communicate risks to stakeholders and public");
+            } else if (interpretation.anomaly.severity === "moderate") {
+                recommendations.push("Increase monitoring frequency");
+                recommendations.push("Review and update response plans");
+                recommendations.push("Prepare for potential extreme events");
+            }
+            
+            // General recommendations
+            recommendations.push("Maintain regular data quality assessments");
+            recommendations.push("Update models with new observations");
+            recommendations.push("Coordinate with regional water management agencies");
+            
+            return recommendations;
+        }
+        
+        // Display professional interpretation
+        function displayProfessionalInterpretation(container, interpretation) {
+            const recommendations = generateMonitoringRecommendations(interpretation);
+            
+            container.innerHTML = `
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h6 class="mb-0"><i class="fas fa-chart-line"></i> Professional SWE Analysis - Hydrological Interpretation</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="text-primary">${interpretation.trend.title}</h6>
+                                <p class="small text-muted">${interpretation.trend.description}</p>
+                                <p><strong>Trend Magnitude:</strong> ${interpretation.trend.magnitude} change</p>
+                                <p><strong>Direction:</strong> ${interpretation.trend.direction}</p>
+                                <ul class="small">
+                                    ${interpretation.trend.implications.map(imp => `<li>${imp}</li>`).join('')}
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="text-info">${interpretation.seasonal.title}</h6>
+                                <p class="small text-muted">${interpretation.seasonal.description}</p>
+                                <p><strong>Pattern:</strong> ${interpretation.seasonal.pattern}</p>
+                                <ul class="small">
+                                    ${interpretation.seasonal.implications.map(imp => `<li>${imp}</li>`).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="text-warning">${interpretation.anomaly.title}</h6>
+                                <p class="small text-muted">${interpretation.anomaly.description}</p>
+                                <p><strong>Anomaly Score:</strong> ${interpretation.anomaly.score.toFixed(2)} (${interpretation.anomaly.severity})</p>
+                                <p><strong>Data Quality:</strong> ${interpretation.data_quality.stability}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="text-success">Management Recommendations</h6>
+                                <ul class="small">
+                                    ${recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
     </script>
 </body>
 </html>
