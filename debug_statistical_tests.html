@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Statistical Tests</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .debug-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .result { margin: 10px 0; padding: 10px; background: #f0f0f0; }
+        button { padding: 10px 20px; margin: 5px; }
+        .chart-container { height: 200px; width: 100%; border: 1px solid #ddd; margin: 10px 0; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>🐛 Debug Statistical Tests</h1>
+    
+    <div class="debug-section">
+        <h3>Step 1: Test API Connection</h3>
+        <button onclick="testAPIConnection()">Test API</button>
+        <div id="api-result" class="result"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h3>Step 2: Test Data Transformation</h3>
+        <button onclick="testDataTransformation()">Test Transformation</button>
+        <div id="transformation-result" class="result"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h3>Step 3: Test Chart Generation</h3>
+        <button onclick="testChartGeneration()">Test Chart</button>
+        <div id="chart-result" class="result">
+            <div class="chart-container" id="debug-chart"></div>
+        </div>
+    </div>
+    
+    <div class="debug-section">
+        <h3>Step 4: Test Interpretation</h3>
+        <button onclick="testInterpretation()">Test Interpretation</button>
+        <div id="interpretation-result" class="result"></div>
+    </div>
+
+    <script>
+        // Step 1: Test API Connection
+        async function testAPIConnection() {
+            const resultDiv = document.getElementById('api-result');
+            resultDiv.innerHTML = '<p>Testing API connection...</p>';
+            
+            try {
+                const response = await fetch('/api/v1/data-science/statistical-tests?column=snow_water_equivalent_mm');
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <h4>📊 API Response:</h4>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                    <p class="success"><strong>Status:</strong> ${data.success ? '✅ Success' : '❌ Failed'}</p>
+                    <p><strong>Data Available:</strong> ${data.results ? '✅ Yes' : '❌ No'}</p>
+                    <p><strong>Normality Test:</strong> ${data.results?.normality ? '✅ Available' : '❌ Missing'}</p>
+                    <p><strong>Stationarity Test:</strong> ${data.results?.stationarity ? '✅ Available' : '❌ Missing'}</p>
+                    <p><strong>Response Time:</strong> ${response.headers.get('x-response-time') || 'Unknown'}</p>
+                `;
+                
+                // Store data for next test
+                window.apiData = data;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <h4>❌ API Error:</h4>
+                    <p class="error">${error.message}</p>
+                    <p><strong>Error Type:</strong> ${error.name}</p>
+                    <p><strong>Stack:</strong> <pre>${error.stack}</pre></p>
+                `;
+            }
+        }
+        
+        // Step 2: Test Data Transformation
+        function testDataTransformation() {
+            const resultDiv = document.getElementById('transformation-result');
+            
+            if (!window.apiData || !window.apiData.success) {
+                resultDiv.innerHTML = '<p class="error">❌ No API data available. Run Step 1 first.</p>';
+                return;
+            }
+            
+            const results = window.apiData.results;
+            resultDiv.innerHTML = '<p>Transforming API data...</p>';
+            
+            try {
+                // Transform API data to expected format
+                const tests = [];
+                if (results.normality) {
+                    tests.push({
+                        test_name: 'Shapiro-Wilk Normality',
+                        p_value: results.normality.shapiro_p_value,
+                        statistic: results.normality.shapiro_statistic
+                    });
+                }
+                if (results.stationarity) {
+                    tests.push({
+                        test_name: 'ADF Stationarity',
+                        p_value: results.stationarity.p_value,
+                        statistic: results.stationarity.adf_statistic
+                    });
+                }
+                
+                resultDiv.innerHTML = `
+                    <h4>🔄 Data Transformation:</h4>
+                    <p><strong>Original Tests:</strong> ${Object.keys(results).join(', ')}</p>
+                    <p><strong>Transformed Tests:</strong> ${tests.length}</p>
+                    <pre>${JSON.stringify(tests, null, 2)}</pre>
+                    <p class="success">✅ Transformation successful!</p>
+                `;
+                
+                // Store transformed data for next test
+                window.transformedTests = tests;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <h4>❌ Transformation Error:</h4>
+                    <p class="error">${error.message}</p>
+                    <p><strong>Stack:</strong> <pre>${error.stack}</pre></p>
+                `;
+            }
+        }
+        
+        // Step 3: Test Chart Generation
+        function testChartGeneration() {
+            const resultDiv = document.getElementById('chart-result');
+            const chartContainer = document.getElementById('debug-chart');
+            
+            if (!window.transformedTests || window.transformedTests.length === 0) {
+                resultDiv.innerHTML = '<p class="error">❌ No transformed data available. Run Step 2 first.</p>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '<p>Generating chart...</p>';
+            chartContainer.innerHTML = '';
+            
+            try {
+                const tests = window.transformedTests;
+                
+                // Create chart
+                const canvas = document.createElement('canvas');
+                canvas.style.width = '100%';
+                canvas.style.height = '100%';
+                chartContainer.appendChild(canvas);
+                
+                const ctx = canvas.getContext('2d');
+                const width = chartContainer.offsetWidth;
+                const height = chartContainer.offsetHeight;
+                
+                canvas.width = width;
+                canvas.height = height;
+                
+                // Draw chart
+                ctx.fillStyle = '#f8f9fa';
+                ctx.fillRect(0, 0, width, height);
+                
+                const names = tests.map(t => t.test_name);
+                const pValues = tests.map(t => t.p_value);
+                
+                if (pValues.length > 0) {
+                    const barWidth = width / pValues.length * 0.8;
+                    const barSpacing = width / pValues.length * 0.2;
+                    const maxPValue = Math.max(...pValues);
+                    
+                    pValues.forEach((pValue, index) => {
+                        const x = index * (barWidth + barSpacing) + barSpacing / 2;
+                        const barHeight = (pValue / maxPValue) * height * 0.8;
+                        const y = height - barHeight - 20;
+                        
+                        ctx.fillStyle = '#3498db';
+                        ctx.fillRect(x, y, barWidth, barHeight);
+                        
+                        // Add labels
+                        ctx.fillStyle = '#2c3e50';
+                        ctx.font = '10px Arial';
+                        ctx.fillText(names[index].substring(0, 15), x, height - 5);
+                        ctx.fillText(`p=${pValue.toExponential(2)}`, x, height - 20);
+                    });
+                    
+                    // Add title
+                    ctx.fillStyle = '#2c3e50';
+                    ctx.font = '14px Arial';
+                    ctx.fillText('Statistical Tests - P-Values', 10, 20);
+                }
+                
+                resultDiv.innerHTML += `
+                    <p class="success">✅ Chart generated successfully!</p>
+                    <p><strong>Tests:</strong> ${tests.length}</p>
+                    <p><strong>P-Values:</strong> ${pValues.map(p => p.toExponential(2)).join(', ')}</p>
+                `;
+                
+            } catch (error) {
+                resultDiv.innerHTML += `
+                    <p class="error">❌ Chart generation failed: ${error.message}</p>
+                    <p><strong>Stack:</strong> <pre>${error.stack}</pre></p>
+                `;
+            }
+        }
+        
+        // Step 4: Test Interpretation
+        function testInterpretation() {
+            const resultDiv = document.getElementById('interpretation-result');
+            
+            if (!window.transformedTests || window.transformedTests.length === 0) {
+                resultDiv.innerHTML = '<p class="error">❌ No transformed data available. Run Step 2 first.</p>';
+                return;
+            }
+            
+            try {
+                const tests = window.transformedTests;
+                
+                // Calculate metrics
+                const significantTests = tests.filter(t => (t.p_value || 1) < 0.05).length;
+                const totalTests = tests.length;
+                const avgPValue = tests.reduce((sum, t) => sum + (t.p_value || 1), 0) / totalTests;
+                const verySignificant = tests.filter(t => (t.p_value || 1) < 0.01).length;
+                const significanceRate = (significantTests / totalTests) * 100;
+                
+                resultDiv.innerHTML = `
+                    <h4>📊 Interpretation Test:</h4>
+                    <p><strong>Total Tests:</strong> ${totalTests}</p>
+                    <p><strong>Significant Tests:</strong> ${significantTests} (${significanceRate.toFixed(1)}%)</p>
+                    <p><strong>Very Significant:</strong> ${verySignificant}</p>
+                    <p><strong>Average P-Value:</strong> ${avgPValue.toExponential(2)}</p>
+                    <p class="success">✅ Interpretation calculation successful!</p>
+                `;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <h4>❌ Interpretation Error:</h4>
+                    <p class="error">${error.message}</p>
+                    <p><strong>Stack:</strong> <pre>${error.stack}</pre></p>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -5416,6 +5416,41 @@ function initializeForecastControls() {
                 </div>
             `;
         }
+        
+        // Auto-load statistical tests when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Page loaded, auto-loading statistical tests...');
+            setTimeout(() => {
+                loadStatisticalTests();
+            }, 1000);
+        });
+        
+        // Also load when the tab becomes visible
+        function showMainTab(tabName) {
+            // Hide all main content sections
+            document.querySelectorAll('.main-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all main tabs
+            document.querySelectorAll('.main-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected content
+            document.getElementById(tabName + '-content').classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+            
+            // Auto-load data when switching to data science tab
+            if (tabName === 'data-science') {
+                console.log('Switching to data science tab, loading all analyses...');
+                setTimeout(() => {
+                    loadStatisticalTests();
+                }, 500);
+            }
+        }
     </script>
 </body>
 </html>
