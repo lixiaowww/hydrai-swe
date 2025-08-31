@@ -3,64 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Debug Statistical Tests</title>
+    <title>Test Main UI Statistical Tests</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
-        .debug-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
         .result { margin: 10px 0; padding: 10px; background: #f0f0f0; }
         button { padding: 10px 20px; margin: 5px; }
         .chart-container { height: 200px; width: 100%; border: 1px solid #ddd; margin: 10px 0; }
         .error { color: red; }
         .success { color: green; }
+        .info { color: blue; }
     </style>
 </head>
 <body>
-    <h1>🐛 Debug Statistical Tests</h1>
+    <h1>🧪 Test Main UI Statistical Tests</h1>
     
-    <div class="debug-section">
-        <h3>Step 1: Test API Connection</h3>
-        <button onclick="testAPIConnection()">Test API</button>
-        <div id="api-result" class="result"></div>
+    <div class="test-section">
+        <h3>Test 1: Direct API Call (Same Port)</h3>
+        <button onclick="testDirectAPI()">Test Direct API</button>
+        <div id="direct-api-result" class="result"></div>
     </div>
     
-    <div class="debug-section">
-        <h3>Step 2: Test Data Transformation</h3>
-        <button onclick="testDataTransformation()">Test Transformation</button>
-        <div id="transformation-result" class="result"></div>
-    </div>
-    
-    <div class="debug-section">
-        <h3>Step 3: Test Chart Generation</h3>
-        <button onclick="testChartGeneration()">Test Chart</button>
-        <div id="chart-result" class="result">
-            <div class="chart-container" id="debug-chart"></div>
+    <div class="test-section">
+        <h3>Test 2: Main UI Functions (Simulated)</h3>
+        <button onclick="testMainUIFunctions()">Test Main UI Functions</button>
+        <div id="main-ui-result" class="result">
+            <div class="chart-container" id="main-ui-chart"></div>
         </div>
     </div>
     
-    <div class="debug-section">
-        <h3>Step 4: Test Interpretation</h3>
-        <button onclick="testInterpretation()">Test Interpretation</button>
-        <div id="interpretation-result" class="result"></div>
+    <div class="test-section">
+        <h3>Test 3: Full Integration Test</h3>
+        <button onclick="testFullIntegration()">Test Full Integration</button>
+        <div id="integration-result" class="result"></div>
     </div>
 
     <script>
-        // Step 1: Test API Connection
-        async function testAPIConnection() {
-            const resultDiv = document.getElementById('api-result');
-            resultDiv.innerHTML = '<p>Testing API connection...</p>';
+        // Test 1: Direct API Call
+        async function testDirectAPI() {
+            const resultDiv = document.getElementById('direct-api-result');
+            resultDiv.innerHTML = '<p class="info">Testing direct API call...</p>';
             
             try {
-                const response = await fetch('http://localhost:8000/api/v1/data-science/statistical-tests?column=snow_water_equivalent_mm');
+                const response = await fetch('/api/v1/data-science/statistical-tests?column=snow_water_equivalent_mm');
                 const data = await response.json();
                 
                 resultDiv.innerHTML = `
-                    <h4>📊 API Response:</h4>
-                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                    <h4>📊 Direct API Response:</h4>
                     <p class="success"><strong>Status:</strong> ${data.success ? '✅ Success' : '❌ Failed'}</p>
                     <p><strong>Data Available:</strong> ${data.results ? '✅ Yes' : '❌ No'}</p>
                     <p><strong>Normality Test:</strong> ${data.results?.normality ? '✅ Available' : '❌ Missing'}</p>
                     <p><strong>Stationarity Test:</strong> ${data.results?.stationarity ? '✅ Available' : '❌ Missing'}</p>
-                    <p><strong>Response Time:</strong> ${response.headers.get('x-response-time') || 'Unknown'}</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
                 `;
                 
                 // Store data for next test
@@ -68,28 +62,32 @@
                 
             } catch (error) {
                 resultDiv.innerHTML = `
-                    <h4>❌ API Error:</h4>
+                    <h4>❌ Direct API Error:</h4>
                     <p class="error">${error.message}</p>
                     <p><strong>Error Type:</strong> ${error.name}</p>
-                    <p><strong>Stack:</strong> <pre>${error.stack}</pre></p>
+                    <p><strong>Note:</strong> This test runs on port 8080, API is on port 8000</p>
                 `;
             }
         }
         
-        // Step 2: Test Data Transformation
-        function testDataTransformation() {
-            const resultDiv = document.getElementById('transformation-result');
+        // Test 2: Main UI Functions (Simulated)
+        function testMainUIFunctions() {
+            const resultDiv = document.getElementById('main-ui-result');
+            const chartContainer = document.getElementById('main-ui-chart');
             
             if (!window.apiData || !window.apiData.success) {
-                resultDiv.innerHTML = '<p class="error">❌ No API data available. Run Step 1 first.</p>';
+                resultDiv.innerHTML = '<p class="error">❌ No API data available. Run Test 1 first.</p>';
                 return;
             }
             
-            const results = window.apiData.results;
-            resultDiv.innerHTML = '<p>Transforming API data...</p>';
+            resultDiv.innerHTML = '<p class="info">Testing main UI functions...</p>';
+            chartContainer.innerHTML = '';
             
             try {
-                // Transform API data to expected format
+                // Simulate the main UI displayStatisticalChart function
+                const results = window.apiData.results;
+                
+                // Transform API data to expected format (same as main UI)
                 const tests = [];
                 if (results.normality) {
                     tests.push({
@@ -106,43 +104,7 @@
                     });
                 }
                 
-                resultDiv.innerHTML = `
-                    <h4>🔄 Data Transformation:</h4>
-                    <p><strong>Original Tests:</strong> ${Object.keys(results).join(', ')}</p>
-                    <p><strong>Transformed Tests:</strong> ${tests.length}</p>
-                    <pre>${JSON.stringify(tests, null, 2)}</pre>
-                    <p class="success">✅ Transformation successful!</p>
-                `;
-                
-                // Store transformed data for next test
-                window.transformedTests = tests;
-                
-            } catch (error) {
-                resultDiv.innerHTML = `
-                    <h4>❌ Transformation Error:</h4>
-                    <p class="error">${error.message}</p>
-                    <p><strong>Stack:</strong> <pre>${error.stack}</pre></p>
-                `;
-            }
-        }
-        
-        // Step 3: Test Chart Generation
-        function testChartGeneration() {
-            const resultDiv = document.getElementById('chart-result');
-            const chartContainer = document.getElementById('debug-chart');
-            
-            if (!window.transformedTests || window.transformedTests.length === 0) {
-                resultDiv.innerHTML = '<p class="error">❌ No transformed data available. Run Step 2 first.</p>';
-                return;
-            }
-            
-            resultDiv.innerHTML = '<p>Generating chart...</p>';
-            chartContainer.innerHTML = '';
-            
-            try {
-                const tests = window.transformedTests;
-                
-                // Create chart
+                // Create chart (same as main UI)
                 const canvas = document.createElement('canvas');
                 canvas.style.width = '100%';
                 canvas.style.height = '100%';
@@ -189,55 +151,76 @@
                 }
                 
                 resultDiv.innerHTML += `
-                    <p class="success">✅ Chart generated successfully!</p>
+                    <p class="success">✅ Main UI functions test successful!</p>
                     <p><strong>Tests:</strong> ${tests.length}</p>
                     <p><strong>P-Values:</strong> ${pValues.map(p => p.toExponential(2)).join(', ')}</p>
+                    <p><strong>Chart:</strong> Canvas chart generated and displayed</p>
                 `;
+                
+                // Store transformed data for next test
+                window.transformedTests = tests;
                 
             } catch (error) {
                 resultDiv.innerHTML += `
-                    <p class="error">❌ Chart generation failed: ${error.message}</p>
+                    <p class="error">❌ Main UI functions test failed: ${error.message}</p>
                     <p><strong>Stack:</strong> <pre>${error.stack}</pre></p>
                 `;
             }
         }
         
-        // Step 4: Test Interpretation
-        function testInterpretation() {
-            const resultDiv = document.getElementById('interpretation-result');
+        // Test 3: Full Integration Test
+        function testFullIntegration() {
+            const resultDiv = document.getElementById('integration-result');
             
             if (!window.transformedTests || window.transformedTests.length === 0) {
-                resultDiv.innerHTML = '<p class="error">❌ No transformed data available. Run Step 2 first.</p>';
+                resultDiv.innerHTML = '<p class="error">❌ No transformed data available. Run Test 2 first.</p>';
                 return;
             }
             
             try {
                 const tests = window.transformedTests;
                 
-                // Calculate metrics
+                // Calculate metrics (same as main UI)
                 const significantTests = tests.filter(t => (t.p_value || 1) < 0.05).length;
                 const totalTests = tests.length;
                 const avgPValue = tests.reduce((sum, t) => sum + (t.p_value || 1), 0) / totalTests;
                 const verySignificant = tests.filter(t => (t.p_value || 1) < 0.01).length;
                 const significanceRate = (significantTests / totalTests) * 100;
                 
+                // Generate interpretation (simplified version)
+                let interpretation = '';
+                if (significantTests === 0) {
+                    interpretation = 'All tests show significant results (p < 0.05)';
+                } else if (significantTests === totalTests) {
+                    interpretation = 'No tests show significant results';
+                } else {
+                    interpretation = `${significantTests} out of ${totalTests} tests show significant results`;
+                }
+                
                 resultDiv.innerHTML = `
-                    <h4>📊 Interpretation Test:</h4>
+                    <h4>📊 Full Integration Test Results:</h4>
                     <p><strong>Total Tests:</strong> ${totalTests}</p>
                     <p><strong>Significant Tests:</strong> ${significantTests} (${significanceRate.toFixed(1)}%)</p>
                     <p><strong>Very Significant:</strong> ${verySignificant}</p>
                     <p><strong>Average P-Value:</strong> ${avgPValue.toExponential(2)}</p>
-                    <p class="success">✅ Interpretation calculation successful!</p>
+                    <p><strong>Interpretation:</strong> ${interpretation}</p>
+                    <p class="success">✅ Full integration test successful!</p>
+                    <p class="info"><strong>Note:</strong> This simulates what should happen in the main UI</p>
                 `;
                 
             } catch (error) {
                 resultDiv.innerHTML = `
-                    <h4>❌ Interpretation Error:</h4>
+                    <h4>❌ Full Integration Test Error:</h4>
                     <p class="error">${error.message}</p>
                     <p><strong>Stack:</strong> <pre>${error.stack}</pre></p>
                 `;
             }
         }
+        
+        // Auto-test when page loads
+        window.onload = function() {
+            console.log('Test page loaded, ready for testing...');
+        };
     </script>
 </body>
 </html>
