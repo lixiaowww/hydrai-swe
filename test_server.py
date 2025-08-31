@@ -35,7 +35,7 @@ def main():
         print("访问地址:")
         print("   • End User Interface: http://localhost:8000/ui (English)")
         print("   • Model Training:     http://localhost:8000/model")
-        print("   • Chinese Interface:  http://localhost:8000/ui/enhanced")
+        print("   • Chinese Interface:  [REMOVED - Deprecated]")
         print("   • Legacy UI:          http://localhost:8000/ui/legacy")
         print("   • API Docs:           http://localhost:8000/docs")
         print()

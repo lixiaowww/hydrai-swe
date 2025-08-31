@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 ECharts 替代方案测试</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .chart-container { width: 100%; height: 400px; margin: 20px 0; border: 1px solid #ddd; }
+        .interpretation { background: #e8f5e8; padding: 15px; border-radius: 5px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>🚀 ECharts 替代方案 - 无冲突图表库</h1>
+    
+    <div id="clustering-chart" class="chart-container"></div>
+    <div id="clustering-interpretation" class="interpretation"></div>
+    
+    <div id="anomaly-chart" class="chart-container"></div>
+    <div id="anomaly-interpretation" class="interpretation"></div>
+    
+    <div id="factors-chart" class="chart-container"></div>
+    <div id="factors-interpretation" class="interpretation"></div>
+
+    <script>
+        async function loadDataAndCreateCharts() {
+            try {
+                // 加载聚类数据
+                const clusteringResp = await fetch('/api/v1/data-science/clustering');
+                const clusteringData = await clusteringResp.json();
+                if (clusteringData.success) {
+                    createClusteringChart(clusteringData.results);
+                }
+
+                // 加载异常检测数据
+                const anomalyResp = await fetch('/api/v1/data-science/anomaly-detection?column=snow_water_equivalent_mm');
+                const anomalyData = await anomalyResp.json();
+                if (anomalyData.success) {
+                    createAnomalyChart(anomalyData.results);
+                }
+
+                // 加载因子发现数据
+                const factorsResp = await fetch('/api/v1/data-science/factor-discovery?target=snow_water_equivalent_mm&top_k=10');
+                const factorsData = await factorsResp.json();
+                if (factorsData.success) {
+                    createFactorsChart(factorsData.results);
+                }
+
+            } catch (error) {
+                console.error('数据加载失败:', error);
+            }
+        }
+
+        function createClusteringChart(results) {
+            const chartDom = document.getElementById('clustering-chart');
+            const myChart = echarts.init(chartDom);
+
+            // 处理聚类数据
+            const labels = results.kmeans.labels || [];
+            const counts = {};
+            labels.forEach(l => { const k = String(l); counts[k] = (counts[k]||0)+1; });
+            
+            const categories = Object.keys(counts).sort();
+            const values = categories.map(k => counts[k]);
+
+            const option = {
+                title: {
+                    text: `K-means聚类分布 (轮廓分数: ${results.kmeans.silhouette_score.toFixed(3)})`,
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'shadow' }
+                },
+                xAxis: {
+                    type: 'category',
+                    data: categories.map(c => `聚类 ${c}`)
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '数据点数量'
+                },
+                series: [{
+                    name: '聚类大小',
+                    type: 'bar',
+                    data: values,
+                    itemStyle: {
+                        color: '#2ecc71'
+                    },
+                    label: {
+                        show: true,
+                        position: 'top'
+                    }
+                }]
+            };
+
+            myChart.setOption(option);
+
+            // 显示解读
+            if (results.interpretation) {
+                displayInterpretation('clustering-interpretation', results.interpretation, '🌐 聚类分析解读');
+            }
+        }
+
+        function createAnomalyChart(results) {
+            const chartDom = document.getElementById('anomaly-chart');
+            const myChart = echarts.init(chartDom);
+
+            const ensemble = results.ensemble;
+            const scores = ensemble.ensemble_scores || [];
+            const anomalies = ensemble.ensemble_anomalies || [];
+            const threshold = ensemble.threshold || 2.0;
+
+            const xData = Array.from({length: scores.length}, (_, i) => i);
+            const normalScores = scores.map((score, i) => anomalies[i] ? null : score);
+            const anomalyScores = scores.map((score, i) => anomalies[i] ? score : null);
+
+            const option = {
+                title: {
+                    text: '异常检测结果',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'axis'
+                },
+                legend: {
+                    data: ['正常分数', '异常点', '阈值线'],
+                    top: 30
+                },
+                xAxis: {
+                    type: 'category',
+                    data: xData,
+                    name: '数据索引'
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '异常分数'
+                },
+                series: [
+                    {
+                        name: '正常分数',
+                        type: 'line',
+                        data: normalScores,
+                        itemStyle: { color: '#34495e' },
+                        symbol: 'none'
+                    },
+                    {
+                        name: '异常点',
+                        type: 'scatter',
+                        data: anomalyScores,
+                        itemStyle: { color: '#e74c3c' },
+                        symbolSize: 6
+                    },
+                    {
+                        name: '阈值线',
+                        type: 'line',
+                        data: Array(scores.length).fill(threshold),
+                        itemStyle: { color: '#e67e22' },
+                        lineStyle: { type: 'dashed' },
+                        symbol: 'none'
+                    }
+                ]
+            };
+
+            myChart.setOption(option);
+
+            // 显示解读
+            if (results.interpretation) {
+                document.getElementById('anomaly-interpretation').innerHTML = 
+                    `<h4>🚨 异常检测解读</h4><p>${results.interpretation}</p>`;
+            }
+        }
+
+        function createFactorsChart(results) {
+            const chartDom = document.getElementById('factors-chart');
+            const myChart = echarts.init(chartDom);
+
+            const factors = results.high_predictive || [];
+            const names = factors.map(f => f.factor);
+            const scores = factors.map(f => f.score);
+
+            const option = {
+                title: {
+                    text: '重要因子发现',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'shadow' }
+                },
+                xAxis: {
+                    type: 'value',
+                    name: '重要性分数'
+                },
+                yAxis: {
+                    type: 'category',
+                    data: names,
+                    name: '因子'
+                },
+                series: [{
+                    name: '重要性',
+                    type: 'bar',
+                    data: scores,
+                    itemStyle: {
+                        color: '#f39c12'
+                    },
+                    label: {
+                        show: true,
+                        position: 'right',
+                        formatter: '{c}'
+                    }
+                }]
+            };
+
+            myChart.setOption(option);
+
+            // 显示解读
+            if (results.interpretation) {
+                document.getElementById('factors-interpretation').innerHTML = 
+                    `<h4>🔍 因子发现解读</h4><p>${results.interpretation}</p>`;
+            }
+        }
+
+        function displayInterpretation(containerId, interpretation, title) {
+            let html = `<h4>${title}</h4>`;
+            
+            if (interpretation.summary) {
+                html += `<p><strong>摘要:</strong> ${interpretation.summary}</p>`;
+            }
+            
+            if (interpretation.key_insights && interpretation.key_insights.length > 0) {
+                html += '<p><strong>关键洞察:</strong></p><ul>';
+                interpretation.key_insights.forEach(insight => {
+                    html += `<li>${insight}</li>`;
+                });
+                html += '</ul>';
+            }
+            
+            if (interpretation.business_implications) {
+                html += `<p><strong>业务影响:</strong> ${interpretation.business_implications}</p>`;
+            }
+            
+            if (interpretation.recommendations && interpretation.recommendations.length > 0) {
+                html += '<p><strong>建议:</strong></p><ul>';
+                interpretation.recommendations.forEach(rec => {
+                    html += `<li>${rec}</li>`;
+                });
+                html += '</ul>';
+            }
+            
+            document.getElementById(containerId).innerHTML = html;
+        }
+
+        // 页面加载后创建图表
+        document.addEventListener('DOMContentLoaded', loadDataAndCreateCharts);
+    </script>
+</body>
+</html>
+
+
+

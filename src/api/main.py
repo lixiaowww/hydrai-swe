@@ -6,7 +6,8 @@ load_dotenv()
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 
@@ -24,6 +25,14 @@ try:
     FLOOD_AVAILABLE = True
 except ImportError:
     FLOOD_AVAILABLE = False
+
+# Try to import enhanced interpretation service
+try:
+    from src.api.routers import enhanced_interpretation
+    ENHANCED_INTERPRETATION_AVAILABLE = True
+except ImportError as e:
+    print(f"Warning: Could not import enhanced interpretation router: {e}")
+    ENHANCED_INTERPRETATION_AVAILABLE = False
 
 try:
     from src.api.routers import advanced_flood_warning
@@ -44,6 +53,13 @@ try:
 except ImportError:
     PIPELINE_AVAILABLE = False
 
+try:
+    from src.api.routers import data_science
+    DATA_SCIENCE_AVAILABLE = True
+except ImportError as e:
+    print(f"Warning: Could not import data science router: {e}")
+    DATA_SCIENCE_AVAILABLE = False
+
 app = FastAPI(
     title="HydrAI-SWE API",
     description="API for the HydrAI-SWE project to serve snow water equivalent (SWE), runoff predictions, flood warning services, and historical data cross-validation.",
@@ -52,6 +68,15 @@ app = FastAPI(
 
 # Enable gzip compression to speed up payload transfer
 app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+# Enable CORS to allow frontend requests
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins for development
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all methods
+    allow_headers=["*"],  # Allow all headers
+)
 
 # Include available routers
 if SWE_AVAILABLE:
@@ -72,9 +97,17 @@ if AGRICULTURE_AVAILABLE:
 if PIPELINE_AVAILABLE:
     app.include_router(pipeline.router, prefix="/api/v1", tags=["pipeline"])
 
+if DATA_SCIENCE_AVAILABLE:
+    app.include_router(data_science.router, prefix="/api/v1", tags=["data_science"])
+
+# Include enhanced interpretation service
+if ENHANCED_INTERPRETATION_AVAILABLE:
+    app.include_router(enhanced_interpretation.router, tags=["enhanced_interpretation"])
+
 @app.get("/")
 def read_root():
-    return {"message": "Welcome to the HydrAI-SWE API"}
+    # Redirect root to the main UI homepage
+    return RedirectResponse(url="/ui")
 
 @app.get("/health")
 def health_check():
@@ -84,6 +117,20 @@ templates = Jinja2Templates(directory="templates")
 
 # Mount static files for UI assets
 app.mount("/static", StaticFiles(directory="templates/ui"), name="ui_static")
+
+# Serve generated analysis visualizations (HTML files)
+if os.path.isdir("analysis_results"):
+    app.mount("/analysis_results", StaticFiles(directory="analysis_results"), name="analysis_results")
+
+@app.get('/favicon.ico')
+def favicon():
+    # Provide a small inline SVG as favicon to avoid 404s
+    svg = (
+        "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'>"
+        "<rect width='64' height='64' rx='12' fill='#4A90E2'/><path d='M16 40 L32 16 L48 40' stroke='white' stroke-width='6' fill='none'/>"
+        "</svg>"
+    )
+    return HTMLResponse(content=svg, media_type='image/svg+xml')
 
 @app.get("/ui", response_class=HTMLResponse)
 def ui(request: Request):
@@ -105,15 +152,17 @@ def ui_legacy(request: Request):
     # Legacy UI for backwards compatibility
     return templates.TemplateResponse("index.html", {"request": request})
 
-@app.get("/ui/enhanced", response_class=HTMLResponse)
-def ui_enhanced_chinese(request: Request):
-    # Chinese enhanced UI (kept for compatibility)
-    return templates.TemplateResponse("enhanced_index.html", {"request": request})
+# Removed Chinese enhanced UI route - deprecated and removed due to data import errors
 
 @app.get("/ui/francais", response_class=HTMLResponse)
 def ui_francais(request: Request):
     # French enhanced interface
     return templates.TemplateResponse("ui/enhanced_fr.html", {"request": request})
+
+@app.get("/ui/factors-discovery-echarts", response_class=HTMLResponse)
+def ui_factors_discovery_echarts(request: Request):
+    # Factors Discovery Module with ECharts - Advanced Data Science Analysis
+    return templates.TemplateResponse("ui/enhanced_en_echarts.html", {"request": request})
 
 @app.get("/ui/cree", response_class=HTMLResponse)
 def ui_cree(request: Request):

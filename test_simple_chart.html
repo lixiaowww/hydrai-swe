@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Chart Test</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        .chart-container {
+            width: 800px;
+            height: 400px;
+            margin: 20px;
+            border: 2px solid #ccc;
+            padding: 10px;
+        }
+        .debug-info {
+            background: #f0f0f0;
+            padding: 10px;
+            margin: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>Simple Chart Test</h1>
+    
+    <div class="debug-info">
+        <h3>Debug Information</h3>
+        <div id="debug-output"></div>
+    </div>
+    
+    <div class="chart-container">
+        <div id="chart"></div>
+    </div>
+    
+    <script>
+        // Test data (simplified version)
+        const testData = {
+            "stl_decomposition": {
+                "trend": {
+                    "index": ["1979-01-01", "1979-01-02", "1979-01-03", "1979-01-04", "1979-01-05"],
+                    "values": [18.6, 18.7, 18.8, 18.9, 19.0]
+                },
+                "seasonal": {
+                    "index": ["1979-01-01", "1979-01-02", "1979-01-03", "1979-01-04", "1979-01-05"],
+                    "values": [0.1, 0.2, 0.3, 0.4, 0.5]
+                },
+                "resid": {
+                    "index": ["1979-01-01", "1979-01-02", "1979-01-03", "1979-01-04", "1979-01-05"],
+                    "values": [-0.1, -0.2, -0.3, -0.4, -0.5]
+                }
+            }
+        };
+        
+        function log(message) {
+            const debugOutput = document.getElementById('debug-output');
+            debugOutput.innerHTML += message + '<br>';
+            console.log(message);
+        }
+        
+        log('=== CHART TEST START ===');
+        log('Test data loaded: ' + JSON.stringify(testData, null, 2));
+        
+        // Test the toTrace function
+        function toTrace(series, name, color) {
+            log(`Creating trace for ${name}`);
+            log(`Series object: ${JSON.stringify(series)}`);
+            
+            const xData = series.index || [];
+            const yData = series.values || [];
+            
+            log(`xData length: ${xData.length}, yData length: ${yData.length}`);
+            log(`xData sample: ${JSON.stringify(xData.slice(0, 3))}`);
+            log(`yData sample: ${JSON.stringify(yData.slice(0, 3))}`);
+            
+            // Validate data
+            if (!Array.isArray(xData) || !Array.isArray(yData)) {
+                log(`ERROR: Invalid data for ${name}: xData or yData is not an array`);
+                return null;
+            }
+            
+            if (xData.length === 0 || yData.length === 0) {
+                log(`ERROR: Empty data for ${name}: xData.length=${xData.length}, yData.length=${yData.length}`);
+                return null;
+            }
+            
+            if (xData.length !== yData.length) {
+                log(`ERROR: Data length mismatch for ${name}: xData.length=${xData.length}, yData.length=${yData.length}`);
+                return null;
+            }
+            
+            log(`✅ Valid trace data for ${name}`);
+            
+            return {
+                x: xData,
+                y: yData,
+                type: 'scatter',
+                mode: 'lines',
+                name,
+                line: {color, width: 1.5}
+            };
+        }
+        
+        // Create traces
+        const stl = testData.stl_decomposition;
+        log('STL decomposition data: ' + JSON.stringify(stl));
+        
+        const traces = [];
+        const trendTrace = toTrace(stl.trend, 'Trend', '#e74c3c');
+        const seasonalTrace = toTrace(stl.seasonal, 'Seasonal', '#2ecc71');
+        const residualTrace = toTrace(stl.resid, 'Residual', '#3498db');
+        
+        if (trendTrace) traces.push(trendTrace);
+        if (seasonalTrace) traces.push(seasonalTrace);
+        if (residualTrace) traces.push(residualTrace);
+        
+        log('Final traces: ' + JSON.stringify(traces));
+        log('Traces count: ' + traces.length);
+        
+        if (traces.length === 0) {
+            log('❌ No valid traces created!');
+            document.getElementById('chart').innerHTML = '<div style="color: red; padding: 20px;">Error: No valid chart data</div>';
+        } else {
+            log('🚀 Attempting to create Plotly chart...');
+            try {
+                Plotly.newPlot('chart', traces, {
+                    title: 'Time Series Decomposition Test',
+                    height: 350,
+                    margin: {l: 40, r: 10, t: 40, b: 40},
+                    legend: {orientation: 'h'},
+                    xaxis: {title: 'Time'},
+                    yaxis: {title: 'Value'}
+                }, {displaylogo: false, responsive: true}).then(() => {
+                    log('✅ Plotly chart created successfully');
+                }).catch((error) => {
+                    log('❌ Plotly chart creation failed: ' + error.message);
+                    document.getElementById('chart').innerHTML = `<div style="color: red; padding: 20px;">Chart Error: ${error.message}</div>`;
+                });
+            } catch (error) {
+                log('❌ Plotly.newPlot error: ' + error.message);
+                document.getElementById('chart').innerHTML = `<div style="color: red; padding: 20px;">Chart Error: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

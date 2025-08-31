@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 修复版图表测试</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .test-section { margin: 20px 0; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .chart-container { width: 100%; height: 300px; border: 2px solid #ddd; margin: 10px 0; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .log { background: #f8f9fa; padding: 10px; border-radius: 5px; margin: 10px 0; font-family: monospace; font-size: 12px; max-height: 200px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <h1>🚀 修复版图表测试 - API路径已修复</h1>
+    
+    <div class="test-section">
+        <h2>📊 测试1：硬编码数据图表</h2>
+        <button onclick="testHardcodedChart()">测试硬编码图表</button>
+        <div id="hardcoded-chart" class="chart-container"></div>
+        <div id="hardcoded-status" class="status"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🌐 测试2：API数据图表 (修复版)</h2>
+        <button onclick="testAPIData()">测试API数据图表</button>
+        <div id="api-chart" class="chart-container"></div>
+        <div id="api-status" class="status"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔧 测试3：库加载状态</h2>
+        <button onclick="checkLibraries()">检查库状态</button>
+        <div id="library-status" class="status"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>📝 日志输出</h2>
+        <div id="log-output" class="log"></div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log-output');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${type.toUpperCase()}: ${message}`;
+            logDiv.innerHTML += logEntry + '\n';
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(logEntry);
+        }
+
+        function setStatus(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.className = `status ${type}`;
+            element.textContent = message;
+        }
+
+        function testHardcodedChart() {
+            log('开始测试硬编码图表...');
+            
+            try {
+                const chartDom = document.getElementById('hardcoded-chart');
+                const myChart = echarts.init(chartDom);
+                
+                const option = {
+                    title: {
+                        text: '硬编码测试图表',
+                        left: 'center'
+                    },
+                    tooltip: {
+                        trigger: 'axis'
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+                    },
+                    yAxis: {
+                        type: 'value'
+                    },
+                    series: [{
+                        name: '测试数据',
+                        type: 'line',
+                        data: [120, 200, 150, 80, 70, 110, 130],
+                        smooth: true
+                    }]
+                };
+                
+                myChart.setOption(option);
+                setStatus('hardcoded-status', '✅ 硬编码图表渲染成功！', 'success');
+                log('硬编码图表渲染成功');
+                
+            } catch (error) {
+                setStatus('hardcoded-status', `❌ 硬编码图表失败: ${error.message}`, 'error');
+                log(`硬编码图表失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function testAPIData() {
+            log('开始测试API数据图表...');
+            setStatus('api-status', '⏳ 正在加载API数据...', 'info');
+            
+            try {
+                // 修复：使用完整的localhost:8000路径
+                const response = await fetch('http://localhost:8000/api/v1/data-science/clustering');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                log(`API响应状态: ${data.success}`);
+                log(`数据点数量: ${data.results?.kmeans?.labels?.length || 0}`);
+                
+                if (data.success && data.results?.kmeans?.labels) {
+                    const labels = data.results.kmeans.labels;
+                    const counts = {};
+                    labels.forEach(l => { 
+                        const k = String(l); 
+                        counts[k] = (counts[k]||0)+1; 
+                    });
+                    
+                    const chartDom = document.getElementById('api-chart');
+                    const myChart = echarts.init(chartDom);
+                    
+                    const option = {
+                        title: {
+                            text: `聚类分布 (${Object.keys(counts).length}个聚类)`,
+                            left: 'center'
+                        },
+                        tooltip: {
+                            trigger: 'item',
+                            formatter: '{a} <br/>{b}: {c} ({d}%)'
+                        },
+                        series: [{
+                            name: '聚类大小',
+                            type: 'pie',
+                            radius: '50%',
+                            data: Object.keys(counts).map(key => ({
+                                name: `聚类 ${key}`,
+                                value: counts[key]
+                            }))
+                        }]
+                    };
+                    
+                    myChart.setOption(option);
+                    setStatus('api-status', `✅ API数据图表渲染成功！共${labels.length}个数据点`, 'success');
+                    log(`API数据图表渲染成功，数据点: ${labels.length}`);
+                    
+                } else {
+                    throw new Error('API返回数据格式不正确');
+                }
+                
+            } catch (error) {
+                setStatus('api-status', `❌ API数据图表失败: ${error.message}`, 'error');
+                log(`API数据图表失败: ${error.message}`, 'error');
+            }
+        }
+
+        function checkLibraries() {
+            log('检查库加载状态...');
+            
+            let status = '';
+            
+            // 检查ECharts
+            if (typeof echarts !== 'undefined') {
+                status += '✅ ECharts 已加载\n';
+                log('ECharts 已加载');
+            } else {
+                status += '❌ ECharts 未加载\n';
+                log('ECharts 未加载', 'error');
+            }
+            
+            // 检查fetch
+            if (typeof fetch !== 'undefined') {
+                status += '✅ Fetch API 可用\n';
+                log('Fetch API 可用');
+            } else {
+                status += '❌ Fetch API 不可用\n';
+                log('Fetch API 不可用', 'error');
+            }
+            
+            // 检查console
+            if (typeof console !== 'undefined') {
+                status += '✅ Console 可用\n';
+                log('Console 可用');
+            } else {
+                status += '❌ Console 不可用\n';
+                log('Console 不可用', 'error');
+            }
+            
+            setStatus('library-status', status, 'info');
+        }
+
+        // 页面加载完成后自动检查
+        document.addEventListener('DOMContentLoaded', function() {
+            log('页面加载完成，开始自动检查...');
+            checkLibraries();
+        });
+    </script>
+</body>
+</html>

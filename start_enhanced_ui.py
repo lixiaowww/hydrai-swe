@@ -59,7 +59,7 @@ def start_server():
         print("   • End User Interface: http://localhost:8000/ui (English)")
         print("   • French Interface:   http://localhost:8000/ui/francais (Français)")
         print("   • Model Training:     http://localhost:8000/model")
-        print("   • Chinese Interface:  http://localhost:8000/ui/enhanced")
+        print("   • Chinese Interface:  [REMOVED - Deprecated]")
         print("   • Next-Gen UI:        http://localhost:8000/ui/vnext")
         print("   • API Documentation:  http://localhost:8000/docs")
         print("=" * 60)
@@ -80,8 +80,8 @@ def start_server():
         
         # 自动打开浏览器
         try:
-            webbrowser.open("http://localhost:8000/ui/enhanced")
-            print("🌐 已自动打开增强版界面")
+            webbrowser.open("http://localhost:8000/ui")
+            print("🌐 已自动打开主界面")
         except Exception as e:
             print(f"⚠️  无法自动打开浏览器: {e}")
         
@@ -108,7 +108,7 @@ def main():
     print("   End User Interface:  http://localhost:8000/ui (English)")
     print("   French Interface:    http://localhost:8000/ui/francais (Français)")
     print("   Model Training:      http://localhost:8000/model")
-    print("   Chinese Interface:   http://localhost:8000/ui/enhanced")
+    print("   Chinese Interface:   [REMOVED - Deprecated]")
     print()
     
     # 检查当前目录

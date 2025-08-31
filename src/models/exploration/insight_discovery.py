@@ -20,7 +20,8 @@ try:
     PLOTTING_AVAILABLE = True
 except ImportError:
     PLOTTING_AVAILABLE = False
-    logger.warning("⚠️ 绘图库未安装，跳过可视化功能")
+    # 在logger定义之前不能使用logger
+    PLOTTING_AVAILABLE = False
 from sklearn.cluster import KMeans, DBSCAN
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
@@ -1282,6 +1283,710 @@ class InsightDiscoveryModule:
             logger.error(f"❌ SWE冷门因素发现失败: {e}")
             return {'status': 'error', 'error': str(e)}
     
+    def interpret_insights(self, insights: Dict = None) -> Dict:
+        """解读洞察结果 - 将技术分析转化为用户可理解的洞察"""
+        try:
+            logger.info("🔍 开始解读洞察结果...")
+            
+            if insights is None:
+                insights = self.insights
+            
+            if not insights:
+                return {'status': 'error', 'error': '没有可解读的洞察结果'}
+            
+            interpretation = {
+                'timestamp': datetime.now().isoformat(),
+                'executive_summary': {},
+                'business_insights': {},
+                'technical_explanations': {},
+                'actionable_recommendations': {},
+                'risk_assessment': {},
+                'data_quality_insights': {}
+            }
+            
+            # 1. 执行摘要解读
+            if 'summary' in insights:
+                summary = insights['summary']
+                interpretation['executive_summary'] = {
+                    'total_discoveries': summary.get('total_insights', 0),
+                    'key_message': self._generate_key_message(summary),
+                    'business_impact': self._assess_business_impact(summary),
+                    'urgency_level': self._assess_urgency(summary)
+                }
+            
+            # 2. 异常检测解读
+            if 'anomalies' in insights and 'anomaly_count' in insights['anomalies']:
+                interpretation['business_insights']['anomaly_analysis'] = self._interpret_anomalies(insights['anomalies'])
+            
+            # 3. 聚类分析解读
+            if 'clusters' in insights and 'optimal_clusters' in insights['clusters']:
+                interpretation['business_insights']['clustering_analysis'] = self._interpret_clusters(insights['clusters'])
+            
+            # 4. 降维分析解读
+            if 'dimensions' in insights and 'n_components' in insights['dimensions']:
+                interpretation['business_insights']['dimension_analysis'] = self._interpret_dimensions(insights['dimensions'])
+            
+            # 5. 时间模式解读
+            if 'temporal' in insights and 'time_columns_found' in insights['temporal']:
+                interpretation['business_insights']['temporal_analysis'] = self._interpret_temporal_patterns(insights['temporal'])
+            
+            # 6. 风险机制解读
+            if 'risk_mechanisms' in insights:
+                interpretation['risk_assessment'] = self._interpret_risk_mechanisms(insights['risk_mechanisms'])
+            
+            # 7. 重要影响因素解读
+            if 'important_factors' in insights and 'new_discoveries' in insights['important_factors']:
+                interpretation['business_insights']['factor_analysis'] = self._interpret_important_factors(insights['important_factors'])
+            
+            # 8. 相关性网络解读
+            if 'correlation_network' in insights and 'central_features' in insights['correlation_network']:
+                interpretation['business_insights']['network_analysis'] = self._interpret_correlation_network(insights['correlation_network'])
+            
+            # 9. SWE冷门因素解读
+            if 'swe_cold_factors' in insights and 'potential_discoveries' in insights['swe_cold_factors']:
+                interpretation['business_insights']['cold_factors_analysis'] = self._interpret_swe_cold_factors(insights['swe_cold_factors'])
+            
+            # 10. 数据质量洞察
+            interpretation['data_quality_insights'] = self._interpret_data_quality(insights)
+            
+            # 11. 可操作建议
+            interpretation['actionable_recommendations'] = self._generate_actionable_recommendations(interpretation)
+            
+            logger.info("✅ 洞察结果解读完成")
+            return interpretation
+            
+        except Exception as e:
+            logger.error(f"❌ 洞察结果解读失败: {e}")
+            return {'status': 'error', 'error': str(e)}
+    
+    def _generate_key_message(self, summary: Dict) -> str:
+        """生成关键信息"""
+        try:
+            risk_level = summary.get('risk_assessment', 'unknown')
+            total_insights = summary.get('total_insights', 0)
+            
+            if risk_level == 'high':
+                return f"⚠️ 数据质量风险较高，发现 {total_insights} 个重要洞察，建议立即关注"
+            elif risk_level == 'medium':
+                return f"📊 数据质量中等，发现 {total_insights} 个重要洞察，需要持续监控"
+            else:
+                return f"✅ 数据质量良好，发现 {total_insights} 个重要洞察，系统运行正常"
+        except Exception as e:
+            return "数据探索完成，发现有限"
+    
+    def _assess_business_impact(self, summary: Dict) -> str:
+        """评估业务影响"""
+        try:
+            risk_level = summary.get('risk_assessment', 'unknown')
+            
+            if risk_level == 'high':
+                return "高影响 - 数据质量问题可能影响预测准确性，建议立即处理"
+            elif risk_level == 'medium':
+                return "中等影响 - 数据质量需要关注，可能影响长期预测效果"
+            else:
+                return "低影响 - 数据质量良好，系统运行稳定"
+        except Exception as e:
+            return "影响程度待评估"
+    
+    def _assess_urgency(self, summary: Dict) -> str:
+        """评估紧急程度"""
+        try:
+            risk_level = summary.get('risk_assessment', 'unknown')
+            
+            if risk_level == 'high':
+                return "高紧急 - 建议24小时内处理"
+            elif risk_level == 'medium':
+                return "中等紧急 - 建议1周内处理"
+            else:
+                return "低紧急 - 可定期监控"
+        except Exception as e:
+            return "紧急程度待评估"
+    
+    def _interpret_anomalies(self, anomalies: Dict) -> Dict:
+        """解读异常检测结果"""
+        try:
+            anomaly_rate = anomalies.get('anomaly_rate', 0)
+            anomaly_count = anomalies.get('anomaly_count', 0)
+            
+            interpretation = {
+                'anomaly_rate_interpretation': '',
+                'business_implications': '',
+                'recommended_actions': []
+            }
+            
+            # 异常率解读
+            if anomaly_rate > 0.15:
+                interpretation['anomaly_rate_interpretation'] = f"异常数据比例过高 ({anomaly_rate:.1%})，表明数据质量存在严重问题"
+                interpretation['business_implications'] = "高异常率可能影响模型训练效果和预测准确性"
+                interpretation['recommended_actions'] = [
+                    "立即检查数据源和数据收集流程",
+                    "验证传感器和设备状态",
+                    "暂停使用有问题的数据进行模型训练"
+                ]
+            elif anomaly_rate > 0.05:
+                interpretation['anomaly_rate_interpretation'] = f"异常数据比例较高 ({anomaly_rate:.1%})，需要关注数据质量"
+                interpretation['business_implications'] = "中等异常率可能影响模型性能，需要监控"
+                interpretation['recommended_actions'] = [
+                    "定期检查数据质量",
+                    "监控异常数据趋势",
+                    "优化数据预处理流程"
+                ]
+            else:
+                interpretation['anomaly_rate_interpretation'] = f"异常数据比例正常 ({anomaly_rate:.1%})，数据质量良好"
+                interpretation['business_implications'] = "低异常率表明数据质量稳定，可以继续使用"
+                interpretation['recommended_actions'] = [
+                    "继续监控数据质量",
+                    "定期进行异常检测",
+                    "保持现有数据收集流程"
+                ]
+            
+            return interpretation
+            
+        except Exception as e:
+            return {'error': f'异常检测解读失败: {e}'}
+    
+    def _interpret_clusters(self, clusters: Dict) -> Dict:
+        """解读聚类分析结果"""
+        try:
+            optimal_clusters = clusters.get('optimal_clusters', 0)
+            silhouette_score = clusters.get('silhouette_score', 0)
+            cluster_sizes = clusters.get('cluster_sizes', {})
+            
+            interpretation = {
+                'cluster_interpretation': '',
+                'data_pattern_insights': '',
+                'business_implications': '',
+                'recommended_actions': []
+            }
+            
+            # 聚类数解读
+            if optimal_clusters == 2:
+                interpretation['cluster_interpretation'] = "数据呈现明显的二元分布模式"
+                interpretation['data_pattern_insights'] = "可能存在两种不同的数据状态或条件"
+            elif optimal_clusters == 3:
+                interpretation['cluster_interpretation'] = "数据呈现三元分布模式"
+                interpretation['data_pattern_insights'] = "可能存在三种不同的数据状态或条件"
+            else:
+                interpretation['cluster_interpretation'] = f"数据呈现 {optimal_clusters} 元分布模式"
+                interpretation['data_pattern_insights'] = f"数据具有 {optimal_clusters} 种不同的状态或条件"
+            
+            # 轮廓系数解读
+            if silhouette_score > 0.7:
+                interpretation['business_implications'] = "聚类质量很高，数据模式清晰，模型可以很好地区分不同类别"
+            elif silhouette_score > 0.5:
+                interpretation['business_implications'] = "聚类质量良好，数据模式相对清晰"
+            elif silhouette_score > 0.3:
+                interpretation['business_implications'] = "聚类质量一般，数据模式有一定重叠"
+            else:
+                interpretation['business_implications'] = "聚类质量较低，数据模式重叠严重，可能需要更多特征或更好的预处理"
+            
+            # 聚类大小分析
+            if cluster_sizes:
+                cluster_balance = max(cluster_sizes.values()) / min(cluster_sizes.values())
+                if cluster_balance > 5:
+                    interpretation['recommended_actions'].append("聚类大小不平衡，建议检查数据分布是否合理")
+                else:
+                    interpretation['recommended_actions'].append("聚类大小相对平衡，数据分布合理")
+            
+            interpretation['recommended_actions'].extend([
+                "基于聚类结果优化特征工程",
+                "考虑为不同聚类建立专门的预测模型",
+                "监控聚类稳定性"
+            ])
+            
+            return interpretation
+            
+        except Exception as e:
+            return {'error': f'聚类分析解读失败: {e}'}
+    
+    def _interpret_dimensions(self, dimensions: Dict) -> Dict:
+        """解读降维分析结果"""
+        try:
+            n_components = dimensions.get('n_components', 0)
+            cumulative_variance = dimensions.get('cumulative_variance', [])
+            feature_importance = dimensions.get('feature_importance', {})
+            
+            interpretation = {
+                'dimension_interpretation': '',
+                'feature_importance_insights': '',
+                'business_implications': '',
+                'recommended_actions': []
+            }
+            
+            # 主成分数解读
+            if n_components == 2:
+                interpretation['dimension_interpretation'] = "数据可以用2个主成分很好地表示"
+            elif n_components == 3:
+                interpretation['dimension_interpretation'] = "数据可以用3个主成分很好地表示"
+            else:
+                interpretation['dimension_interpretation'] = f"数据需要 {n_components} 个主成分来表示"
+            
+            # 方差解释率解读
+            if cumulative_variance:
+                total_variance = cumulative_variance[-1] if cumulative_variance else 0
+                if total_variance > 0.9:
+                    interpretation['business_implications'] = f"降维效果很好，{n_components}个主成分解释了{total_variance:.1%}的方差，信息损失很小"
+                elif total_variance > 0.8:
+                    interpretation['business_implications'] = f"降维效果良好，{n_components}个主成分解释了{total_variance:.1%}的方差，信息损失较小"
+                elif total_variance > 0.7:
+                    interpretation['business_implications'] = f"降维效果一般，{n_components}个主成分解释了{total_variance:.1%}的方差，有一定信息损失"
+                else:
+                    interpretation['business_implications'] = f"降维效果较差，{n_components}个主成分只解释了{total_variance:.1%}的方差，信息损失较大"
+            
+            # 特征重要性解读
+            if feature_importance:
+                top_features = sorted(feature_importance.items(), 
+                                   key=lambda x: max(abs(imp) for imp in x[1]), reverse=True)[:3]
+                interpretation['feature_importance_insights'] = f"最重要的特征包括: {', '.join([f[0] for f in top_features])}"
+            
+            interpretation['recommended_actions'] = [
+                "基于主成分分析结果优化特征选择",
+                "考虑使用降维后的特征进行模型训练",
+                "监控特征重要性的变化"
+            ]
+            
+            return interpretation
+            
+        except Exception as e:
+            return {'error': f'降维分析解读失败: {e}'}
+    
+    def _interpret_temporal_patterns(self, temporal: Dict) -> Dict:
+        """解读时间模式分析结果"""
+        try:
+            time_columns = temporal.get('time_columns_found', [])
+            patterns = temporal.get('patterns', {})
+            
+            interpretation = {
+                'temporal_interpretation': '',
+                'pattern_insights': '',
+                'business_implications': '',
+                'recommended_actions': []
+            }
+            
+            # 时间列解读
+            if len(time_columns) >= 3:
+                interpretation['temporal_interpretation'] = "数据具有完整的时间维度信息"
+            elif len(time_columns) >= 2:
+                interpretation['temporal_interpretation'] = "数据具有基本的时间维度信息"
+            else:
+                interpretation['temporal_interpretation'] = "数据时间维度信息有限"
+            
+            # 模式洞察
+            pattern_insights = []
+            if 'yearly' in patterns:
+                pattern_insights.append("存在年度变化模式")
+            if 'monthly' in patterns:
+                pattern_insights.append("存在月度季节性模式")
+            if 'daily' in patterns:
+                pattern_insights.append("存在日变化模式")
+            
+            interpretation['pattern_insights'] = "，".join(pattern_insights) if pattern_insights else "未发现明显的时间模式"
+            
+            # 业务影响
+            if len(pattern_insights) >= 2:
+                interpretation['business_implications'] = "数据具有丰富的时间模式，适合建立时间序列预测模型"
+            elif len(pattern_insights) == 1:
+                interpretation['business_implications'] = "数据具有基本的时间模式，可以建立简单的时间序列模型"
+            else:
+                interpretation['business_implications'] = "数据时间模式不明显，可能需要更多时间特征或不同的分析方法"
+            
+            interpretation['recommended_actions'] = [
+                "基于时间模式优化模型架构",
+                "考虑添加时间特征（如季节、星期等）",
+                "监控时间模式的稳定性"
+            ]
+            
+            return interpretation
+            
+        except Exception as e:
+            return {'error': f'时间模式解读失败: {e}'}
+    
+    def _interpret_risk_mechanisms(self, risk_mechanisms: Dict) -> Dict:
+        """解读风险机制识别结果"""
+        try:
+            interpretation = {
+                'overall_risk_assessment': '',
+                'risk_details': {},
+                'business_implications': '',
+                'recommended_actions': []
+            }
+            
+            # 整体风险评估
+            risk_levels = []
+            if 'data_quality' in risk_mechanisms:
+                data_quality = risk_mechanisms['data_quality']
+                missing_rate = data_quality.get('overall_missing_rate', 0)
+                risk_level = data_quality.get('risk_level', 'unknown')
+                
+                if missing_rate > 0.5:
+                    risk_levels.append("high")
+                elif missing_rate > 0.2:
+                    risk_levels.append("medium")
+                else:
+                    risk_levels.append("low")
+                
+                interpretation['risk_details']['data_quality'] = {
+                    'risk_level': risk_level,
+                    'description': '数据质量风险',
+                    'implications': '可能影响模型训练和预测准确性'
+                }
+            
+            if 'extreme_values' in risk_mechanisms:
+                extreme_risk = risk_mechanisms['extreme_values']
+                risk_level = extreme_risk.get('risk_level', 'unknown')
+                risk_levels.append(risk_level)
+                interpretation['risk_details']['extreme_values'] = {
+                    'risk_level': risk_level,
+                    'description': '极端值风险',
+                    'implications': '可能影响模型对异常情况的预测能力'
+                }
+            
+            if 'temporal_continuity' in risk_mechanisms:
+                temporal_risk = risk_mechanisms['temporal_continuity']
+                risk_level = temporal_risk.get('risk_level', 'unknown')
+                risk_levels.append(risk_level)
+                interpretation['risk_details']['temporal_continuity'] = {
+                    'risk_level': risk_level,
+                    'description': '时间连续性风险',
+                    'implications': '可能影响时间序列模型的训练效果'
+                }
+            
+            # 确定整体风险等级
+            if 'high' in risk_levels:
+                overall_risk = 'high'
+            elif 'medium' in risk_levels:
+                overall_risk = 'medium'
+            else:
+                overall_risk = 'low'
+            
+            interpretation['overall_risk_assessment'] = overall_risk
+            
+            # 业务影响
+            if overall_risk == 'high':
+                interpretation['business_implications'] = "整体风险较高，建议立即关注数据质量问题"
+            elif overall_risk == 'medium':
+                interpretation['business_implications'] = "整体风险中等，需要持续监控和改进"
+            else:
+                interpretation['business_implications'] = "整体风险较低，系统运行稳定"
+            
+            # 建议行动
+            if overall_risk == 'high':
+                interpretation['recommended_actions'] = [
+                    "立即检查数据源和数据收集流程",
+                    "验证传感器和设备状态",
+                    "暂停使用有问题的数据进行模型训练"
+                ]
+            elif overall_risk == 'medium':
+                interpretation['recommended_actions'] = [
+                    "监控数据质量趋势",
+                    "检查数据预处理步骤"
+                ]
+                interpretation['recommended_actions'].extend([
+                    "优化数据收集流程",
+                    "建立定期质量评估机制"
+                ])
+            else:
+                interpretation['recommended_actions'] = [
+                    "继续监控数据质量",
+                    "记录最佳实践"
+                ]
+                interpretation['recommended_actions'].extend([
+                    "定期进行质量评估",
+                    "分享成功经验"
+                ])
+            
+            return interpretation
+            
+        except Exception as e:
+            return {'error': f'风险机制解读失败: {e}'}
+    
+    def _interpret_important_factors(self, important_factors: Dict) -> Dict:
+        """解读重要影响因素发现结果"""
+        try:
+            new_discoveries = important_factors.get('new_discoveries', [])
+            feature_importance = important_factors.get('feature_importance', {})
+            interaction_effects = important_factors.get('interaction_effects', [])
+            
+            interpretation = {
+                'factor_importance_insights': '',
+                'interaction_insights': '',
+                'business_implications': '',
+                'recommended_actions': []
+            }
+            
+            # 特征重要性洞察
+            if feature_importance:
+                top_features = sorted(feature_importance.items(), 
+                                   key=lambda x: x[1].get('importance_score', 0), reverse=True)[:3]
+                top_feature_names = [f[0] for f in top_features]
+                interpretation['factor_importance_insights'] = f"最重要的影响因素包括: {', '.join(top_feature_names)}"
+            
+            # 交互效应洞察
+            if interaction_effects:
+                strong_interactions = [eff for eff in interaction_effects if abs(eff.get('interaction_correlation', 0)) > 0.5]
+                if strong_interactions:
+                    interpretation['interaction_insights'] = f"发现 {len(strong_interactions)} 个强交互效应，表明特征间存在复杂的非线性关系"
+                else:
+                    interpretation['interaction_insights'] = "交互效应相对较弱，特征间关系相对简单"
+            else:
+                interpretation['interaction_insights'] = "未发现显著的交互效应"
+            
+            # 业务影响
+            if len(new_discoveries) >= 3:
+                interpretation['business_implications'] = "发现了多个重要影响因素，为模型优化提供了重要信息"
+            elif len(new_discoveries) >= 1:
+                interpretation['business_implications'] = "发现了一些重要影响因素，有助于模型改进"
+            else:
+                interpretation['business_implications'] = "影响因素发现有限，可能需要更多数据或不同的分析方法"
+            
+            # 建议行动
+            interpretation['recommended_actions'] = [
+                "基于重要影响因素优化特征选择",
+                "考虑在模型中添加交互效应项",
+                "监控重要影响因素的变化"
+            ]
+            
+            return interpretation
+            
+        except Exception as e:
+            return {'error': f'重要影响因素解读失败: {e}'}
+    
+    def _interpret_correlation_network(self, correlation_network: Dict) -> Dict:
+        """解读相关性网络分析结果"""
+        try:
+            network_stats = correlation_network.get('network_statistics', {})
+            central_features = correlation_network.get('central_features', [])
+            feature_clusters = correlation_network.get('feature_clusters', [])
+            
+            interpretation = {
+                'network_structure_insights': '',
+                'centrality_insights': '',
+                'clustering_insights': '',
+                'business_implications': '',
+                'recommended_actions': []
+            }
+            
+            # 网络结构洞察
+            if network_stats:
+                total_features = network_stats.get('total_features', 0)
+                total_connections = network_stats.get('total_connections', 0)
+                network_density = network_stats.get('network_density', 0)
+                
+                if network_density > 0.5:
+                    interpretation['network_structure_insights'] = f"特征网络密度较高 ({network_density:.2f})，表明特征间关系复杂"
+                elif network_density > 0.3:
+                    interpretation['network_structure_insights'] = f"特征网络密度中等 ({network_density:.2f})，特征间有一定关联"
+                else:
+                    interpretation['network_structure_insights'] = f"特征网络密度较低 ({network_density:.2f})，特征间相对独立"
+            
+            # 中心性洞察
+            if central_features:
+                top_central = central_features[0] if central_features else {}
+                if top_central:
+                    interpretation['centrality_insights'] = f"网络中心特征: {top_central.get('feature', 'unknown')}，中心性得分: {top_central.get('centrality_score', 0):.3f}"
+            
+            # 聚类洞察
+            if feature_clusters:
+                interpretation['clustering_insights'] = f"发现 {len(feature_clusters)} 个特征聚类，表明存在特征组"
+            
+            # 业务影响
+            if network_stats and network_stats.get('strong_connections', 0) > 0:
+                interpretation['business_implications'] = "特征间存在强相关性，需要考虑特征冗余和多重共线性问题"
+            else:
+                interpretation['business_implications'] = "特征间相关性适中，特征选择相对合理"
+            
+            # 建议行动
+            interpretation['recommended_actions'] = [
+                "基于网络分析结果优化特征选择",
+                "考虑去除高度相关的冗余特征",
+                "监控特征相关性的变化"
+            ]
+            
+            return interpretation
+            
+        except Exception as e:
+            return {'error': f'相关性网络解读失败: {e}'}
+    
+    def _interpret_swe_cold_factors(self, swe_cold_factors: Dict) -> Dict:
+        """解读SWE冷门因素发现结果"""
+        try:
+            potential_discoveries = swe_cold_factors.get('potential_discoveries', [])
+            candidate_cold_factors = swe_cold_factors.get('candidate_cold_factors', {})
+            
+            interpretation = {
+                'cold_factors_insights': '',
+                'discovery_insights': '',
+                'business_implications': '',
+                'recommended_actions': []
+            }
+            
+            # 冷门因素洞察
+            if candidate_cold_factors:
+                interpretation['cold_factors_insights'] = f"分析了 {len(candidate_cold_factors)} 个冷门因素类别，包括土壤湿度、空间变异性、森林覆盖影响等"
+            
+            # 发现洞察
+            if potential_discoveries:
+                hidden_effects = [d for d in potential_discoveries if d.get('type') == 'hidden_effect']
+                nonlinear_interactions = [d for d in potential_discoveries if d.get('type') == 'nonlinear_interaction']
+                
+                insights = []
+                if hidden_effects:
+                    insights.append(f"发现 {len(hidden_effects)} 个隐藏效应")
+                if nonlinear_interactions:
+                    insights.append(f"发现 {len(nonlinear_interactions)} 个非线性交互")
+                
+                interpretation['discovery_insights'] = "，".join(insights) if insights else "发现了一些潜在的重要冷门因素"
+            else:
+                interpretation['discovery_insights'] = "未发现显著的冷门因素"
+            
+            # 业务影响
+            if len(potential_discoveries) >= 2:
+                interpretation['business_implications'] = "发现了多个潜在的重要冷门因素，为SWE预测模型优化提供了新思路"
+            elif len(potential_discoveries) == 1:
+                interpretation['business_implications'] = "发现了一些潜在的重要冷门因素，值得进一步研究"
+            else:
+                interpretation['business_implications'] = "冷门因素发现有限，可能需要更多数据或不同的分析方法"
+            
+            # 建议行动
+            interpretation['recommended_actions'] = [
+                "进一步研究发现的冷门因素",
+                "考虑在SWE预测模型中集成这些因素",
+                "建立长期监控机制跟踪冷门因素的变化"
+            ]
+            
+            return interpretation
+            
+        except Exception as e:
+            return {'error': f'SWE冷门因素解读失败: {e}'}
+    
+    def _interpret_data_quality(self, insights: Dict) -> Dict:
+        """解读数据质量洞察"""
+        try:
+            interpretation = {
+                'overall_quality_assessment': '',
+                'quality_issues': [],
+                'quality_strengths': [],
+                'recommended_actions': []
+            }
+            
+            # 整体质量评估
+            if 'risk_mechanisms' in insights and 'data_quality' in insights['risk_mechanisms']:
+                data_quality = insights['risk_mechanisms']['data_quality']
+                missing_rate = data_quality.get('overall_missing_rate', 0)
+                risk_level = data_quality.get('risk_level', 'unknown')
+                
+                if missing_rate > 0.5:
+                    interpretation['overall_quality_assessment'] = "数据质量较差，缺失率过高"
+                    interpretation['quality_issues'].append(f"总体缺失率: {missing_rate:.1%}")
+                elif missing_rate > 0.2:
+                    interpretation['overall_quality_assessment'] = "数据质量中等，存在一定缺失"
+                    interpretation['quality_issues'].append(f"总体缺失率: {missing_rate:.1%}")
+                else:
+                    interpretation['overall_quality_assessment'] = "数据质量良好，缺失率较低"
+                    interpretation['quality_strengths'].append(f"总体缺失率: {missing_rate:.1%}")
+                
+                if risk_level == 'high':
+                    interpretation['quality_issues'].append("数据质量风险等级: 高")
+                elif risk_level == 'medium':
+                    interpretation['quality_issues'].append("数据质量风险等级: 中等")
+                else:
+                    interpretation['quality_strengths'].append("数据质量风险等级: 低")
+            
+            # 异常检测质量
+            if 'anomalies' in insights and 'anomaly_rate' in insights['anomalies']:
+                anomaly_rate = insights['anomalies']['anomaly_rate']
+                if anomaly_rate > 0.1:
+                    interpretation['quality_issues'].append(f"异常数据比例较高: {anomaly_rate:.1%}")
+                else:
+                    interpretation['quality_strengths'].append(f"异常数据比例正常: {anomaly_rate:.1%}")
+            
+            # 建议行动
+            if interpretation['quality_issues']:
+                interpretation['recommended_actions'] = [
+                    "立即检查数据源和数据收集流程",
+                    "优化数据预处理步骤",
+                    "建立数据质量监控机制"
+                ]
+            else:
+                interpretation['recommended_actions'] = [
+                    "继续监控数据质量",
+                    "定期进行质量评估",
+                    "保持现有数据管理流程"
+                ]
+            
+            return interpretation
+            
+        except Exception as e:
+            return {'error': f'数据质量解读失败: {e}'}
+    
+    def _generate_actionable_recommendations(self, interpretation: Dict) -> Dict:
+        """生成可操作建议"""
+        try:
+            recommendations = {
+                'immediate_actions': [],
+                'short_term_actions': [],
+                'long_term_actions': [],
+                'priority_levels': {}
+            }
+            
+            # 基于风险等级确定行动优先级
+            overall_risk = interpretation.get('risk_assessment', {}).get('overall_risk_assessment', 'unknown')
+            
+            if overall_risk == 'high':
+                recommendations['immediate_actions'] = [
+                    "立即检查数据源和数据收集流程",
+                    "验证传感器和设备状态",
+                    "暂停使用有问题的数据进行模型训练"
+                ]
+                recommendations['short_term_actions'] = [
+                    "建立数据质量监控机制",
+                    "优化数据预处理流程",
+                    "培训数据管理人员"
+                ]
+                recommendations['long_term_actions'] = [
+                    "建立数据质量标准和流程",
+                    "实施自动化数据质量检查",
+                    "建立数据质量报告机制"
+                ]
+            elif overall_risk == 'medium':
+                recommendations['immediate_actions'] = [
+                    "监控数据质量趋势",
+                    "检查数据预处理步骤"
+                ]
+                recommendations['short_term_actions'] = [
+                    "优化数据收集流程",
+                    "建立定期质量评估机制"
+                ]
+                recommendations['long_term_actions'] = [
+                    "持续改进数据质量",
+                    "建立数据质量文化"
+                ]
+            else:
+                recommendations['immediate_actions'] = [
+                    "继续监控数据质量",
+                    "记录最佳实践"
+                ]
+                recommendations['short_term_actions'] = [
+                    "定期进行质量评估",
+                    "分享成功经验"
+                ]
+                recommendations['long_term_actions'] = [
+                    "持续优化数据流程",
+                    "建立数据质量标杆"
+                ]
+            
+            # 设置优先级
+            recommendations['priority_levels'] = {
+                'immediate': '高优先级 - 24小时内执行',
+                'short_term': '中优先级 - 1周内执行',
+                'long_term': '低优先级 - 1个月内执行'
+            }
+            
+            return recommendations
+            
+        except Exception as e:
+            return {'error': f'生成可操作建议失败: {e}'}
+    
     def save_insights(self, output_dir: str = "insights") -> str:
         """保存洞察结果"""
         try:
@@ -1336,19 +2041,23 @@ def main():
             # 保存洞察结果
             insights_file = explorer.save_insights()
             
+            # 解读洞察结果
+            interpretation = explorer.interpret_insights(insights)
+            
             logger.info("🎉 无监督探索完成！")
-            logger.info(f"📊 发现 {insights['summary']['total_insights']} 类洞察")
-            logger.info(f"⚠️ 风险评估: {insights['summary']['risk_assessment']}")
+            logger.info(f"📊 发现 {interpretation['executive_summary']['total_discoveries']} 类洞察")
+            logger.info(f"⚠️ 风险评估: {interpretation['risk_assessment']['overall_risk_assessment']}")
             
             # 显示关键发现
-            for finding in insights['summary']['key_findings']:
-                logger.info(f"🔍 {finding}")
+            if 'executive_summary' in interpretation and 'key_message' in interpretation['executive_summary']:
+                logger.info(f"🔍 {interpretation['executive_summary']['key_message']}")
             
             # 显示建议
-            for rec in insights['summary']['recommendations']:
-                logger.info(f"💡 {rec}")
+            if 'actionable_recommendations' in interpretation and 'immediate_actions' in interpretation['actionable_recommendations']:
+                for rec in interpretation['actionable_recommendations']['immediate_actions']:
+                    logger.info(f"💡 {rec}")
             
-            return insights
+            return interpretation
         else:
             logger.error(f"❌ 探索失败: {insights}")
             return None

@@ -50,13 +50,7 @@ def ui(request: Request):
     except Exception as e:
         return {"error": f"Template error: {str(e)}"}
 
-@app.get("/ui/enhanced", response_class=HTMLResponse)
-def ui_enhanced(request: Request):
-    """中文增强界面"""
-    try:
-        return templates.TemplateResponse("enhanced_index.html", {"request": request})
-    except Exception as e:
-        return {"error": f"Template error: {str(e)}"}
+# Removed Chinese enhanced UI route - deprecated and removed due to data import errors
 
 @app.get("/ui/legacy", response_class=HTMLResponse)
 def ui_legacy(request: Request):

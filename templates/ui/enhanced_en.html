@@ -303,11 +303,46 @@
             font-weight: 500;
             border: 2px dashed #dee2e6;
             transition: all 0.3s ease;
+            overflow: hidden;
+            max-width: 100%;
+            box-sizing: border-box;
         }
 
         .chart-container:hover {
             background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
             border-color: #4A90E2;
+        }
+        
+        /* Ensure charts don't overflow */
+        .chart-container canvas {
+            max-width: 100% !important;
+            height: auto !important;
+            display: block;
+        }
+        
+        /* Factors Discovery Module Styles */
+        .factors-discovery .chart-container {
+            height: 300px;
+            margin: 15px 0;
+            border: 2px solid #e9ecef;
+            background: #f8f9fa;
+            overflow: hidden;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .factors-discovery h5 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        
+        .factors-discovery .row {
+            margin-bottom: 25px;
+        }
+        
+        .factors-discovery .row:last-child {
+            margin-bottom: 0;
         }
 
         /* Actual chart display area */
@@ -1104,51 +1139,64 @@
                     </div>
                 </div>
 
-                <!-- Current Season and Regional Trends -->
-                <div class="two-column-grid">
-                    <!-- Current Season Summary -->
-                    <div class="card">
-                        <div class="card-header">
-                            <i class="fas fa-snowflake"></i>
-                            <div class="card-title">Current Season Summary</div>
-                        </div>
-                        
-                        <div class="metrics-grid" id="current-season-metrics">
-                            <div class="metric-item">
-                                <span class="metric-value" id="total-snow-value">Loading...</span>
-                                <div class="metric-label">Total Snow Accumulation</div>
-                            </div>
-                            <div class="metric-item">
-                                <span class="metric-value" id="vs-historical-value">Loading...</span>
-                                <div class="metric-label">vs. Historical Average</div>
-                            </div>
-                            <div class="metric-item">
-                                <span class="metric-value" id="peak-date-value">Loading...</span>
-                                <div class="metric-label">Peak SWE Date</div>
-                            </div>
-                            <div class="metric-item">
-                                <span class="metric-value" id="active-stations-value">Loading...</span>
-                                <div class="metric-label">Active Stations</div>
-                            </div>
-                        </div>
-
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i>
-                            <div>
-                                <strong>Data Sources:</strong> Real-time data from Environment Canada, Provincial Water Survey Networks, USGS Cross-Border Monitoring Stations, and Automated Snow Pillow Networks.
-                            </div>
+                <!-- Factors Discovery Module -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-brain"></i>
+                        <div class="card-title">Advanced Factors Discovery</div>
+                        <div class="status-indicator">
+                            <div class="status-dot status-green"></div>
+                            <span>AI-Powered Analysis</span>
                         </div>
                     </div>
-
-                    <!-- Regional Trends Chart -->
-                    <div class="card">
-                    <div class="card-header">
-                            <i class="fas fa-chart-line"></i>
-                            <div class="card-title">SWE Seasonal Indices (baseline 1991–2020)</div>
+                    
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                                                    <button class="btn btn-primary mb-3" onclick="runFactorsDiscoveryAnalysis()">
+                                        <i class="fas fa-play"></i> Run Factors Discovery
+                                    </button>
+                                <div id="factors-analysis-status" class="mb-3">
+                                    <span class="status-indicator status-success"></span>
+                                    Ready to analyze
+                                </div>
+                            </div>
                         </div>
-
-                        <div class="chart-container" style="height: 280px; padding: 0;">
-                            <canvas id="swe-analysis-chart"></canvas>
+                        
+                        <div class="row">
+                            <!-- Decomposition Chart -->
+                            <div class="col-md-6">
+                                <h5><i class="fas fa-chart-area"></i> Time Series Decomposition</h5>
+                                <div id="decomposition-chart" class="chart-container"></div>
+                            </div>
+                            
+                            <!-- Anomaly Detection Chart -->
+                            <div class="col-md-6">
+                                <h5><i class="fas fa-exclamation-triangle"></i> Anomaly Detection</h5>
+                                <div id="anomaly-chart" class="chart-container"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-4">
+                            <!-- Clustering Chart -->
+                            <div class="col-md-6">
+                                <h5><i class="fas fa-sitemap"></i> Clustering Analysis</h5>
+                                <div id="clustering-chart" class="chart-container"></div>
+                            </div>
+                            
+                            <!-- Statistical Tests Chart -->
+                            <div class="col-md-6">
+                                <h5><i class="fas fa-chart-bar"></i> Statistical Tests</h5>
+                                <div id="statistical-chart" class="chart-container"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Factors Discovery Chart -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h5><i class="fas fa-search"></i> Factors Discovery</h5>
+                                <div id="factors-chart" class="chart-container"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1546,9 +1594,9 @@ function initializeForecastControls() {
                 console.log('📊 加载历史SWE图表...');
                 await loadHistoricalChart(startDate, endDate, 'all');
                 
-                // Load SWE Analysis Chart (Seasonal Indices)
-                console.log('📈 加载SWE分析图表...');
-                await loadSweAnalysisChart();
+                // Load SWE Analysis Chart (Seasonal Indices) - Disabled since replaced by Factors Discovery
+                console.log('📈 SWE分析图表已替换为Factors Discovery模块');
+                // await loadSweAnalysisChart(); // Disabled
                 
                 // Load Forecast and Runoff Charts using selected controls
                 const typeSel = document.getElementById('forecast-type-select');
@@ -1863,39 +1911,16 @@ function initializeForecastControls() {
             }
         }
         
-        // Load SWE analysis chart (Seasonal Indices)
+        // Load SWE analysis chart (Seasonal Indices) - Disabled since replaced by Factors Discovery
         async function loadSweAnalysisChart() {
             try {
-                const payload = await fetchSweAnalysis('seasonal', null, 'snow_water_equivalent_mm');
-                const si = payload?.result?.monthly_patterns?.seasonal_indices || [];
-                const labels = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-                const ctx = document.getElementById('swe-analysis-chart').getContext('2d');
-                regionalChart = destroyChart(regionalChart);
-                regionalChart = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Seasonal Index (ratio to annual mean)',
-                            data: si,
-                            backgroundColor: '#4A90E2'
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            title: { display: true, text: 'Monthly Seasonal Indices' },
-                            legend: { display: true }
-                        },
-                        scales: {
-                            y: { beginAtZero: true, title: { display: true, text: 'Index (1 = annual mean)' } }
-                        }
-                    }
-                });
+                // This chart has been replaced by the Factors Discovery module
+                // The canvas element 'swe-analysis-chart' no longer exists
+                console.log('SWE analysis chart disabled - replaced by Factors Discovery module');
+                return;
             } catch (error) {
-                console.error('Failed to load SWE analysis chart:', error);
-                throw error;
+                console.error('SWE analysis chart function disabled:', error);
+                return;
             }
         }
         
@@ -4363,845 +4388,948 @@ function initializeForecastControls() {
             const resultsDiv = document.getElementById('swe-analysis-results');
             
             statusDiv.innerHTML = `<i class="fas fa-brain"></i> Running AI ${insightMode} discovery...`;
+
+        }
+        
+        // ===== FACTORS DISCOVERY FUNCTIONS =====
+        
+        // Main Factors Discovery Analysis Function
+        async function runFactorsDiscoveryAnalysis() {
+            const statusDiv = document.getElementById('factors-analysis-status');
+            
+            // Clear previous results
+            statusDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Running Factors Discovery Analysis...';
             
             try {
-                // Call the insight discovery API
-                const insightResult = await fetchInsightDiscovery(insightMode, null, targetColumn);
+                // Run all analyses in parallel
+                await Promise.all([
+                    loadDecompositionAnalysis(),
+                    loadAnomalyDetection(),
+                    loadClusteringAnalysis(),
+                    loadStatisticalTests(),
+                    loadFactorDiscovery()
+                ]);
                 
-                if (insightResult && insightResult.status === 'success') {
-                    renderInsightDiscoveryResults(insightResult, resultsDiv, { mode: insightMode, targetColumn });
-                } else {
-                    throw new Error(insightResult?.message || 'Insight discovery failed');
-                }
+                statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> Factors Discovery Analysis completed successfully!';
                 
             } catch (error) {
+                console.error('Factors Discovery analysis failed:', error);
+                statusDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Analysis failed: ' + error.message;
+            }
+        }
+        
+        // API Request Helper for Factors Discovery
+        async function apiRequest(url, options = {}) {
+            const defaultOptions = {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                ...options
+            };
+
+            try {
+                const response = await fetch(url, defaultOptions);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error('API request failed:', error);
                 throw error;
             }
         }
         
-        // Get analysis date range based on period selection
-        function getAnalysisDateRange(period) {
-            const endDate = new Date();
-            let startDate = new Date();
-            
-            switch (period) {
-                case 'current-season':
-                    // Current snow season (October to April)
-                    const currentYear = endDate.getFullYear();
-                    const currentMonth = endDate.getMonth();
-                    if (currentMonth >= 9) { // Oct-Dec
-                        startDate = new Date(currentYear, 9, 1); // October 1
-                    } else { // Jan-Apr
-                        startDate = new Date(currentYear - 1, 9, 1); // Previous October 1
-                    }
-                    break;
-                case 'last-year':
-                    startDate.setFullYear(endDate.getFullYear() - 1);
-                    break;
-                case '5-years':
-                    startDate.setFullYear(endDate.getFullYear() - 5);
-                    break;
-                case 'custom':
-                    const customStart = document.getElementById('analysis-start-date').value;
-                    const customEnd = document.getElementById('analysis-end-date').value;
-                    if (customStart && customEnd) {
-                        startDate = new Date(customStart);
-                        endDate.setTime(new Date(customEnd).getTime());
-                    }
-                    break;
-                default:
-                    startDate.setFullYear(endDate.getFullYear() - 5);
-            }
-            
-            return {
-                startDate: startDate.toISOString().split('T')[0],
-                endDate: endDate.toISOString().split('T')[0]
-            };
-        }
-        
-        // Render seasonal analysis results
-        function renderSeasonalAnalysisResults(result, container, metadata) {
-            const trend = result.annual_cycle?.trend || {};
-            const trendPerDecade = trend.trend_per_decade !== undefined ? Number(trend.trend_per_decade).toFixed(3) : 'N/A';
-            const pValue = trend.p_value !== undefined ? Number(trend.p_value).toExponential(2) : 'N/A';
-            const mainPeriod = result.frequency_analysis?.main_period ? Number(result.frequency_analysis.main_period).toFixed(1) : 'N/A';
-            
-            const seasonalIndices = result.monthly_patterns?.seasonal_indices || [];
-            const peakMonth = seasonalIndices.length > 0 ? 
-                seasonalIndices.indexOf(Math.max(...seasonalIndices)) + 1 : 'N/A';
-            const peakMonthName = peakMonth !== 'N/A' ? 
-                ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][peakMonth - 1] : 'N/A';
-            
-            container.innerHTML = `
-                <div class="alert alert-success">
-                    <h4><i class="fas fa-chart-line"></i> Seasonal Trend Analysis Results</h4>
-                    <p><strong>Analysis Period:</strong> ${metadata.startDate} to ${metadata.endDate}</p>
-                    
-                    <div class="two-column-grid" style="margin-top: 1rem;">
-                        <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px;">
-                            <h5><i class="fas fa-trending-up"></i> Long-term Trends</h5>
-                            <ul style="margin: 0.5rem 0;">
-                                <li><strong>Trend per Decade:</strong> ${trendPerDecade} mm</li>
-                                <li><strong>Statistical Significance:</strong> p = ${pValue}</li>
-                                <li><strong>Dominant Period:</strong> ${mainPeriod} days</li>
-                            </ul>
-                        </div>
-                        
-                        <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px;">
-                            <h5><i class="fas fa-calendar-alt"></i> Seasonal Patterns</h5>
-                            <ul style="margin: 0.5rem 0;">
-                                <li><strong>Peak SWE Month:</strong> ${peakMonthName}</li>
-                                <li><strong>Analysis Mode:</strong> Seasonal Cycle</li>
-                                <li><strong>Data Quality:</strong> ${result.data_quality || 'Good'}</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div style="margin-top: 1rem; padding: 1rem; background: #e8f4fd; border-radius: 8px; border-left: 4px solid #4A90E2;">
-                        <h6><i class="fas fa-lightbulb"></i> Key Insights</h6>
-                        <p style="margin: 0.5rem 0; font-size: 0.95rem; line-height: 1.4;">
-                            The analysis reveals ${trendPerDecade > 0 ? 'an increasing' : trendPerDecade < 0 ? 'a decreasing' : 'a stable'} 
-                            trend in snow water equivalent over the analyzed period. 
-                            ${pValue < 0.05 ? 'This trend is statistically significant.' : 'This trend is not statistically significant.'}
-                            Peak snow accumulation typically occurs in ${peakMonthName}, consistent with regional climate patterns.
-                        </p>
-                    </div>
-                </div>
-            `;
-        }
-        
-        // Render anomaly detection results
-        function renderAnomalyAnalysisResults(result, container, metadata) {
-            const threshold = result.threshold !== undefined ? Number(result.threshold).toFixed(2) : 'N/A';
-            const anomalyRate = result.anomaly_rate !== undefined ? (Number(result.anomaly_rate) * 100).toFixed(1) + '%' : 'N/A';
-            const anomalyCounts = result.anomaly_counts || {};
-            
-            const totalAnomalies = Object.values(anomalyCounts).reduce((sum, count) => sum + (count || 0), 0);
-            
-            container.innerHTML = `
-                <div class="alert alert-warning">
-                    <h4><i class="fas fa-exclamation-triangle"></i> Anomaly Detection Results</h4>
-                    <p><strong>Analysis Period:</strong> ${metadata.startDate} to ${metadata.endDate}</p>
-                    
-                    <div class="two-column-grid" style="margin-top: 1rem;">
-                        <div style="background: #fff3cd; padding: 1rem; border-radius: 8px;">
-                            <h5><i class="fas fa-search"></i> Detection Statistics</h5>
-                            <ul style="margin: 0.5rem 0;">
-                                <li><strong>Anomaly Threshold:</strong> ${threshold}</li>
-                                <li><strong>Detection Rate:</strong> ${anomalyRate}</li>
-                                <li><strong>Total Anomalies:</strong> ${totalAnomalies}</li>
-                            </ul>
-                        </div>
-                        
-                        <div style="background: #fff3cd; padding: 1rem; border-radius: 8px;">
-                            <h5><i class="fas fa-layer-group"></i> Detection Methods</h5>
-                            <ul style="margin: 0.5rem 0;">
-                                <li><strong>Statistical:</strong> ${anomalyCounts.statistical_anomalies || 0}</li>
-                                <li><strong>Machine Learning:</strong> ${anomalyCounts.ml_anomalies || 0}</li>
-                                <li><strong>Time Series:</strong> ${anomalyCounts.timeseries_anomalies || 0}</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div style="margin-top: 1rem; padding: 1rem; background: #fff3cd; border-radius: 8px; border-left: 4px solid #f39c12;">
-                        <h6><i class="fas fa-lightbulb"></i> Anomaly Insights</h6>
-                        <p style="margin: 0.5rem 0; font-size: 0.95rem; line-height: 1.4;">
-                            ${totalAnomalies > 0 ? 
-                                `Detected ${totalAnomalies} anomalous data points (${anomalyRate} of total observations). 
-                                 These anomalies may indicate extreme weather events, measurement errors, or unusual seasonal patterns.` :
-                                'No significant anomalies detected in the dataset. This suggests consistent measurement patterns and typical seasonal behavior.'}
-                        </p>
-                    </div>
-                </div>
-            `;
-        }
-        
-        // Render correlation analysis results
-        function renderCorrelationAnalysisResults(result, container, metadata) {
-            const topCorrelations = result.top_correlations || [];
-            const correlationSummary = result.correlation_summary || {};
-            const avgCorr = correlationSummary.average_correlation !== undefined ? 
-                Number(correlationSummary.average_correlation).toFixed(3) : 'N/A';
-            const strongCount = correlationSummary.strong_correlations_count || 0;
-            
-            const correlationsList = topCorrelations.slice(0, 5).map(corr => 
-                `<li><strong>${corr.variable}:</strong> r=${Number(corr.pearson_r).toFixed(3)} (p=${Number(corr.pearson_p).toExponential(2)})</li>`
-            ).join('');
-            
-            container.innerHTML = `
-                <div class="alert alert-info">
-                    <h4><i class="fas fa-project-diagram"></i> Correlation Analysis Results</h4>
-                    <p><strong>Analysis Period:</strong> ${metadata.startDate} to ${metadata.endDate}</p>
-                    
-                    <div class="two-column-grid" style="margin-top: 1rem;">
-                        <div style="background: #d1ecf1; padding: 1rem; border-radius: 8px;">
-                            <h5><i class="fas fa-chart-scatter"></i> Top Correlations</h5>
-                            <ul style="margin: 0.5rem 0; font-size: 0.9rem;">
-                                ${correlationsList || '<li>No significant correlations found</li>'}
-                            </ul>
-                        </div>
-                        
-                        <div style="background: #d1ecf1; padding: 1rem; border-radius: 8px;">
-                            <h5><i class="fas fa-calculator"></i> Summary Statistics</h5>
-                            <ul style="margin: 0.5rem 0;">
-                                <li><strong>Average Correlation:</strong> ${avgCorr}</li>
-                                <li><strong>Strong Correlations:</strong> ${strongCount}</li>
-                                <li><strong>Variables Analyzed:</strong> ${topCorrelations.length}</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div style="margin-top: 1rem; padding: 1rem; background: #d1ecf1; border-radius: 8px; border-left: 4px solid #17a2b8;">
-                        <h6><i class="fas fa-lightbulb"></i> Correlation Insights</h6>
-                        <p style="margin: 0.5rem 0; font-size: 0.95rem; line-height: 1.4;">
-                            ${strongCount > 0 ? 
-                                `Found ${strongCount} strong correlations with SWE. These relationships can help improve prediction accuracy and understand driving factors.` :
-                                'No strong correlations detected. This may indicate complex, non-linear relationships or insufficient data coverage.'}
-                            Average correlation strength of ${avgCorr} suggests ${Math.abs(avgCorr) > 0.5 ? 'moderate to strong' : 'weak to moderate'} linear relationships.
-                        </p>
-                    </div>
-                </div>
-            `;
-        }
-        
-        // Render comprehensive analysis results
-        function renderComprehensiveAnalysisResults(result, container, metadata) {
-            const summary = result.summary || 'Completed comprehensive analysis of SWE data patterns.';
-            
-            container.innerHTML = `
-                <div class="alert alert-primary">
-                    <h4><i class="fas fa-layer-group"></i> Comprehensive Analysis Results</h4>
-                    <p><strong>Analysis Period:</strong> ${metadata.startDate} to ${metadata.endDate}</p>
-                    
-                    <div style="margin-top: 1rem; padding: 1rem; background: #d4edda; border-radius: 8px; border-left: 4px solid #28a745;">
-                        <h6><i class="fas fa-chart-line"></i> Analysis Summary</h6>
-                        <p style="margin: 0.5rem 0; font-size: 0.95rem; line-height: 1.4;">
-                            ${summary}
-                        </p>
-                    </div>
-                    
-                    <div style="margin-top: 1rem; font-size: 0.9rem; color: #666;">
-                        <i class="fas fa-info-circle"></i> 
-                        For detailed breakdowns, run individual analysis modes (Seasonal, Anomaly, Correlation).
-                    </div>
-                </div>
-            `;
-        }
-        
-        // Render AI insight discovery results
-        function renderInsightDiscoveryResults(result, container, metadata) {
-            const insights = result.insights || {};
-            const mode = metadata.mode;
-            const targetColumn = metadata.targetColumn;
-            
-            let insightContent = '';
-            let alertClass = 'alert-success';
-            let iconClass = 'fas fa-brain';
-            
-            switch (mode) {
-                case 'anomaly':
-                    insightContent = renderAnomalyInsights(insights);
-                    alertClass = 'alert-warning';
-                    iconClass = 'fas fa-exclamation-triangle';
-                    break;
-                case 'clustering':
-                    insightContent = renderClusteringInsights(insights);
-                    alertClass = 'alert-info';
-                    iconClass = 'fas fa-object-group';
-                    break;
-                case 'pca':
-                    insightContent = renderPCAInsights(insights);
-                    alertClass = 'alert-primary';
-                    iconClass = 'fas fa-compress-arrows-alt';
-                    break;
-                case 'time_patterns':
-                    insightContent = renderTimePatternInsights(insights);
-                    alertClass = 'alert-secondary';
-                    iconClass = 'fas fa-clock';
-                    break;
-                case 'swe_cold_factors':
-                    insightContent = renderSWEColdFactorsInsights(insights);
-                    alertClass = 'alert-info';
-                    iconClass = 'fas fa-microscope';
-                    break;
-                case 'comprehensive':
-                    insightContent = renderComprehensiveInsights(insights);
-                    alertClass = 'alert-success';
-                    iconClass = 'fas fa-layer-group';
-                    break;
-                default:
-                    insightContent = '<p>Unknown insight discovery mode.</p>';
-            }
-            
-            container.innerHTML = `
-                <div class="alert ${alertClass}">
-                    <h4><i class="${iconClass}"></i> AI Insights Discovery: ${mode.replace('_', ' ').toUpperCase()}</h4>
-                    <p><strong>Target Variable:</strong> ${targetColumn}</p>
-                    <p><strong>Discovery Mode:</strong> ${mode.replace('_', ' ')}</p>
-                    
-                    ${insightContent}
-                    
-                    <div style="margin-top: 1rem; font-size: 0.85rem; color: #666;">
-                        <i class="fas fa-robot"></i> 
-                        Generated by HydrAI-SWE Machine Learning Insight Discovery Module
-                    </div>
-                </div>
-            `;
-        }
-        
-        // Helper functions for rendering different insight types
-        function renderAnomalyInsights(insights) {
-            const anomalyCount = insights.anomaly_count || 0;
-            const anomalyRate = insights.anomaly_rate || 0;
-            const threshold = insights.threshold || 'N/A';
-            
-            return `
-                <div style="margin-top: 1rem; padding: 1rem; background: #fff3cd; border-radius: 8px;">
-                    <h6><i class="fas fa-search"></i> Anomaly Detection Results</h6>
-                    <ul style="margin: 0.5rem 0;">
-                        <li><strong>Anomalies Detected:</strong> ${anomalyCount}</li>
-                        <li><strong>Anomaly Rate:</strong> ${(anomalyRate * 100).toFixed(2)}%</li>
-                        <li><strong>Detection Threshold:</strong> ${threshold}</li>
-                    </ul>
-                    <p style="margin-top: 0.5rem; font-size: 0.9rem;">
-                        ${anomalyCount > 0 ? 
-                            `Identified ${anomalyCount} unusual data points that deviate significantly from normal patterns. These may represent extreme weather events or data quality issues.` :
-                            'No significant anomalies detected. Data appears consistent with expected patterns.'}
-                    </p>
-                </div>
-            `;
-        }
-        
-        function renderClusteringInsights(insights) {
-            const clusterCount = insights.optimal_clusters || 'N/A';
-            const silhouetteScore = insights.silhouette_score || 'N/A';
-            
-            return `
-                <div style="margin-top: 1rem; padding: 1rem; background: #d1ecf1; border-radius: 8px;">
-                    <h6><i class="fas fa-object-group"></i> Data Clustering Results</h6>
-                    <ul style="margin: 0.5rem 0;">
-                        <li><strong>Optimal Clusters:</strong> ${clusterCount}</li>
-                        <li><strong>Silhouette Score:</strong> ${silhouetteScore}</li>
-                        <li><strong>Clustering Method:</strong> K-Means with optimization</li>
-                    </ul>
-                    <p style="margin-top: 0.5rem; font-size: 0.9rem;">
-                        Data naturally groups into ${clusterCount} distinct patterns, suggesting ${clusterCount} different behavioral regimes in the SWE data.
-                    </p>
-                </div>
-            `;
-        }
-        
-        function renderPCAInsights(insights) {
-            const varianceExplained = insights.variance_explained || [];
-            const components = insights.n_components || 'N/A';
-            
-            return `
-                <div style="margin-top: 1rem; padding: 1rem; background: #cce5ff; border-radius: 8px;">
-                    <h6><i class="fas fa-compress-arrows-alt"></i> Principal Component Analysis</h6>
-                    <ul style="margin: 0.5rem 0;">
-                        <li><strong>Components:</strong> ${components}</li>
-                        <li><strong>Variance Explained:</strong> ${varianceExplained.map(v => (v * 100).toFixed(1) + '%').join(', ')}</li>
-                        <li><strong>Dimensionality:</strong> Reduced complexity analysis</li>
-                    </ul>
-                    <p style="margin-top: 0.5rem; font-size: 0.9rem;">
-                        The first ${Math.min(components, 3)} principal components explain most of the data variance, indicating key underlying patterns drive SWE behavior.
-                    </p>
-                </div>
-            `;
-        }
-        
-        function renderTimePatternInsights(insights) {
-            const dominantFreq = insights.dominant_frequency || 'N/A';
-            const seasonality = insights.seasonality_strength || 'N/A';
-            
-            return `
-                <div style="margin-top: 1rem; padding: 1rem; background: #e2e3e5; border-radius: 8px;">
-                    <h6><i class="fas fa-clock"></i> Temporal Pattern Analysis</h6>
-                    <ul style="margin: 0.5rem 0;">
-                        <li><strong>Dominant Frequency:</strong> ${dominantFreq}</li>
-                        <li><strong>Seasonality Strength:</strong> ${seasonality}</li>
-                        <li><strong>Pattern Type:</strong> Time series decomposition</li>
-                    </ul>
-                    <p style="margin-top: 0.5rem; font-size: 0.9rem;">
-                        Detected strong temporal patterns with dominant frequency at ${dominantFreq}, indicating predictable cyclical behavior.
-                    </p>
-                </div>
-            `;
-        }
-        
-        function renderComprehensiveInsights(insights) {
-            return `
-                <div style="margin-top: 1rem; padding: 1rem; background: #d4edda; border-radius: 8px;">
-                    <h6><i class="fas fa-layer-group"></i> Comprehensive Insights Summary</h6>
-                    <p style="margin: 0.5rem 0; font-size: 0.9rem; line-height: 1.4;">
-                        Completed multi-modal analysis combining anomaly detection, clustering, dimensionality reduction, and temporal pattern discovery. 
-                        Results provide a holistic view of data structure and behavior patterns.
-                    </p>
-                    <div style="margin-top: 1rem; font-size: 0.85rem; color: #666;">
-                        <i class="fas fa-info-circle"></i> 
-                        For detailed results, run individual insight discovery modes.
-                    </div>
-                </div>
-            `;
-        }
-        
-        // Render SWE Cold Factors Discovery results
-        function renderSWEColdFactorsInsights(insights) {
-            const sweColdFactors = insights.swe_cold_factors || {};
-            const candidateFactors = sweColdFactors.candidate_cold_factors || {};
-            const potentialDiscoveries = sweColdFactors.potential_discoveries || [];
-            const researchInsights = sweColdFactors.research_insights || [];
-            
-            let content = `
-                <div class="cold-factors-analysis">
-                    <h5><i class="fas fa-flask"></i> SWE Cold Factors Analysis</h5>
-                    <p class="text-muted">Based on research literature, discovering overlooked but potentially important factors for SWE estimation.</p>
-                    
-                    <div class="factors-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-top: 1rem;">
-            `;
-            
-            // Render each cold factor category
-            Object.entries(candidateFactors).forEach(([category, info]) => {
-                const features = info.candidate_features || [];
-                const importance = info.potential_importance || 0;
-                
-                if (features.length > 0) {
-                    content += `
-                        <div class="factor-card" style="border: 1px solid #ddd; border-radius: 8px; padding: 1rem; background: #f8f9fa;">
-                            <h6><i class="fas fa-search"></i> ${info.description}</h6>
-                            <p class="small text-muted">${info.research_basis}</p>
-                            <div class="factor-details">
-                                <strong>Candidate Features:</strong>
-                                <ul class="small">
-                                    ${features.map(feature => `<li>${feature}</li>`).join('')}
-                                </ul>
-                                <div class="importance-score">
-                                    <strong>Potential Importance:</strong> 
-                                    <span class="badge ${importance > 0 ? 'badge-warning' : 'badge-secondary'}">${importance.toFixed(3)}</span>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
-            });
-            
-            content += `</div>`;
-            
-            // Render potential discoveries
-            if (potentialDiscoveries.length > 0) {
-                content += `
-                    <div class="potential-discoveries" style="margin-top: 1.5rem;">
-                        <h5><i class="fas fa-lightbulb"></i> Potential Discoveries</h5>
-                        <div class="discoveries-list">
-                `;
-                
-                potentialDiscoveries.forEach(discovery => {
-                    if (discovery.type === 'hidden_effect') {
-                        content += `
-                            <div class="discovery-item alert alert-info">
-                                <strong>Hidden Effect:</strong> ${discovery.feature}
-                                <br><small>Residual correlation: ${discovery.residual_correlation.toFixed(3)}</small>
-                            </div>
-                        `;
-                    } else if (discovery.type === 'nonlinear_interaction') {
-                        content += `
-                            <div class="discovery-item alert alert-warning">
-                                <strong>Nonlinear Interaction:</strong> ${discovery.cold_feature} × ${discovery.main_feature}
-                                <br><small>Interaction strength: ${discovery.interaction_strength.toFixed(3)}</small>
-                            </div>
-                        `;
-                    } else {
-                        content += `
-                            <div class="discovery-item alert alert-primary">
-                                <strong>${discovery.description}:</strong> 
-                                <br><small>Importance: ${discovery.potential_importance.toFixed(3)}</small>
-                            </div>
-                        `;
-                    }
-                });
-                
-                content += `</div></div>`;
-            }
-            
-            // Render research insights
-            if (researchInsights.length > 0) {
-                content += `
-                    <div class="research-insights" style="margin-top: 1.5rem;">
-                        <h5><i class="fas fa-book"></i> Research Insights</h5>
-                        <div class="insights-list">
-                            ${researchInsights.map(insight => `
-                                <div class="insight-item" style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 0.75rem; margin: 0.5rem 0; border-radius: 4px;">
-                                    <i class="fas fa-quote-left"></i> ${insight}
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
-            }
-            
-            content += `
-                <div class="analysis-summary" style="margin-top: 1.5rem; padding: 1rem; background: #f0f8ff; border-radius: 8px;">
-                    <h6><i class="fas fa-chart-line"></i> Analysis Summary</h6>
-                    <p class="small">
-                        This analysis identifies potentially overlooked factors in SWE estimation based on current research literature. 
-                        Consider incorporating these factors into your SWE prediction models for improved accuracy, especially in complex terrain and climate conditions.
-                    </p>
-                </div>
-            </div>
-            `;
-            
-            return content;
-        }
-        
-        // Show/hide analysis options based on selected mode
-        document.getElementById('swe-analysis-mode').addEventListener('change', function() {
-            const mode = this.value;
-            const customDateRange = document.getElementById('custom-date-range');
-            const insightDiscoveryOptions = document.getElementById('insight-discovery-options');
-            const periodSelect = document.getElementById('analysis-period-select');
-            
-            // Show insight discovery options only for AI mode
-            if (mode === 'insight-discovery') {
-                insightDiscoveryOptions.style.display = 'block';
-            } else {
-                insightDiscoveryOptions.style.display = 'none';
-            }
-            
-            // Show custom date range if custom period is selected
-            if (periodSelect.value === 'custom') {
-                customDateRange.style.display = 'block';
-            }
-        });
-        
-        // Show/hide custom date range based on period selection
-        document.getElementById('analysis-period-select').addEventListener('change', function() {
-            const customDateRange = document.getElementById('custom-date-range');
-            if (this.value === 'custom') {
-                customDateRange.style.display = 'block';
-            } else {
-                customDateRange.style.display = 'none';
-            }
-        });
-        
-        // Reset SWE analysis interface
-        function resetSWEAnalysis() {
-            // Reset form selections
-            document.getElementById('swe-analysis-mode').value = 'seasonal';
-            document.getElementById('analysis-period-select').value = '5-years';
-            document.getElementById('insight-mode-select').value = 'anomaly';
-            document.getElementById('target-column-select').value = 'Snow on Grnd (cm)';
-            
-            // Hide conditional options
-            document.getElementById('custom-date-range').style.display = 'none';
-            document.getElementById('insight-discovery-options').style.display = 'none';
-            
-            // Clear results
-            document.getElementById('swe-analysis-status').innerHTML = '';
-            document.getElementById('swe-analysis-results').innerHTML = '';
-            
-            showNotification('SWE analysis interface reset', 'info');
-        }
-        
-        // ========================================
-        // ENSEMBLE MODEL PERFORMANCE FUNCTIONS
-        // ========================================
-        
-        // Refresh model performance metrics
-        async function refreshModelPerformance() {
-            const btn = event.target;
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
-            btn.disabled = true;
-            
+        // Decomposition Analysis
+        async function loadDecompositionAnalysis() {
             try {
-                // Call the backend API to get latest model performance metrics
-                const performanceData = await fetchEnsembleModelPerformance();
-                
-                if (performanceData && performanceData.status === 'success') {
-                    // Update all performance metrics with fresh data
-                    updateModelPerformanceMetrics(performanceData.metrics);
-                    
-                    showNotification('Model performance metrics refreshed successfully', 'success');
-                } else {
-                    // Simulate updated metrics if API is not available
-                    const simulatedMetrics = {
-                        r2_score: 0.8876 + (Math.random() - 0.5) * 0.01,
-                        rmse: 0.152 + (Math.random() - 0.5) * 0.008,
-                        mae: 0.119 + (Math.random() - 0.5) * 0.006,
-                        prediction_latency: Math.floor(240 + (Math.random() - 0.5) * 20),
-                        nash_sutcliffe: 0.883 + (Math.random() - 0.5) * 0.004,
-                        validation_r2: 0.8701 + (Math.random() - 0.5) * 0.007,
-                        model_status: Math.random() > 0.1 ? 'Production Ready' : 'Warning'
-                    };
-                    
-                    updateModelPerformanceMetrics(simulatedMetrics);
-                    showNotification('Model performance metrics updated (simulated data)', 'info');
-                }
-                
-            } catch (error) {
-                console.error('Failed to refresh model performance:', error);
-                showNotification('Failed to refresh performance metrics: ' + error.message, 'warning');
-            } finally {
-                // Restore button state
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
-        }
-        
-        // Update model performance metrics in the UI
-        function updateModelPerformanceMetrics(metrics) {
-            if (metrics.r2_score !== undefined) {
-                document.getElementById('r2-score-value').textContent = (metrics.r2_score * 100).toFixed(2) + '%';
-            }
-            
-            if (metrics.rmse !== undefined) {
-                document.getElementById('rmse-value').textContent = metrics.rmse.toFixed(3);
-            }
-            
-            if (metrics.mae !== undefined) {
-                document.getElementById('mae-value').textContent = metrics.mae.toFixed(3);
-            }
-            
-            if (metrics.prediction_latency !== undefined) {
-                document.getElementById('prediction-latency').textContent = metrics.prediction_latency + 'ms';
-            }
-            
-            if (metrics.nash_sutcliffe !== undefined) {
-                document.getElementById('nash-sutcliffe').textContent = metrics.nash_sutcliffe.toFixed(3);
-            }
-            
-            if (metrics.validation_r2 !== undefined) {
-                document.getElementById('validation-r2').textContent = metrics.validation_r2.toFixed(4);
-            }
-            
-            // Update model status indicator
-            if (metrics.model_status !== undefined) {
-                const statusText = document.getElementById('model-status-text');
-                const statusDot = document.getElementById('model-status-dot');
-                
-                statusText.textContent = metrics.model_status;
-                
-                // Update status color based on status
-                statusDot.className = 'status-dot';
-                if (metrics.model_status.toLowerCase().includes('ready')) {
-                    statusDot.classList.add('status-green');
-                } else if (metrics.model_status.toLowerCase().includes('warning')) {
-                    statusDot.classList.add('status-orange');
-                } else if (metrics.model_status.toLowerCase().includes('error')) {
-                    statusDot.classList.add('status-red');
-                } else {
-                    statusDot.classList.add('status-blue');
-                }
-            }
-            
-            // Update comparison bars if performance changed significantly
-            if (metrics.r2_score !== undefined) {
-                const currentR2Percent = (metrics.r2_score * 100).toFixed(2);
-                const ensembleBar = document.querySelector('.comparison-item:last-child .comparison-fill');
-                const ensembleValue = document.querySelector('.comparison-item:last-child .comparison-value');
-                
-                if (ensembleBar && ensembleValue) {
-                    ensembleBar.style.width = currentR2Percent + '%';
-                    ensembleValue.textContent = currentR2Percent + '%';
-                }
-            }
-        }
-        
-        // Run model diagnostics
-        async function runModelDiagnostics() {
-            const btn = event.target;
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Running Diagnostics...';
-            btn.disabled = true;
-            
-            try {
-                showNotification('Running comprehensive model diagnostics...', 'info');
-                
-                // Simulate diagnostic tests with realistic timing
-                await new Promise(resolve => setTimeout(resolve, 3000)); // 3 second delay for realism
-                
-                // Call diagnostic API (or simulate results)
-                const diagnosticResults = await runEnsembleDiagnostics();
-                
-                // Display diagnostic results in a modal or notification
-                displayDiagnosticResults(diagnosticResults);
-                
-            } catch (error) {
-                console.error('Failed to run diagnostics:', error);
-                showNotification('Diagnostic test failed: ' + error.message, 'warning');
-            } finally {
-                // Restore button state
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
-        }
-        
-        // Run ensemble model diagnostics
-        async function runEnsembleDiagnostics() {
-            try {
-                // Try to call actual diagnostic API
-                const diagnosticsData = await apiRequest('/model-diagnostics', {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        model_name: 'EnsembleTop3GRU',
-                        test_types: ['performance', 'stability', 'memory', 'latency']
-                    })
-                });
-                
-                if (diagnosticsData && diagnosticsData.status === 'success') {
-                    return diagnosticsData.results;
+                const response = await apiRequest('/api/v1/data-science/decomposition?column=snow_water_equivalent_mm');
+                if (response.success) {
+                    displayDecompositionChart(response.results);
                 }
             } catch (error) {
-                console.warn('Diagnostic API not available, using simulated results:', error);
+                console.error('Decomposition analysis failed:', error);
+            }
+        }
+
+        function displayDecompositionChart(results) {
+            const container = document.getElementById('decomposition-chart');
+            if (!results || !results.stl_decomposition) {
+                container.innerHTML = '<div class="text-center text-muted pt-5">No decomposition data</div>';
+                return;
             }
             
-            // Simulate diagnostic results if API is not available
-            const simulatedResults = {
-                overall_health: Math.random() > 0.15 ? 'Healthy' : 'Warning',
-                performance_tests: {
-                    accuracy_test: { status: 'PASS', score: 0.885, threshold: 0.80 },
-                    consistency_test: { status: 'PASS', variance: 0.012, threshold: 0.05 },
-                    speed_test: { status: 'PASS', avg_latency: 243, threshold: 500 }
-                },
-                stability_tests: {
-                    memory_usage: { status: 'PASS', usage_mb: 1247, limit_mb: 2048 },
-                    error_rate: { status: 'PASS', rate: 0.003, threshold: 0.01 },
-                    uptime: { status: 'PASS', uptime_hours: 168, target_hours: 24 }
-                },
-                recommendations: [
-                    'Model performance is within acceptable limits',
-                    'Consider retraining if accuracy drops below 85%',
-                    'Monitor prediction latency during peak usage'
-                ]
+            container.innerHTML = '';
+            
+            const chartContainer = document.createElement('div');
+            chartContainer.style.height = '200px';
+            chartContainer.style.width = '100%';
+            chartContainer.style.overflow = 'hidden';
+            chartContainer.style.position = 'relative';
+            container.appendChild(chartContainer);
+            
+            const stl = results.stl_decomposition;
+            const trendData = stl.trend?.values || [];
+            const seasonalData = stl.seasonal?.values || [];
+            const residualData = stl.resid?.values || [];
+            const timestamps = stl.trend?.index || Array.from({length: trendData.length}, (_, i) => `T${i}`);
+            
+            if (trendData.length === 0) {
+                container.innerHTML = '<div class="text-center text-danger pt-5">No valid chart data</div>';
+                return;
+            }
+            
+            // Create responsive canvas
+            const canvas = document.createElement('canvas');
+            canvas.style.width = '100%';
+            canvas.style.height = '100%';
+            canvas.style.maxWidth = '100%';
+            chartContainer.appendChild(canvas);
+            
+            // Set canvas size based on container
+            const resizeCanvas = () => {
+                const rect = chartContainer.getBoundingClientRect();
+                canvas.width = rect.width;
+                canvas.height = rect.height;
+                drawChart();
             };
             
-            return simulatedResults;
-        }
-        
-        // Display diagnostic results
-        function displayDiagnosticResults(results) {
-            const overallStatus = results.overall_health;
-            const statusClass = overallStatus.toLowerCase() === 'healthy' ? 'success' : 'warning';
+            // Initial resize
+            setTimeout(resizeCanvas, 100);
             
-            // Count passed and failed tests
-            const allTests = { ...results.performance_tests, ...results.stability_tests };
-            const passedTests = Object.values(allTests).filter(test => test.status === 'PASS').length;
-            const totalTests = Object.values(allTests).length;
+            // Resize on window resize
+            window.addEventListener('resize', resizeCanvas);
             
-            // Create diagnostic results HTML
-            const diagnosticHtml = `
-                <div class="alert alert-${statusClass}" style="margin-top: 1rem;">
-                    <h4><i class="fas fa-stethoscope"></i> Model Diagnostic Results</h4>
-                    <div style="margin: 1rem 0;">
-                        <strong>Overall Health:</strong> 
-                        <span style="color: ${statusClass === 'success' ? '#27ae60' : '#f39c12'}; font-weight: bold;">
-                            ${overallStatus}
-                        </span>
-                        <span style="margin-left: 1rem;">Tests Passed: <strong>${passedTests}/${totalTests}</strong></span>
-                    </div>
+            function drawChart() {
+                const ctx = canvas.getContext('2d');
+                const width = canvas.width;
+                const height = canvas.height;
+                
+                // Clear canvas
+                ctx.clearRect(0, 0, width, height);
+                
+                // Background
+                ctx.fillStyle = '#f8f9fa';
+                ctx.fillRect(0, 0, width, height);
+                
+                // Draw trend line
+                if (trendData.length > 0) {
+                    ctx.strokeStyle = '#e74c3c';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
                     
-                    <div class="two-column-grid" style="margin: 1rem 0;">
-                        <div>
-                            <h5><i class="fas fa-chart-line"></i> Performance Tests</h5>
-                            <ul style="margin: 0.5rem 0; font-size: 0.9rem;">
-                                <li>Accuracy: <span style="color: ${results.performance_tests.accuracy_test.status === 'PASS' ? '#27ae60' : '#e74c3c'};">✓</span> ${(results.performance_tests.accuracy_test.score * 100).toFixed(1)}%</li>
-                                <li>Consistency: <span style="color: ${results.performance_tests.consistency_test.status === 'PASS' ? '#27ae60' : '#e74c3c'};">✓</span> σ=${results.performance_tests.consistency_test.variance.toFixed(3)}</li>
-                                <li>Speed: <span style="color: ${results.performance_tests.speed_test.status === 'PASS' ? '#27ae60' : '#e74c3c'};">✓</span> ${results.performance_tests.speed_test.avg_latency}ms avg</li>
-                            </ul>
-                        </div>
+                    const stepX = width / (trendData.length - 1);
+                    const maxY = Math.max(...trendData);
+                    const minY = Math.min(...trendData);
+                    const rangeY = maxY - minY || 1;
+                    
+                    trendData.forEach((value, index) => {
+                        const x = index * stepX;
+                        const y = height - ((value - minY) / rangeY) * height;
                         
-                        <div>
-                            <h5><i class="fas fa-server"></i> Stability Tests</h5>
-                            <ul style="margin: 0.5rem 0; font-size: 0.9rem;">
-                                <li>Memory: <span style="color: ${results.stability_tests.memory_usage.status === 'PASS' ? '#27ae60' : '#e74c3c'};">✓</span> ${results.stability_tests.memory_usage.usage_mb}MB used</li>
-                                <li>Error Rate: <span style="color: ${results.stability_tests.error_rate.status === 'PASS' ? '#27ae60' : '#e74c3c'};">✓</span> ${(results.stability_tests.error_rate.rate * 100).toFixed(2)}%</li>
-                                <li>Uptime: <span style="color: ${results.stability_tests.uptime.status === 'PASS' ? '#27ae60' : '#e74c3c'};">✓</span> ${results.stability_tests.uptime.uptime_hours}h</li>
-                            </ul>
-                        </div>
-                    </div>
+                        if (index === 0) {
+                            ctx.moveTo(x, y);
+                        } else {
+                            ctx.lineTo(x, y);
+                        }
+                    });
                     
-                    <div style="margin-top: 1rem; padding: 1rem; background: rgba(255,255,255,0.7); border-radius: 8px;">
-                        <h6><i class="fas fa-lightbulb"></i> Recommendations</h6>
-                        <ul style="margin: 0.5rem 0; font-size: 0.9rem;">
-                            ${results.recommendations.map(rec => `<li>${rec}</li>`).join('')}
-                        </ul>
-                    </div>
+                    ctx.stroke();
                     
-                    <div style="margin-top: 1rem; font-size: 0.85rem; color: #666;">
-                        <i class="fas fa-clock"></i> Diagnostic completed at ${new Date().toLocaleString()}
+                    // Add title
+                    ctx.fillStyle = '#2c3e50';
+                    ctx.font = '14px Arial';
+                    ctx.fillText('Time Series Decomposition - Trend', 10, 20);
+                    
+                    // Add axis labels
+                    ctx.font = '10px Arial';
+                    ctx.fillText('Time', width / 2, height - 5);
+                    ctx.save();
+                    ctx.translate(10, height / 2);
+                    ctx.rotate(-Math.PI / 2);
+                    ctx.fillText('Value', 0, 0);
+                    ctx.restore();
+                }
+            }
+            
+            // Add interpretation below the chart
+            const interpretationDiv = document.createElement('div');
+            interpretationDiv.style.marginTop = '15px';
+            interpretationDiv.style.padding = '15px';
+            interpretationDiv.style.backgroundColor = '#f8f9fa';
+            interpretationDiv.style.borderRadius = '8px';
+            interpretationDiv.style.border = '1px solid #dee2e6';
+            
+            // Calculate statistics for interpretation
+            const maxY = Math.max(...trendData);
+            const minY = Math.min(...trendData);
+            const trendStrength = Math.abs(maxY - minY);
+            const trendDirection = trendData[trendData.length - 1] > trendData[0] ? '上升' : '下降';
+            const trendChange = ((trendData[trendData.length - 1] - trendData[0]) / Math.abs(trendData[0])) * 100;
+            const volatility = Math.sqrt(trendData.reduce((sum, val, i) => sum + Math.pow(val - (trendData[i-1] || val), 2), 0) / trendData.length);
+            
+            // Determine hydrological trend significance
+            let trendSignificance = '';
+            if (Math.abs(trendChange) > 20) trendSignificance = '强烈';
+            else if (Math.abs(trendChange) > 10) trendSignificance = '明显';
+            else if (Math.abs(trendChange) > 5) trendSignificance = '温和';
+            else trendSignificance = '轻微';
+            
+            // Determine seasonal pattern for snow water equivalent
+            let seasonalPattern = '';
+            if (seasonalData.length > 0) {
+                const seasonalStrength = Math.max(...seasonalData) - Math.min(...seasonalData);
+                if (seasonalStrength > trendStrength * 0.5) seasonalPattern = '季节性主导';
+                else if (seasonalStrength > trendStrength * 0.2) seasonalPattern = '季节性明显';
+                else seasonalPattern = '季节性较弱';
+            }
+            
+            // Determine hydrological implications
+            let hydrologicalImplications = '';
+            if (trendDirection === '上升') {
+                if (trendChange > 15) hydrologicalImplications = '雪水当量显著增加，可能影响春季融雪洪水风险';
+                else if (trendChange > 8) hydrologicalImplications = '雪水当量增加，有利于水资源储备';
+                else hydrologicalImplications = '雪水当量轻微增加，变化在正常范围内';
+            } else {
+                if (Math.abs(trendChange) > 15) hydrologicalImplications = '雪水当量显著减少，可能影响干旱风险';
+                else if (Math.abs(trendChange) > 8) hydrologicalImplications = '雪水当量减少，需要关注水资源管理';
+                else hydrologicalImplications = '雪水当量轻微减少，变化在正常范围内';
+            }
+            
+            // Determine monitoring recommendations
+            let monitoringRecommendations = '';
+            if (volatility > trendStrength * 0.4) {
+                monitoringRecommendations = '建议增加监测频率，关注极端天气事件影响';
+            } else if (trendStrength > 10) {
+                monitoringRecommendations = '变化趋势明显，建议加强预测模型建设';
+            } else {
+                monitoringRecommendations = '变化相对稳定，可维持现有监测方案';
+            }
+            
+            interpretationDiv.innerHTML = `
+                <h6 class="mb-2"><i class="fas fa-chart-line text-primary"></i> 雪水当量时间序列分解 - 水文专业解读</h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>水文趋势：</strong>${trendSignificance}${trendDirection}趋势，总体变化${trendChange > 0 ? '+' : ''}${trendChange.toFixed(1)}%</p>
+                        <p><strong>季节性特征：</strong>${seasonalPattern}，${seasonalData.length > 0 ? '融雪期和积雪期变化明显' : '季节性变化不明显'}</p>
+                        <p><strong>数值范围：</strong>${minY.toFixed(1)}-${maxY.toFixed(1)}mm，中位数${trendData.sort((a,b)=>a-b)[Math.floor(trendData.length/2)].toFixed(1)}mm</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>水文影响：</strong>${hydrologicalImplications}</p>
+                        <p><strong>数据稳定性：</strong>标准差${volatility.toFixed(2)}mm，${volatility > trendStrength * 0.3 ? '波动较大，需关注异常值' : '相对稳定，数据可靠'}</p>
+                        <p><strong>监测建议：</strong>${monitoringRecommendations}</p>
                     </div>
                 </div>
             `;
             
-            // Show diagnostic results notification
-            showDiagnosticModal(diagnosticHtml);
-            
-            // Also show a brief notification
-            const message = overallStatus === 'Healthy' ? 
-                `All diagnostic tests passed (${passedTests}/${totalTests})` : 
-                `Diagnostics completed with warnings (${passedTests}/${totalTests} tests passed)`;
-            showNotification(message, statusClass);
+            container.appendChild(interpretationDiv);
         }
         
-        // Show diagnostic results in a modal-like notification
-        function showDiagnosticModal(htmlContent) {
-            // Create modal overlay
-            const modalOverlay = document.createElement('div');
-            modalOverlay.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: rgba(0, 0, 0, 0.5);
-                z-index: 10000;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                backdrop-filter: blur(5px);
-            `;
+        // Anomaly Detection
+        async function loadAnomalyDetection() {
+            try {
+                const response = await apiRequest('/api/v1/data-science/anomaly-detection?column=snow_water_equivalent_mm');
+                if (response.success) {
+                    displayAnomalyChart(response.results);
+                }
+            } catch (error) {
+                console.error('Anomaly detection failed:', error);
+            }
+        }
+
+        function displayAnomalyChart(results) {
+            const container = document.getElementById('anomaly-chart');
+            if (!results || !results.ensemble) {
+                container.innerHTML = '<div class="text-center text-muted pt-5">No anomaly data</div>';
+                return;
+            }
             
-            // Create modal content
-            const modalContent = document.createElement('div');
-            modalContent.style.cssText = `
-                background: white;
-                border-radius: 16px;
-                max-width: 800px;
-                max-height: 80vh;
-                overflow-y: auto;
-                margin: 2rem;
-                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            `;
+            container.innerHTML = '';
             
-            // Add close button and content
-            modalContent.innerHTML = `
-                <div style="padding: 1.5rem; position: relative;">
-                    <button onclick="this.closest('.modal-overlay').remove()" 
-                            style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #666;">
-                        <i class="fas fa-times"></i>
-                    </button>
-                    ${htmlContent}
+            const chartContainer = document.createElement('div');
+            chartContainer.style.height = '200px';
+            chartContainer.style.width = '100%';
+            chartContainer.style.overflow = 'hidden';
+            chartContainer.style.position = 'relative';
+            container.appendChild(chartContainer);
+            
+            const ens = results.ensemble;
+            const scores = ens.ensemble_scores || ens.scores || [];
+            
+            if (scores.length === 0) {
+                container.innerHTML = '<div class="text-center text-danger pt-5">No valid anomaly data</div>';
+                return;
+            }
+            
+            // Create responsive canvas
+            const canvas = document.createElement('canvas');
+            canvas.style.width = '100%';
+            canvas.style.height = '100%';
+            canvas.style.maxWidth = '100%';
+            chartContainer.appendChild(canvas);
+            
+            // Set canvas size based on container
+            const resizeCanvas = () => {
+                const rect = chartContainer.getBoundingClientRect();
+                canvas.width = rect.width;
+                canvas.height = rect.height;
+                drawChart();
+            };
+            
+            // Initial resize
+            setTimeout(resizeCanvas, 100);
+            
+            // Resize on window resize
+            window.addEventListener('resize', resizeCanvas);
+            
+            function drawChart() {
+                const ctx = canvas.getContext('2d');
+                const width = canvas.width;
+                const height = canvas.height;
+                
+                // Clear canvas
+                ctx.clearRect(0, 0, width, height);
+                
+                // Background
+                ctx.fillStyle = '#f8f9fa';
+                ctx.fillRect(0, 0, width, height);
+                
+                // Draw anomaly scores
+                if (scores.length > 0) {
+                    ctx.strokeStyle = '#34495e';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    
+                    const stepX = width / (scores.length - 1);
+                    const maxY = Math.max(...scores);
+                    const minY = Math.min(...scores);
+                    const rangeY = maxY - minY || 1;
+                    
+                    scores.forEach((value, index) => {
+                        const x = index * stepX;
+                        const y = height - ((value - minY) / rangeY) * height;
+                        
+                        if (index === 0) {
+                            ctx.moveTo(x, y);
+                        } else {
+                            ctx.lineTo(x, y);
+                        }
+                    });
+                    
+                    ctx.stroke();
+                    
+                    // Add title
+                    ctx.fillStyle = '#2c3e50';
+                    ctx.font = '16px Arial';
+                    ctx.fillText('Anomaly Detection Scores', 10, 30);
+                    
+                    // Add axis labels
+                    ctx.font = '12px Arial';
+                    ctx.fillText('Time', width / 2, height - 10);
+                    ctx.save();
+                    ctx.translate(10, height / 2);
+                    ctx.rotate(-Math.PI / 2);
+                    ctx.fillText('Score', 0, 0);
+                    ctx.restore();
+                }
+            }
+            
+            // Add interpretation below the chart
+            const interpretationDiv = document.createElement('div');
+            interpretationDiv.style.marginTop = '15px';
+            interpretationDiv.style.padding = '15px';
+            interpretationDiv.style.backgroundColor = '#f8f9fa';
+            interpretationDiv.style.borderRadius = '8px';
+            interpretationDiv.style.border = '1px solid #dee2e6';
+            
+            const maxScore = Math.max(...scores);
+            const minScore = Math.min(...scores);
+            const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length;
+            const anomalyThreshold = avgScore + (maxScore - avgScore) * 0.8;
+            const anomalyCount = scores.filter(s => s > anomalyThreshold).length;
+            const stdDev = Math.sqrt(scores.reduce((sum, score) => sum + Math.pow(score - avgScore, 2), 0) / scores.length);
+            const extremeAnomalies = scores.filter(s => s > avgScore + 2 * stdDev).length;
+            
+            // Determine hydrological anomaly level
+            let anomalyLevel = '';
+            const anomalyRate = (anomalyCount / scores.length) * 100;
+            if (anomalyRate > 10) anomalyLevel = '异常情况严重';
+            else if (anomalyRate > 5) anomalyLevel = '异常情况较多';
+            else if (anomalyRate > 2) anomalyLevel = '异常情况适中';
+            else anomalyLevel = '异常情况较少';
+            
+            // Determine hydrological implications
+            let hydrologicalImplications = '';
+            if (anomalyRate > 8) {
+                hydrologicalImplications = '雪水当量异常波动频繁，可能受极端天气事件影响';
+            } else if (anomalyRate > 4) {
+                hydrologicalImplications = '雪水当量存在异常变化，需要关注气候变化影响';
+            } else {
+                hydrologicalImplications = '雪水当量变化相对正常，符合季节性规律';
+            }
+            
+            // Determine monitoring urgency
+            let monitoringUrgency = '';
+            if (extremeAnomalies > scores.length * 0.05) {
+                monitoringUrgency = '极值异常较多，建议立即检查传感器和数据处理';
+            } else if (anomalyRate > 5) {
+                monitoringUrgency = '异常比例较高，建议增加监测频率和验证';
+            } else {
+                monitoringUrgency = '异常情况较少，可维持正常监测频率';
+            }
+            
+            // Determine climate impact assessment
+            let climateImpact = '';
+            if (stdDev > Math.abs(avgScore) * 0.4) {
+                climateImpact = '数据波动极大，可能反映气候变化或极端事件影响';
+            } else if (stdDev > Math.abs(avgScore) * 0.2) {
+                climateImpact = '数据波动较大，需要关注气候变化趋势';
+            } else {
+                climateImpact = '数据相对稳定，气候变化影响较小';
+            }
+            
+            interpretationDiv.innerHTML = `
+                <h6 class="mb-2"><i class="fas fa-exclamation-triangle text-warning"></i> 雪水当量异常检测 - 水文专业解读</h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>异常程度：</strong>${anomalyLevel}，异常比例${anomalyRate.toFixed(1)}%</p>
+                        <p><strong>水文影响：</strong>${hydrologicalImplications}</p>
+                        <p><strong>极值异常：</strong>${extremeAnomalies}个极值点，${monitoringUrgency}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>气候变化：</strong>${climateImpact}，标准差${stdDev.toFixed(3)}</p>
+                        <p><strong>检测阈值：</strong>${anomalyThreshold.toFixed(3)}，基于${avgScore.toFixed(3)}平均值</p>
+                        <p><strong>监测建议：</strong>${anomalyRate > 5 ? '建议深入分析异常原因，关注气候变化影响' : '数据质量良好，可正常用于水文预测'}</p>
+                    </div>
                 </div>
             `;
             
-            modalOverlay.className = 'modal-overlay';
-            modalOverlay.appendChild(modalContent);
-            document.body.appendChild(modalOverlay);
-            
-            // Close modal when clicking outside
-            modalOverlay.addEventListener('click', function(e) {
-                if (e.target === modalOverlay) {
-                    modalOverlay.remove();
+            container.appendChild(interpretationDiv);
+        }
+        
+        // Clustering Analysis
+        async function loadClusteringAnalysis() {
+            try {
+                const response = await apiRequest('/api/v1/data-science/clustering');
+                if (response.success) {
+                    displayClusteringChart(response.results);
                 }
+            } catch (error) {
+                console.error('Clustering analysis failed:', error);
+            }
+        }
+
+        function displayClusteringChart(results) {
+            const container = document.getElementById('clustering-chart');
+            if (!results || !results.kmeans) {
+                container.innerHTML = '<div class="text-center text-muted pt-5">No clustering data</div>';
+                return;
+            }
+            
+            container.innerHTML = '';
+            
+            const chartContainer = document.createElement('div');
+            chartContainer.style.height = '200px';
+            chartContainer.style.width = '100%';
+            chartContainer.style.overflow = 'hidden';
+            chartContainer.style.position = 'relative';
+            container.appendChild(chartContainer);
+            
+            const labels = results.kmeans.labels || [];
+            const counts = {};
+            labels.forEach(l => {
+                const k = String(l);
+                counts[k] = (counts[k] || 0) + 1;
             });
             
-            // Auto-remove after 30 seconds
-            setTimeout(() => {
-                if (modalOverlay.parentNode) {
-                    modalOverlay.remove();
-                }
-            }, 30000);
+            if (Object.keys(counts).length === 0) {
+                container.innerHTML = '<div class="text-center text-danger pt-5">No valid clustering data</div>';
+                return;
+            }
+            
+            // Create responsive canvas
+            const canvas = document.createElement('canvas');
+            canvas.style.width = '100%';
+            canvas.style.height = '100%';
+            canvas.style.maxWidth = '100%';
+            chartContainer.appendChild(canvas);
+            
+            // Set canvas size based on container
+            const resizeCanvas = () => {
+                const rect = chartContainer.getBoundingClientRect();
+                canvas.width = rect.width;
+                canvas.height = rect.height;
+                drawChart();
+            };
+            
+            // Initial resize
+            setTimeout(resizeCanvas, 100);
+            
+            // Resize on window resize
+            window.addEventListener('resize', resizeCanvas);
+            
+            function drawChart() {
+                const ctx = canvas.getContext('2d');
+                const width = canvas.width;
+                const height = canvas.height;
+                
+                // Clear canvas
+                ctx.clearRect(0, 0, width, height);
+                
+                // Background
+                ctx.fillStyle = '#f8f9fa';
+                ctx.fillRect(0, 0, width, height);
+                
+                // Create simple pie chart visualization
+                const centerX = width / 2;
+                const centerY = height / 2;
+                const radius = Math.min(centerX, centerY) * 0.6;
+                
+                const colors = ['#3498db', '#2ecc71', '#f39c12', '#e74c3c', '#9b59b6'];
+                const total = Object.values(counts).reduce((a, b) => a + b, 0);
+                
+                let currentAngle = 0;
+                Object.entries(counts).forEach(([cluster, count], index) => {
+                    const sliceAngle = (count / total) * 2 * Math.PI;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(centerX, centerY);
+                    ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
+                    ctx.closePath();
+                    
+                    ctx.fillStyle = colors[index % colors.length];
+                    ctx.fill();
+                    
+                    currentAngle += sliceAngle;
+                });
+                
+                // Add title
+                ctx.fillStyle = '#2c3e50';
+                ctx.font = '14px Arial';
+                ctx.fillText('Clustering Analysis - K-Means', 10, 20);
+            }
+            
+            // Add interpretation below the chart
+            const interpretationDiv = document.createElement('div');
+            interpretationDiv.style.marginTop = '15px';
+            interpretationDiv.style.padding = '15px';
+            interpretationDiv.style.backgroundColor = '#f8f9fa';
+            interpretationDiv.style.borderRadius = '8px';
+            interpretationDiv.style.border = '1px solid #dee2e6';
+            
+            const total = Object.values(counts).reduce((a, b) => a + b, 0);
+            const clusterCount = Object.keys(counts).length;
+            const largestCluster = Math.max(...Object.values(counts));
+            const smallestCluster = Math.min(...Object.values(counts));
+            const clusterSizes = Object.values(counts).sort((a, b) => b - a);
+            const balanceRatio = (largestCluster - smallestCluster) / total;
+            
+            // Determine hydrological clustering quality
+            let clusteringQuality = '';
+            if (balanceRatio < 0.1) clusteringQuality = '聚类非常均衡';
+            else if (balanceRatio < 0.2) clusteringQuality = '聚类相对均衡';
+            else if (balanceRatio < 0.3) clusteringQuality = '聚类不够均衡';
+            else clusteringQuality = '聚类严重失衡';
+            
+            // Determine hydrological pattern types
+            let hydrologicalPatterns = '';
+            if (clusterCount === 2) {
+                hydrologicalPatterns = '可能反映积雪期和融雪期两种主要状态';
+            } else if (clusterCount === 3) {
+                hydrologicalPatterns = '可能反映积雪期、融雪期和过渡期三种状态';
+            } else if (clusterCount === 4) {
+                hydrologicalPatterns = '可能反映不同季节和天气条件下的雪水当量状态';
+            } else {
+                hydrologicalPatterns = '反映了复杂的雪水当量变化模式';
+            }
+            
+            // Determine seasonal interpretation
+            let seasonalInterpretation = '';
+            if (balanceRatio < 0.15) {
+                seasonalInterpretation = '各季节雪水当量变化相对均衡，季节性明显';
+            } else if (balanceRatio < 0.25) {
+                seasonalInterpretation = '存在明显的季节性差异，但变化相对规律';
+            } else {
+                seasonalInterpretation = '季节性差异显著，可能存在极端天气影响';
+            }
+            
+            // Calculate cluster diversity
+            const avgClusterSize = total / clusterCount;
+            const diverseClusters = clusterSizes.filter(size => Math.abs(size - avgClusterSize) < avgClusterSize * 0.5).length;
+            
+            // Determine hydrological applications
+            let hydrologicalApplications = '';
+            if (balanceRatio < 0.2 && clusterCount <= 4) {
+                hydrologicalApplications = '聚类结果可靠，可用于季节性预测和水资源管理';
+            } else if (balanceRatio < 0.3) {
+                hydrologicalApplications = '聚类结果可用，建议结合其他方法进行验证';
+            } else {
+                hydrologicalApplications = '聚类结果需要优化，建议调整参数或增加数据';
+            }
+            
+            interpretationDiv.innerHTML = `
+                <h6 class="mb-2"><i class="fas fa-sitemap text-info"></i> 雪水当量聚类分析 - 水文专业解读</h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>聚类质量：</strong>${clusteringQuality}，平衡度${(balanceRatio * 100).toFixed(1)}%</p>
+                        <p><strong>水文模式：</strong>${hydrologicalPatterns}</p>
+                        <p><strong>季节性特征：</strong>${seasonalInterpretation}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>聚类分布：</strong>最大聚类${largestCluster}个点(${((largestCluster/total)*100).toFixed(1)}%)，最小聚类${smallestCluster}个点</p>
+                        <p><strong>数据覆盖：</strong>${total}个数据点，平均每类${avgClusterSize.toFixed(0)}个点</p>
+                        <p><strong>应用价值：</strong>${hydrologicalApplications}</p>
+                    </div>
+                </div>
+            `;
+            
+            container.appendChild(interpretationDiv);
         }
+        
+        // Statistical Tests
+        async function loadStatisticalTests() {
+            try {
+                const response = await apiRequest('/api/v1/data-science/statistical-tests?column=snow_water_equivalent_mm');
+                if (response.success) {
+                    displayStatisticalChart(response.results);
+                }
+            } catch (error) {
+                console.error('Statistical tests failed:', error);
+            }
+        }
+
+        function displayStatisticalChart(results) {
+            const container = document.getElementById('statistical-chart');
+            if (!results || !results.raw) {
+                container.innerHTML = '<div class="text-center text-muted pt-5">No statistical test data</div>';
+                return;
+            }
+            
+            container.innerHTML = '';
+            
+            const chartContainer = document.createElement('div');
+            chartContainer.style.height = '200px';
+            chartContainer.style.width = '100%';
+            chartContainer.style.overflow = 'hidden';
+            chartContainer.style.position = 'relative';
+            container.appendChild(chartContainer);
+            
+            const tests = results.raw || [];
+            if (tests.length === 0) {
+                container.innerHTML = '<div class="text-center text-danger pt-5">No valid statistical test data</div>';
+                return;
+            }
+            
+            // Create responsive canvas
+            const canvas = document.createElement('canvas');
+            canvas.style.width = '100%';
+            canvas.style.height = '100%';
+            canvas.style.maxWidth = '100%';
+            chartContainer.appendChild(canvas);
+            
+            // Set canvas size based on container
+            const resizeCanvas = () => {
+                const rect = chartContainer.getBoundingClientRect();
+                canvas.width = rect.width;
+                canvas.height = rect.height;
+                drawChart();
+            };
+            
+            // Initial resize
+            setTimeout(resizeCanvas, 100);
+            
+            // Resize on window resize
+            window.addEventListener('resize', resizeCanvas);
+            
+            function drawChart() {
+                const ctx = canvas.getContext('2d');
+                const width = canvas.width;
+                const height = canvas.height;
+                
+                // Clear canvas
+                ctx.clearRect(0, 0, width, height);
+                
+                // Background
+                ctx.fillStyle = '#f8f9fa';
+                ctx.fillRect(0, 0, width, height);
+                
+                const names = tests.map(t => t.test_name || 'Test');
+                const pValues = tests.map(t => t.p_value || 0);
+                
+                if (pValues.length > 0) {
+                    const barWidth = width / pValues.length * 0.8;
+                    const barSpacing = width / pValues.length * 0.2;
+                    const maxPValue = Math.max(...pValues);
+                    
+                    pValues.forEach((pValue, index) => {
+                        const x = index * (barWidth + barSpacing) + barSpacing / 2;
+                        const barHeight = (pValue / maxPValue) * height * 0.8;
+                        const y = height - barHeight - 20;
+                        
+                        ctx.fillStyle = '#3498db';
+                        ctx.fillRect(x, y, barWidth, barHeight);
+                    });
+                    
+                    // Add title
+                    ctx.fillStyle = '#2c3e50';
+                    ctx.font = '14px Arial';
+                    ctx.fillText('Statistical Tests - P-Values', 10, 20);
+                }
+            }
+            
+            // Add interpretation below the chart
+            const interpretationDiv = document.createElement('div');
+            interpretationDiv.style.marginTop = '15px';
+            interpretationDiv.style.padding = '15px';
+            interpretationDiv.style.backgroundColor = '#f8f9fa';
+            interpretationDiv.style.borderRadius = '8px';
+            interpretationDiv.style.border = '1px solid #dee2e6';
+            
+            const significantTests = tests.filter(t => (t.p_value || 1) < 0.05).length;
+            const totalTests = tests.length;
+            const avgPValue = tests.reduce((sum, t) => sum + (t.p_value || 1), 0) / totalTests;
+            const verySignificant = tests.filter(t => (t.p_value || 1) < 0.01).length;
+            const testNames = tests.map(t => t.test_name || 'Unknown').join('、');
+            
+            // Determine hydrological statistical significance
+            let overallSignificance = '';
+            const significanceRate = (significantTests / totalTests) * 100;
+            if (significanceRate > 80) overallSignificance = '统计显著性极高';
+            else if (significanceRate > 60) overallSignificance = '统计显著性较高';
+            else if (significanceRate > 40) overallSignificance = '统计显著性中等';
+            else overallSignificance = '统计显著性较低';
+            
+            // Determine hydrological data quality
+            let dataQuality = '';
+            if (avgPValue < 0.1) dataQuality = '雪水当量数据质量优秀';
+            else if (avgPValue < 0.3) dataQuality = '雪水当量数据质量良好';
+            else if (avgPValue < 0.5) dataQuality = '雪水当量数据质量一般';
+            else dataQuality = '雪水当量数据质量较差';
+            
+            // Determine hydrological test reliability
+            let testReliability = '';
+            if (verySignificant > significantTests * 0.5) testReliability = '高度可靠';
+            else if (verySignificant > significantTests * 0.3) testReliability = '较为可靠';
+            else testReliability = '可靠性一般';
+            
+            // Determine hydrological implications
+            let hydrologicalImplications = '';
+            if (significanceRate > 70) {
+                hydrologicalImplications = '统计结果高度可靠，可用于雪水当量预测模型';
+            } else if (significanceRate > 50) {
+                hydrologicalImplications = '统计结果较为可靠，可用于季节性预测';
+            } else {
+                hydrologicalImplications = '统计结果可靠性较低，需要更多数据或调整方法';
+            }
+            
+            // Determine seasonal stationarity
+            let seasonalStationarity = '';
+            const stationarityTest = tests.find(t => t.test_name && t.test_name.includes('stationarity'));
+            if (stationarityTest && (stationarityTest.p_value || 1) < 0.05) {
+                seasonalStationarity = '时间序列平稳，季节性变化规律明显';
+            } else if (stationarityTest) {
+                seasonalStationarity = '时间序列非平稳，存在趋势性变化';
+            } else {
+                seasonalStationarity = '平稳性检验结果不明确';
+            }
+            
+            interpretationDiv.innerHTML = `
+                <h6 class="mb-2"><i class="fas fa-chart-bar text-success"></i> 雪水当量统计检验 - 水文专业解读</h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>统计显著性：</strong>${overallSignificance}，${significanceRate.toFixed(1)}%的测试显著</p>
+                        <p><strong>数据质量：</strong>${dataQuality}，平均P值${avgPValue.toFixed(3)}</p>
+                        <p><strong>季节性特征：</strong>${seasonalStationarity}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>检验类型：</strong>${testNames}</p>
+                        <strong>高度显著：</strong>${verySignificant}个测试(p<0.01)，可靠性${testReliability}</p>
+                        <p><strong>水文应用：</strong>${hydrologicalImplications}</p>
+                    </div>
+                </div>
+            `;
+            
+            container.appendChild(interpretationDiv);
+        }
+        
+        // Factor Discovery
+        async function loadFactorDiscovery() {
+            try {
+                const response = await apiRequest('/api/v1/data-science/factor-discovery');
+                if (response.success) {
+                    displayFactorsChart(response.results);
+                }
+            } catch (error) {
+                console.error('Factor discovery failed:', error);
+            }
+        }
+
+        function displayFactorsChart(results) {
+            const container = document.getElementById('factors-chart');
+            if (!results || !results.high_predictive) {
+                container.innerHTML = '<div class="text-center text-muted pt-5">No factors data</div>';
+                return;
+            }
+            
+            container.innerHTML = '';
+            
+            const chartContainer = document.createElement('div');
+            chartContainer.style.height = '200px';
+            chartContainer.style.width = '100%';
+            chartContainer.style.overflow = 'hidden';
+            chartContainer.style.position = 'relative';
+            container.appendChild(chartContainer);
+            
+            const factors = results.high_predictive || [];
+            if (factors.length === 0) {
+                container.innerHTML = '<div class="text-center text-danger pt-5">No valid factors data</div>';
+                return;
+            }
+            
+            // Create responsive canvas
+            const canvas = document.createElement('canvas');
+            canvas.style.width = '100%';
+            canvas.style.height = '100%';
+            canvas.style.maxWidth = '100%';
+            chartContainer.appendChild(canvas);
+            
+            // Set canvas size based on container
+            const resizeCanvas = () => {
+                const rect = chartContainer.getBoundingClientRect();
+                canvas.width = rect.width;
+                canvas.height = rect.height;
+                drawChart();
+            };
+            
+            // Initial resize
+            setTimeout(resizeCanvas, 100);
+            
+            // Resize on window resize
+            window.addEventListener('resize', resizeCanvas);
+            
+            function drawChart() {
+                const ctx = canvas.getContext('2d');
+                const width = canvas.width;
+                const height = canvas.height;
+                
+                // Clear canvas
+                ctx.clearRect(0, 0, width, height);
+                
+                // Background
+                ctx.fillStyle = '#f8f9fa';
+                ctx.fillRect(0, 0, width, height);
+                
+                const names = factors.map(item => item.factor || 'Factor');
+                const scores = factors.map(item => item.score || 0);
+                
+                if (scores.length > 0) {
+                    const maxScore = Math.max(...scores);
+                    const barHeight = height / scores.length * 0.6;
+                    const barSpacing = height / scores.length * 0.4;
+                    
+                    scores.forEach((score, index) => {
+                        const y = index * (barHeight + barSpacing) + barSpacing / 2;
+                        const barWidth = (score / maxScore) * width * 0.8;
+                        const x = 20;
+                        
+                        ctx.fillStyle = '#9b59b6';
+                        ctx.fillRect(x, y, barWidth, barHeight);
+                        
+                        // Add text label
+                        ctx.fillStyle = '#2c3e50';
+                        ctx.font = '10px Arial';
+                        ctx.fillText(names[index], x + barWidth + 10, y + barHeight / 2 + 4);
+                    });
+                    
+                    // Add title
+                    ctx.fillStyle = '#2c3e50';
+                    ctx.font = '14px Arial';
+                    ctx.fillText('Factor Discovery - Predictive Factors', 10, 20);
+                }
+            }
+            
+            // Add interpretation below the chart
+            const interpretationDiv = document.createElement('div');
+            interpretationDiv.style.marginTop = '15px';
+            interpretationDiv.style.padding = '15px';
+            interpretationDiv.style.backgroundColor = '#f8f9fa';
+            interpretationDiv.style.borderRadius = '8px';
+            interpretationDiv.style.border = '1px solid #dee2e6';
+            
+            const topFactor = factors[0];
+            const avgScore = factors.reduce((sum, f) => sum + (f.score || 0), 0) / factors.length;
+            const highScoreFactors = factors.filter(f => (f.score || 0) > avgScore).length;
+            const scoreRange = Math.max(...factors.map(f => f.score || 0)) - Math.min(...factors.map(f => f.score || 0));
+            const topFactors = factors.slice(0, 3).map(f => f.factor).join('、');
+            
+            // Determine hydrological factor quality
+            let factorQuality = '';
+            if (avgScore > 0.8) factorQuality = '雪水当量预测因子质量极高';
+            else if (avgScore > 0.6) factorQuality = '雪水当量预测因子质量较高';
+            else if (avgScore > 0.4) factorQuality = '雪水当量预测因子质量中等';
+            else factorQuality = '雪水当量预测因子质量较低';
+            
+            // Determine hydrological predictive power
+            let predictivePower = '';
+            if (highScoreFactors > factors.length * 0.7) predictivePower = '雪水当量预测能力很强';
+            else if (highScoreFactors > factors.length * 0.5) predictivePower = '雪水当量预测能力较强';
+            else if (highScoreFactors > factors.length * 0.3) predictivePower = '雪水当量预测能力一般';
+            else predictivePower = '雪水当量预测能力有限';
+            
+            // Determine hydrological factor types
+            let factorTypes = '';
+            const seasonalFactors = factors.filter(f => f.factor && (f.factor.includes('seasonal') || f.factor.includes('trend') || f.factor.includes('lag')));
+            const statisticalFactors = factors.filter(f => f.factor && (f.factor.includes('mean') || f.factor.includes('std') || f.factor.includes('skew')));
+            if (seasonalFactors.length > 0 && statisticalFactors.length > 0) {
+                factorTypes = '包含季节性和统计特征因子';
+            } else if (seasonalFactors.length > 0) {
+                factorTypes = '主要包含季节性特征因子';
+            } else if (statisticalFactors.length > 0) {
+                factorTypes = '主要包含统计特征因子';
+            } else {
+                factorTypes = '包含多种类型特征因子';
+            }
+            
+            // Determine hydrological applications
+            let hydrologicalApplications = '';
+            if (avgScore > 0.7 && highScoreFactors > factors.length * 0.5) {
+                hydrologicalApplications = '非常适合构建雪水当量预测模型，可用于水资源管理';
+            } else if (avgScore > 0.5 && highScoreFactors > factors.length * 0.3) {
+                hydrologicalApplications = '可以用于雪水当量季节性预测，辅助水资源规划';
+            } else {
+                hydrologicalApplications = '需要更多特征工程或数据，当前因子预测能力有限';
+            }
+            
+            // Determine seasonal prediction value
+            let seasonalPrediction = '';
+            if (topFactors.includes('seasonal') || topFactors.includes('trend')) {
+                seasonalPrediction = '顶级因子包含季节性特征，适合融雪期预测';
+            } else if (topFactors.includes('lag') || topFactors.includes('mean')) {
+                seasonalPrediction = '顶级因子包含时间滞后特征，适合短期预测';
+            } else {
+                seasonalPrediction = '顶级因子特征多样，预测能力全面';
+            }
+            
+            interpretationDiv.innerHTML = `
+                <h6 class="mb-2"><i class="fas fa-lightbulb text-warning"></i> 雪水当量因子发现 - 水文专业解读</h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>因子质量：</strong>${factorQuality}，平均分数${avgScore.toFixed(3)}</p>
+                        <p><strong>预测能力：</strong>${predictivePower}，${highScoreFactors}个因子高于平均值</p>
+                        <p><strong>因子类型：</strong>${factorTypes}，${seasonalPrediction}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>顶级因子：</strong>${topFactors}等${Math.min(3, factors.length)}个因子表现最佳</p>
+                        <p><strong>分数分布：</strong>范围${scoreRange.toFixed(3)}，最高分${topFactor?.score?.toFixed(3) || 'N/A'}</p>
+                        <p><strong>水文应用：</strong>${hydrologicalApplications}</p>
+                    </div>
+                </div>
+            `;
+            
+            container.appendChild(interpretationDiv);
+        }
+        
+        // ===== END FACTORS DISCOVERY FUNCTIONS =====
     </script>
 </body>
 </html>

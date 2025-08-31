@@ -12,6 +12,12 @@ Repository: https://github.com/lixiaowww/hydrai-swe
 - **Architecture**: 3 optimized GRU models integrated for maximum performance
 - **Training Data**: 20,449 real records (1970-2024) with comprehensive features
 
+### 🌊 **Professional Hydrology Knowledge Base System**
+- **Enhanced Interpretation**: Professional SWE analysis with scientific expertise
+- **Regional Context**: Manitoba-specific hydrological knowledge and Red River Basin characteristics
+- **Climate Change Integration**: Global and regional climate impact assessments
+- **Management Recommendations**: Data-driven professional advice for water resource management
+
 ### 🚀 **Advanced AI Models Implemented**
 - **GRU Ensemble**: 3 best configurations integrated (primary model)
 - **Anti-overfitting System**: Specialized core for preventing R² degradation
@@ -88,6 +94,14 @@ curl "http://localhost:8000/api/v1/swe?date=2024-03-01&region=red_river_basin"
 
 # Risk assessment
 curl "http://localhost:8000/api/v1/risk-assessment?date=2024-03-01&region=red_river_basin"
+
+# Enhanced SWE interpretation
+curl -X POST "http://localhost:8000/api/v1/interpretation/swe-comprehensive" \
+  -H "Content-Type: application/json" \
+  -d '{"values": [50, 55, 60, 65, 70], "timestamps": ["2024-01-01", "2024-01-02", "2024-01-03"], "region": "manitoba"}'
+
+# Technical glossary
+curl "http://localhost:8000/api/v1/interpretation/knowledge-base/glossary"
 ```
 
 ## 🤖 **Model Training & Usage**
@@ -207,6 +221,7 @@ uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload
 - **Training Summary**: `TRAINING_SUMMARY_REPORT.md`
 - **Model Performance**: `logs/ensemble_model_report_20250823_205750.md`
 - **Technical Specs**: `docs/3_technical_specification_document.md`
+- **Knowledge Base System**: `HYDROLOGY_KNOWLEDGE_BASE_README.md`
 
 ## 🤝 **Contributing**
 

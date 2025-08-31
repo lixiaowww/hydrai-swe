@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced UI - Data Science Analysis (ECharts)</title>
+    
+    <!-- ECharts替代Plotly.js -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border: none;
+        }
+        
+        .card-body {
+            padding: 25px;
+        }
+        
+        .chart-container {
+            height: 350px;
+            margin: 25px 0;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            background: #f8f9fa;
+            overflow: hidden;
+        }
+        
+        .chart-container > div {
+            width: 100% !important;
+            height: 100% !important;
+        }
+        
+        .row {
+            margin-bottom: 30px;
+        }
+        
+        .row:last-child {
+            margin-bottom: 0;
+        }
+        
+        h5 {
+            margin-bottom: 15px;
+            padding-top: 10px;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        
+        .col-md-6 {
+            padding-bottom: 20px;
+        }
+        
+        .col-12 {
+            padding-bottom: 20px;
+        }
+        
+        .card-body {
+            padding: 30px;
+        }
+        
+        .interpretation-content {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+            margin-top: 20px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 25px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-running {
+            background: #ffc107;
+            animation: pulse 1.5s infinite;
+        }
+        
+        .status-success {
+            background: #28a745;
+        }
+        
+        .status-error {
+            background: #dc3545;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            background: #28a745;
+        }
+        
+        .notification.error {
+            background: #dc3545;
+        }
+        
+        .notification.info {
+            background: #17a2b8;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Header -->
+        <div class="text-center mb-4">
+            <h1 class="text-white mb-3">
+                <i class="fas fa-chart-line"></i> 
+                HydrAI-SWE Factors Discovery Module
+            </h1>
+            <p class="text-white-50 lead">Advanced Data Science Analysis with ECharts - Factors Discovery Edition</p>
+        </div>
+
+        <!-- Data Science Analysis Module -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0">
+                    <i class="fas fa-brain"></i> 
+                    Factors Discovery
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <button class="btn btn-primary mb-3" onclick="runDataScienceAnalysis()">
+                            <i class="fas fa-play"></i> Run Analysis
+                        </button>
+                        <div id="analysis-status" class="mb-3">
+                            <span class="status-indicator status-success"></span>
+                            Ready to analyze
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mb-4">
+                    <!-- Decomposition Chart -->
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-chart-area"></i> Time Series Decomposition</h5>
+                        <div id="decomposition-chart" class="chart-container"></div>
+                    </div>
+                    
+                    <!-- Anomaly Detection Chart -->
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-exclamation-triangle"></i> Anomaly Detection</h5>
+                        <div id="anomaly-chart" class="chart-container"></div>
+                    </div>
+                </div>
+                
+                <div class="row mt-5">
+                    <!-- Clustering Chart -->
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-sitemap"></i> Clustering Analysis</h5>
+                        <div id="clustering-chart" class="chart-container"></div>
+                    </div>
+                    
+                    <!-- Statistical Tests Chart -->
+                    <div class="col-md-6">
+                        <h5><i class="fas fa-chart-bar"></i> Statistical Tests</h5>
+                        <div id="statistical-chart" class="chart-container"></div>
+                    </div>
+                </div>
+                
+                <!-- Factors Discovery Chart -->
+                <div class="row mt-5">
+                    <div class="col-12">
+                        <h5><i class="fas fa-search"></i> Factors Discovery</h5>
+                        <div id="factors-chart" class="chart-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Flood Warning System Card -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0">
+                    <i class="fas fa-water"></i> 
+                    Flood Warning System
+                </h3>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Flood warning system functionality will be implemented here.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notification-container"></div>
+
+    <script>
+        // API Request Helper
+        async function apiRequest(url, options = {}) {
+            const defaultOptions = {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                ...options
+            };
+
+            try {
+                const response = await fetch(url, defaultOptions);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error('API request failed:', error);
+                throw error;
+            }
+        }
+
+        // Notification System
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notification-container');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            
+            container.appendChild(notification);
+            
+            // Show notification
+            setTimeout(() => notification.classList.add('show'), 100);
+            
+            // Hide and remove notification
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => container.removeChild(notification), 300);
+            }, 3000);
+        }
+
+        // Analysis Status Management
+        function showAnalysisStatus(running) {
+            const statusElement = document.getElementById('analysis-status');
+            const indicator = statusElement.querySelector('.status-indicator');
+            
+            if (running) {
+                indicator.className = 'status-indicator status-running';
+                statusElement.innerHTML = '<span class="status-indicator status-running"></span>Analysis running...';
+            } else {
+                indicator.className = 'status-indicator status-success';
+                statusElement.innerHTML = '<span class="status-indicator status-success"></span>Analysis completed';
+            }
+        }
+
+        // Main Analysis Function
+        async function runDataScienceAnalysis() {
+            try {
+                showAnalysisStatus(true);
+                showNotification('Starting comprehensive data science analysis...', 'info');
+                
+                // Run all analyses in parallel
+                await Promise.all([
+                    loadDecompositionAnalysis(),
+                    loadAnomalyDetection(),
+                    loadClusteringAnalysis(),
+                    loadStatisticalTests(),
+                    loadFactorDiscovery()
+                ]);
+                
+                showNotification('Data science analysis completed successfully!', 'success');
+            } catch (error) {
+                console.error('Analysis failed:', error);
+                showNotification('Analysis failed: ' + error.message, 'error');
+            } finally {
+                showAnalysisStatus(false);
+            }
+        }
+
+        // Decomposition Analysis
+        async function loadDecompositionAnalysis() {
+            try {
+                const response = await apiRequest('/api/v1/data-science/decomposition?column=snow_water_equivalent_mm');
+                if (response.success) {
+                    displayDecompositionChart(response.results);
+                }
+            } catch (error) {
+                console.error('Decomposition analysis failed:', error);
+            }
+        }
+
+        function displayDecompositionChart(results) {
+            const container = document.getElementById('decomposition-chart');
+            if (!results || !results.stl_decomposition) {
+                container.innerHTML = '<div class="text-center text-muted pt-5">No decomposition data</div>';
+                return;
+            }
+            
+            container.innerHTML = '';
+            
+            const chartContainer = document.createElement('div');
+            chartContainer.style.height = '100%';
+            container.appendChild(chartContainer);
+            
+            const stl = results.stl_decomposition;
+            const trendData = stl.trend?.values || [];
+            const seasonalData = stl.seasonal?.values || [];
+            const residualData = stl.resid?.values || [];
+            const timestamps = stl.trend?.index || Array.from({length: trendData.length}, (_, i) => `T${i}`);
+            
+            if (trendData.length === 0) {
+                container.innerHTML = '<div class="text-center text-danger pt-5">No valid chart data</div>';
+                return;
+            }
+            
+            const myChart = echarts.init(chartContainer);
+            const option = {
+                title: {
+                    text: 'Time Series Decomposition',
+                    left: 'center',
+                    textStyle: { fontSize: 14 }
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'cross' }
+                },
+                legend: {
+                    data: ['Trend', 'Seasonal', 'Residual'],
+                    top: 30
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    top: '20%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    data: timestamps,
+                    axisLabel: {
+                        rotate: 45,
+                        interval: Math.ceil(timestamps.length / 10)
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: 'Value'
+                },
+                series: [
+                    {
+                        name: 'Trend',
+                        type: 'line',
+                        data: trendData,
+                        lineStyle: {color: '#e74c3c'},
+                        smooth: true
+                    },
+                    {
+                        name: 'Seasonal',
+                        type: 'line',
+                        data: seasonalData,
+                        lineStyle: {color: '#2ecc71'},
+                        smooth: true
+                    },
+                    {
+                        name: 'Residual',
+                        type: 'line',
+                        data: residualData,
+                        lineStyle: {color: '#3498db'},
+                        smooth: true
+                    }
+                ]
+            };
+            
+            myChart.setOption(option);
+            
+            // Add interpretation if available
+            if (results.interpretation) {
+                addInterpretation(container, results.interpretation, 'Decomposition Analysis');
+            }
+        }
+
+        // Anomaly Detection
+        async function loadAnomalyDetection() {
+            try {
+                const response = await apiRequest('/api/v1/data-science/anomaly-detection?column=snow_water_equivalent_mm');
+                if (response.success) {
+                    displayAnomalyChart(response.results);
+                }
+            } catch (error) {
+                console.error('Anomaly detection failed:', error);
+            }
+        }
+
+        function displayAnomalyChart(results) {
+            const container = document.getElementById('anomaly-chart');
+            if (!results || !results.ensemble) {
+                container.innerHTML = '<div class="text-center text-muted pt-5">No anomaly data</div>';
+                return;
+            }
+            
+            container.innerHTML = '';
+            
+            const chartContainer = document.createElement('div');
+            chartContainer.style.height = '100%';
+            container.appendChild(chartContainer);
+            
+            const ens = results.ensemble;
+            const scores = ens.ensemble_scores || ens.scores || [];
+            const threshold = (typeof ens.threshold === 'number') ? ens.threshold : 0.5;
+            const x = Array.from({length: scores.length}, (_, i) => i);
+            const anomalies = (ens.ensemble_anomalies || []).map(v => !!v);
+            
+            if (scores.length === 0) {
+                container.innerHTML = '<div class="text-center text-danger pt-5">No valid anomaly data</div>';
+                return;
+            }
+            
+            const myChart = echarts.init(chartContainer);
+            const option = {
+                title: {
+                    text: 'Anomaly Detection Scores',
+                    left: 'center',
+                    textStyle: { fontSize: 14 }
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'cross' }
+                },
+                legend: {
+                    data: ['Score', 'Anomalies', 'Threshold'],
+                    top: 30
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    top: '20%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    data: x,
+                    name: 'Time Point'
+                },
+                yAxis: {
+                    type: 'value',
+                    name: 'Score'
+                },
+                series: [
+                    {
+                        name: 'Score',
+                        type: 'line',
+                        data: scores,
+                        lineStyle: {color: '#34495e'},
+                        smooth: true
+                    },
+                    {
+                        name: 'Anomalies',
+                        type: 'scatter',
+                        data: scores.map((v, i) => anomalies[i] ? v : null),
+                        symbolSize: 6,
+                        itemStyle: {color: '#e74c3c'}
+                    },
+                    {
+                        name: 'Threshold',
+                        type: 'line',
+                        data: Array(scores.length).fill(threshold),
+                        lineStyle: {color: '#e67e22', type: 'dashed'},
+                        symbol: 'none'
+                    }
+                ]
+            };
+            
+            myChart.setOption(option);
+            
+            if (results.interpretation) {
+                addInterpretation(container, results.interpretation, 'Anomaly Detection');
+            }
+        }
+
+        // Clustering Analysis
+        async function loadClusteringAnalysis() {
+            try {
+                const response = await apiRequest('/api/v1/data-science/clustering');
+                if (response.success) {
+                    displayClusteringChart(response.results);
+                }
+            } catch (error) {
+                console.error('Clustering analysis failed:', error);
+            }
+        }
+
+        function displayClusteringChart(results) {
+            const container = document.getElementById('clustering-chart');
+            if (!results || !results.kmeans) {
+                container.innerHTML = '<div class="text-center text-muted pt-5">No clustering data</div>';
+                return;
+            }
+            
+            container.innerHTML = '';
+            
+            const chartContainer = document.createElement('div');
+            chartContainer.style.height = '100%';
+            container.appendChild(chartContainer);
+            
+            const labels = results.kmeans.labels || [];
+            const counts = {};
+            labels.forEach(l => {
+                const k = String(l);
+                counts[k] = (counts[k] || 0) + 1;
+            });
+            
+            if (Object.keys(counts).length === 0) {
+                container.innerHTML = '<div class="text-center text-danger pt-5">No valid clustering data</div>';
+                return;
+            }
+            
+            const myChart = echarts.init(chartContainer);
+            const option = {
+                title: {
+                    text: 'Clustering Distribution',
+                    left: 'center',
+                    textStyle: { fontSize: 14 }
+                },
+                tooltip: {
+                    trigger: 'item',
+                    formatter: '{a} <br/>{b}: {c} ({d}%)'
+                },
+                legend: {
+                    orient: 'vertical',
+                    left: 'left',
+                    top: 'middle'
+                },
+                series: [{
+                    name: 'Cluster Size',
+                    type: 'pie',
+                    radius: '50%',
+                    center: ['60%', '50%'],
+                    data: Object.keys(counts).map(key => ({
+                        name: `Cluster ${key}`,
+                        value: counts[key]
+                    })),
+                    emphasis: {
+                        itemStyle: {
+                            shadowBlur: 10,
+                            shadowOffsetX: 0,
+                            shadowColor: 'rgba(0, 0, 0, 0.5)'
+                        }
+                    }
+                }]
+            };
+            
+            myChart.setOption(option);
+            
+            if (results.interpretation) {
+                addInterpretation(container, results.interpretation, 'Clustering Analysis');
+            }
+        }
+
+        // Statistical Tests
+        async function loadStatisticalTests() {
+            try {
+                const response = await apiRequest('/api/v1/data-science/statistical-tests?column=snow_water_equivalent_mm');
+                if (response.success) {
+                    displayStatisticalChart(response.results);
+                }
+            } catch (error) {
+                console.error('Statistical tests failed:', error);
+            }
+        }
+
+        function displayStatisticalChart(results) {
+            const container = document.getElementById('statistical-chart');
+            if (!results || !results.raw) {
+                container.innerHTML = '<div class="text-center text-muted pt-5">No statistical test data</div>';
+                return;
+            }
+            
+            container.innerHTML = '';
+            
+            const chartContainer = document.createElement('div');
+            chartContainer.style.height = '100%';
+            container.appendChild(chartContainer);
+            
+            const tests = results.raw || [];
+            if (tests.length === 0) {
+                container.innerHTML = '<div class="text-center text-danger pt-5">No valid statistical test data</div>';
+                return;
+            }
+            
+            const names = tests.map(t => t.test_name || 'Test');
+            const pValues = tests.map(t => t.p_value || 0);
+            const fdrValues = tests.map(t => t.fdr_bh || 0);
+            
+            const myChart = echarts.init(chartContainer);
+            const option = {
+                title: {
+                    text: 'Statistical Hypothesis Tests',
+                    left: 'center',
+                    textStyle: { fontSize: 14 }
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'shadow' }
+                },
+                legend: {
+                    data: ['P-value', 'FDR (B-H)'],
+                    top: 30
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '15%',
+                    top: '20%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    data: names,
+                    axisLabel: {
+                        rotate: 45,
+                        interval: 0
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: 'Value',
+                    max: 1
+                },
+                series: [
+                    {
+                        name: 'P-value',
+                        type: 'bar',
+                        data: pValues,
+                        itemStyle: {color: '#3498db'}
+                    },
+                    {
+                        name: 'FDR (B-H)',
+                        type: 'bar',
+                        data: fdrValues,
+                        itemStyle: {color: '#f39c12'}
+                    }
+                ]
+            };
+            
+            myChart.setOption(option);
+            
+            if (results.interpretation) {
+                addInterpretation(container, results.interpretation, 'Statistical Tests');
+            }
+        }
+
+        // Factor Discovery
+        async function loadFactorDiscovery() {
+            try {
+                const response = await apiRequest('/api/v1/data-science/factor-discovery');
+                if (response.success) {
+                    displayFactorsChart(response.results);
+                }
+            } catch (error) {
+                console.error('Factor discovery failed:', error);
+            }
+        }
+
+        function displayFactorsChart(results) {
+            const container = document.getElementById('factors-chart');
+            if (!results || !results.high_predictive) {
+                container.innerHTML = '<div class="text-center text-muted pt-5">No factors data</div>';
+                return;
+            }
+            
+            container.innerHTML = '';
+            
+            const chartContainer = document.createElement('div');
+            chartContainer.style.height = '100%';
+            container.appendChild(chartContainer);
+            
+            const factors = results.high_predictive || [];
+            if (factors.length === 0) {
+                container.innerHTML = '<div class="text-center text-danger pt-5">No valid factors data</div>';
+                return;
+            }
+            
+            const names = factors.map(item => item.factor || 'Factor');
+            const scores = factors.map(item => item.score || 0);
+            
+            const myChart = echarts.init(chartContainer);
+            const option = {
+                title: {
+                    text: 'Top Factors Discovery',
+                    left: 'center',
+                    textStyle: { fontSize: 14 }
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'shadow' }
+                },
+                grid: {
+                    left: '15%',
+                    right: '5%',
+                    bottom: '3%',
+                    top: '20%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'value',
+                    name: 'Score'
+                },
+                yAxis: {
+                    type: 'category',
+                    data: names,
+                    axisLabel: {
+                        width: 120,
+                        overflow: 'truncate'
+                    }
+                },
+                series: [{
+                    name: 'Factor Score',
+                    type: 'bar',
+                    data: scores,
+                    itemStyle: {color: '#9b59b6'},
+                    label: {
+                        show: true,
+                        position: 'right',
+                        formatter: '{c}'
+                    }
+                }]
+            };
+            
+            myChart.setOption(option);
+            
+            if (results.interpretation) {
+                addInterpretation(container, results.interpretation, 'Factors Discovery');
+            }
+        }
+
+        // Helper function to add interpretation
+        function addInterpretation(container, interpretation, title) {
+            const interpretationContainer = document.createElement('div');
+            interpretationContainer.className = 'interpretation-content';
+            
+            let html = `<h5>📊 ${title} Interpretation</h5>`;
+            
+            if (interpretation.summary) {
+                html += `<p><strong>Summary:</strong> ${interpretation.summary}</p>`;
+            }
+            if (interpretation.key_insights) {
+                html += `<p><strong>Key Insights:</strong> ${interpretation.key_insights}</p>`;
+            }
+            if (interpretation.business_implications) {
+                html += `<p><strong>Business Implications:</strong> ${interpretation.business_implications}</p>`;
+            }
+            if (interpretation.recommendations) {
+                html += `<p><strong>Recommendations:</strong> ${interpretation.recommendations}</p>`;
+            }
+            
+            interpretationContainer.innerHTML = html;
+            container.appendChild(interpretationContainer);
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('ECharts Enhanced UI loaded successfully');
+            showNotification('ECharts Enhanced UI ready!', 'info');
+        });
+    </script>
+</body>
+</html>

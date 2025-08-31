@@ -1,0 +1,47 @@
+{
+  "test_name": "无监督模块解读功能测试",
+  "test_timestamp": "2025-08-30T08:11:58.969000",
+  "test_status": "PASSED",
+  "test_summary": {
+    "total_sections": 5,
+    "verified_sections": 5,
+    "executive_summary_discoveries": 6,
+    "risk_level": "medium",
+    "immediate_actions_count": 2,
+    "short_term_actions_count": 2
+  },
+  "test_details": {
+    "data_shape": [
+      100,
+      12
+    ],
+    "insights_keys": [
+      "timestamp",
+      "anomalies",
+      "clusters",
+      "dimensions",
+      "temporal",
+      "risk_mechanisms",
+      "important_factors",
+      "correlation_network",
+      "swe_cold_factors",
+      "summary"
+    ],
+    "interpretation_keys": [
+      "timestamp",
+      "executive_summary",
+      "business_insights",
+      "technical_explanations",
+      "actionable_recommendations",
+      "risk_assessment",
+      "data_quality_insights"
+    ],
+    "required_sections_verified": [
+      "executive_summary",
+      "business_insights",
+      "risk_assessment",
+      "data_quality_insights",
+      "actionable_recommendations"
+    ]
+  }
+}
