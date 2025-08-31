@@ -4552,59 +4552,11 @@ function initializeForecastControls() {
                 }
             }
             
-            // Add interpretation below the chart
-            const interpretationDiv = document.createElement('div');
-            interpretationDiv.style.marginTop = '15px';
-            interpretationDiv.style.padding = '15px';
-            interpretationDiv.style.backgroundColor = '#f8f9fa';
-            interpretationDiv.style.borderRadius = '8px';
-            interpretationDiv.style.border = '1px solid #dee2e6';
-            
             // Calculate statistics for interpretation
             const maxY = Math.max(...trendData);
             const minY = Math.min(...trendData);
             const trendStrength = Math.abs(maxY - minY);
-            const trendDirection = trendData[trendData.length - 1] > trendData[0] ? '上升' : '下降';
-            const trendChange = ((trendData[trendData.length - 1] - trendData[0]) / Math.abs(trendData[0])) * 100;
             const volatility = Math.sqrt(trendData.reduce((sum, val, i) => sum + Math.pow(val - (trendData[i-1] || val), 2), 0) / trendData.length);
-            
-            // Determine hydrological trend significance
-            let trendSignificance = '';
-            if (Math.abs(trendChange) > 20) trendSignificance = '强烈';
-            else if (Math.abs(trendChange) > 10) trendSignificance = '明显';
-            else if (Math.abs(trendChange) > 5) trendSignificance = '温和';
-            else trendSignificance = '轻微';
-            
-            // Determine seasonal pattern for snow water equivalent
-            let seasonalPattern = '';
-            if (seasonalData.length > 0) {
-                const seasonalStrength = Math.max(...seasonalData) - Math.min(...seasonalData);
-                if (seasonalStrength > trendStrength * 0.5) seasonalPattern = '季节性主导';
-                else if (seasonalStrength > trendStrength * 0.2) seasonalPattern = '季节性明显';
-                else seasonalPattern = '季节性较弱';
-            }
-            
-            // Determine hydrological implications
-            let hydrologicalImplications = '';
-            if (trendDirection === '上升') {
-                if (trendChange > 15) hydrologicalImplications = '雪水当量显著增加，可能影响春季融雪洪水风险';
-                else if (trendChange > 8) hydrologicalImplications = '雪水当量增加，有利于水资源储备';
-                else hydrologicalImplications = '雪水当量轻微增加，变化在正常范围内';
-            } else {
-                if (Math.abs(trendChange) > 15) hydrologicalImplications = '雪水当量显著减少，可能影响干旱风险';
-                else if (Math.abs(trendChange) > 8) hydrologicalImplications = '雪水当量减少，需要关注水资源管理';
-                else hydrologicalImplications = '雪水当量轻微减少，变化在正常范围内';
-            }
-            
-            // Determine monitoring recommendations
-            let monitoringRecommendations = '';
-            if (volatility > trendStrength * 0.4) {
-                monitoringRecommendations = '建议增加监测频率，关注极端天气事件影响';
-            } else if (trendStrength > 10) {
-                monitoringRecommendations = '变化趋势明显，建议加强预测模型建设';
-            } else {
-                monitoringRecommendations = '变化相对稳定，可维持现有监测方案';
-            }
             
             // Get professional interpretation using the new system
             const interpretation = getProfessionalInterpretation(trendData, seasonalData, anomalyScore, volatility, trendStrength);
@@ -4722,59 +4674,11 @@ function initializeForecastControls() {
                 }
             }
             
-            // Add interpretation below the chart
-            const interpretationDiv = document.createElement('div');
-            interpretationDiv.style.marginTop = '15px';
-            interpretationDiv.style.padding = '15px';
-            interpretationDiv.style.backgroundColor = '#f8f9fa';
-            interpretationDiv.style.borderRadius = '8px';
-            interpretationDiv.style.border = '1px solid #dee2e6';
-            
+            // Calculate statistics for interpretation
             const maxScore = Math.max(...scores);
             const minScore = Math.min(...scores);
             const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length;
-            const anomalyThreshold = avgScore + (maxScore - avgScore) * 0.8;
-            const anomalyCount = scores.filter(s => s > anomalyThreshold).length;
             const stdDev = Math.sqrt(scores.reduce((sum, score) => sum + Math.pow(score - avgScore, 2), 0) / scores.length);
-            const extremeAnomalies = scores.filter(s => s > avgScore + 2 * stdDev).length;
-            
-            // Determine hydrological anomaly level
-            let anomalyLevel = '';
-            const anomalyRate = (anomalyCount / scores.length) * 100;
-            if (anomalyRate > 10) anomalyLevel = '异常情况严重';
-            else if (anomalyRate > 5) anomalyLevel = '异常情况较多';
-            else if (anomalyRate > 2) anomalyLevel = '异常情况适中';
-            else anomalyLevel = '异常情况较少';
-            
-            // Determine hydrological implications
-            let hydrologicalImplications = '';
-            if (anomalyRate > 8) {
-                hydrologicalImplications = '雪水当量异常波动频繁，可能受极端天气事件影响';
-            } else if (anomalyRate > 4) {
-                hydrologicalImplications = '雪水当量存在异常变化，需要关注气候变化影响';
-            } else {
-                hydrologicalImplications = '雪水当量变化相对正常，符合季节性规律';
-            }
-            
-            // Determine monitoring urgency
-            let monitoringUrgency = '';
-            if (extremeAnomalies > scores.length * 0.05) {
-                monitoringUrgency = '极值异常较多，建议立即检查传感器和数据处理';
-            } else if (anomalyRate > 5) {
-                monitoringUrgency = '异常比例较高，建议增加监测频率和验证';
-            } else {
-                monitoringUrgency = '异常情况较少，可维持正常监测频率';
-            }
-            
-            // Determine climate impact assessment
-            let climateImpact = '';
-            if (stdDev > Math.abs(avgScore) * 0.4) {
-                climateImpact = '数据波动极大，可能反映气候变化或极端事件影响';
-            } else if (stdDev > Math.abs(avgScore) * 0.2) {
-                climateImpact = '数据波动较大，需要关注气候变化趋势';
-            } else {
-                climateImpact = '数据相对稳定，气候变化影响较小';
-            }
             
             // Get professional interpretation for anomaly detection
             const interpretation = getProfessionalInterpretation([], [], anomalyScore, stdDev, Math.abs(avgScore));
@@ -5237,8 +5141,6 @@ function initializeForecastControls() {
             
             // Display professional interpretation
             displayProfessionalInterpretation(container, interpretation);
-            
-            container.appendChild(interpretationDiv);
         }
         
         // ===== END FACTORS DISCOVERY FUNCTIONS =====
