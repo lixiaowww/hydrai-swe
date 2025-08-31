@@ -4609,10 +4609,8 @@ function initializeForecastControls() {
             // Get professional interpretation using the new system
             const interpretation = getProfessionalInterpretation(trendData, seasonalData, anomalyScore, volatility, trendStrength);
             
-            // Display professional interpretation
+            // Display professional interpretation directly in the container
             displayProfessionalInterpretation(container, interpretation);
-            
-            container.appendChild(interpretationDiv);
         }
         
         // Anomaly Detection
@@ -4781,10 +4779,8 @@ function initializeForecastControls() {
             // Get professional interpretation for anomaly detection
             const interpretation = getProfessionalInterpretation([], [], anomalyScore, stdDev, Math.abs(avgScore));
             
-            // Display professional interpretation
+            // Display professional interpretation directly in the container
             displayProfessionalInterpretation(container, interpretation);
-            
-            container.appendChild(interpretationDiv);
         }
         
         // Clustering Analysis
@@ -4951,10 +4947,8 @@ function initializeForecastControls() {
             const clusterData = [avgClusterSize, largestCluster, smallestCluster];
             const interpretation = getProfessionalInterpretation(clusterData, [], balanceRatio, 0, total);
             
-            // Display professional interpretation
+            // Display professional interpretation directly in the container
             displayProfessionalInterpretation(container, interpretation);
-            
-            container.appendChild(interpretationDiv);
         }
         
         // Statistical Tests
@@ -5048,61 +5042,12 @@ function initializeForecastControls() {
                 }
             }
             
-            // Add interpretation below the chart
-            const interpretationDiv = document.createElement('div');
-            interpretationDiv.style.marginTop = '15px';
-            interpretationDiv.style.padding = '15px';
-            interpretationDiv.style.backgroundColor = '#f8f9fa';
-            interpretationDiv.style.borderRadius = '8px';
-            interpretationDiv.style.border = '1px solid #dee2e6';
-            
+            // Calculate statistical test metrics
             const significantTests = tests.filter(t => (t.p_value || 1) < 0.05).length;
             const totalTests = tests.length;
             const avgPValue = tests.reduce((sum, t) => sum + (t.p_value || 1), 0) / totalTests;
             const verySignificant = tests.filter(t => (t.p_value || 1) < 0.01).length;
-            const testNames = tests.map(t => t.test_name || 'Unknown').join('、');
-            
-            // Determine hydrological statistical significance
-            let overallSignificance = '';
             const significanceRate = (significantTests / totalTests) * 100;
-            if (significanceRate > 80) overallSignificance = '统计显著性极高';
-            else if (significanceRate > 60) overallSignificance = '统计显著性较高';
-            else if (significanceRate > 40) overallSignificance = '统计显著性中等';
-            else overallSignificance = '统计显著性较低';
-            
-            // Determine hydrological data quality
-            let dataQuality = '';
-            if (avgPValue < 0.1) dataQuality = '雪水当量数据质量优秀';
-            else if (avgPValue < 0.3) dataQuality = '雪水当量数据质量良好';
-            else if (avgPValue < 0.5) dataQuality = '雪水当量数据质量一般';
-            else dataQuality = '雪水当量数据质量较差';
-            
-            // Determine hydrological test reliability
-            let testReliability = '';
-            if (verySignificant > significantTests * 0.5) testReliability = '高度可靠';
-            else if (verySignificant > significantTests * 0.3) testReliability = '较为可靠';
-            else testReliability = '可靠性一般';
-            
-            // Determine hydrological implications
-            let hydrologicalImplications = '';
-            if (significanceRate > 70) {
-                hydrologicalImplications = '统计结果高度可靠，可用于雪水当量预测模型';
-            } else if (significanceRate > 50) {
-                hydrologicalImplications = '统计结果较为可靠，可用于季节性预测';
-            } else {
-                hydrologicalImplications = '统计结果可靠性较低，需要更多数据或调整方法';
-            }
-            
-            // Determine seasonal stationarity
-            let seasonalStationarity = '';
-            const stationarityTest = tests.find(t => t.test_name && t.test_name.includes('stationarity'));
-            if (stationarityTest && (stationarityTest.p_value || 1) < 0.05) {
-                seasonalStationarity = '时间序列平稳，季节性变化规律明显';
-            } else if (stationarityTest) {
-                seasonalStationarity = '时间序列非平稳，存在趋势性变化';
-            } else {
-                seasonalStationarity = '平稳性检验结果不明确';
-            }
             
             // Get professional interpretation for statistical tests
             const testData = [avgPValue, significanceRate, verySignificant];
@@ -5110,8 +5055,6 @@ function initializeForecastControls() {
             
             // Display professional interpretation
             displayProfessionalInterpretation(container, interpretation);
-            
-            container.appendChild(interpretationDiv);
         }
         
         // Factor Discovery

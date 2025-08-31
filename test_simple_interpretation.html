@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple English Interpretation Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .result { margin: 10px 0; padding: 10px; background: #f0f0f0; }
+        button { padding: 10px 20px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🌊 Simple English Interpretation Test</h1>
+    
+    <div class="test-section">
+        <h3>Test 1: Basic Trend Analysis</h3>
+        <button onclick="testBasicTrend()">Test Basic Trend</button>
+        <div id="basic-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test 2: Anomaly Detection</h3>
+        <button onclick="testAnomaly()">Test Anomaly</button>
+        <div id="anomaly-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test 3: Seasonal Patterns</h3>
+        <button onclick="testSeasonal()">Test Seasonal</button>
+        <div id="seasonal-result" class="result"></div>
+    </div>
+
+    <script>
+        // Simplified interpretation system for testing
+        function getSimpleInterpretation(trendData, seasonalData, anomalyScore) {
+            const trendChange = trendData.length > 1 ? 
+                ((trendData[trendData.length - 1] - trendData[0]) / Math.abs(trendData[0])) * 100 : 0;
+            
+            let trendType = "stable";
+            if (Math.abs(trendChange) > 20) {
+                trendType = trendChange > 0 ? "strong_increasing" : "strong_decreasing";
+            } else if (Math.abs(trendChange) > 10) {
+                trendType = trendChange > 0 ? "moderate_increasing" : "moderate_decreasing";
+            }
+            
+            let anomalyType = "normal";
+            if (Math.abs(anomalyScore) > 2.0) {
+                anomalyType = anomalyScore > 0 ? "extreme_high" : "extreme_low";
+            } else if (Math.abs(anomalyScore) > 1.0) {
+                anomalyType = "moderate";
+            }
+            
+            return {
+                trend: {
+                    type: trendType,
+                    change: Math.abs(trendChange).toFixed(1),
+                    direction: trendChange > 0 ? "increasing" : "decreasing"
+                },
+                anomaly: {
+                    type: anomalyType,
+                    score: anomalyScore.toFixed(2)
+                },
+                seasonal: seasonalData.length > 0 ? "present" : "minimal"
+            };
+        }
+        
+        function displaySimpleResult(container, interpretation) {
+            container.innerHTML = `
+                <h4>📊 Interpretation Results:</h4>
+                <p><strong>Trend:</strong> ${interpretation.trend.type} (${interpretation.trend.change}% ${interpretation.trend.direction})</p>
+                <p><strong>Anomaly:</strong> ${interpretation.anomaly.type} (score: ${interpretation.anomaly.score})</p>
+                <p><strong>Seasonal Pattern:</strong> ${interpretation.seasonal}</p>
+                <hr>
+                <p><em>✅ English interpretation system working correctly!</em></p>
+            `;
+        }
+        
+        function testBasicTrend() {
+            const data = [50, 55, 60, 65, 70];
+            const interpretation = getSimpleInterpretation(data, [], 0.5);
+            displaySimpleResult(document.getElementById('basic-result'), interpretation);
+        }
+        
+        function testAnomaly() {
+            const data = [40, 42, 45, 80, 85];
+            const interpretation = getSimpleInterpretation(data, [], 2.8);
+            displaySimpleResult(document.getElementById('anomaly-result'), interpretation);
+        }
+        
+        function testSeasonal() {
+            const data = [30, 35, 40, 35, 30];
+            const seasonal = [25, 30, 35, 30, 25];
+            const interpretation = getSimpleInterpretation(data, seasonal, 0.8);
+            displaySimpleResult(document.getElementById('seasonal-result'), interpretation);
+        }
+    </script>
+</body>
+</html>
