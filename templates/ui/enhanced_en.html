@@ -4965,12 +4965,34 @@ function initializeForecastControls() {
 
         function displayStatisticalChart(results) {
             const container = document.getElementById('statistical-chart');
-            if (!results || !results.raw) {
+            if (!results) {
                 container.innerHTML = '<div class="text-center text-muted pt-5">No statistical test data</div>';
                 return;
             }
             
             container.innerHTML = '';
+            
+            // Transform API data to expected format
+            const tests = [];
+            if (results.normality) {
+                tests.push({
+                    test_name: 'Shapiro-Wilk Normality',
+                    p_value: results.normality.shapiro_p_value,
+                    statistic: results.normality.shapiro_statistic
+                });
+            }
+            if (results.stationarity) {
+                tests.push({
+                    test_name: 'ADF Stationarity',
+                    p_value: results.stationarity.p_value,
+                    statistic: results.stationarity.adf_statistic
+                });
+            }
+            
+            if (tests.length === 0) {
+                container.innerHTML = '<div class="text-center text-danger pt-5">No valid statistical test data</div>';
+                return;
+            }
             
             const chartContainer = document.createElement('div');
             chartContainer.style.height = '200px';
@@ -4978,12 +5000,6 @@ function initializeForecastControls() {
             chartContainer.style.overflow = 'hidden';
             chartContainer.style.position = 'relative';
             container.appendChild(chartContainer);
-            
-            const tests = results.raw || [];
-            if (tests.length === 0) {
-                container.innerHTML = '<div class="text-center text-danger pt-5">No valid statistical test data</div>';
-                return;
-            }
             
             // Create responsive canvas
             const canvas = document.createElement('canvas');

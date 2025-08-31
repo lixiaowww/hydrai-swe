@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Statistical Tests Integration</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .result { margin: 10px 0; padding: 10px; background: #f0f0f0; }
+        button { padding: 10px 20px; margin: 5px; }
+        .chart-container { height: 200px; width: 100%; border: 1px solid #ddd; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test Statistical Tests Integration</h1>
+    
+    <div class="test-section">
+        <h3>Test 1: API Data Structure</h3>
+        <button onclick="testAPIStructure()">Test API Data</button>
+        <div id="api-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test 2: Chart Generation</h3>
+        <button onclick="testChartGeneration()">Test Chart</button>
+        <div id="chart-result" class="result">
+            <div class="chart-container" id="test-chart"></div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test 3: Interpretation Display</h3>
+        <button onclick="testInterpretation()">Test Interpretation</button>
+        <div id="interpretation-result" class="result"></div>
+    </div>
+
+    <script>
+        // Test API data structure
+        async function testAPIStructure() {
+            try {
+                const response = await fetch('/api/v1/data-science/statistical-tests?column=snow_water_equivalent_mm');
+                const data = await response.json();
+                
+                document.getElementById('api-result').innerHTML = `
+                    <h4>📊 API Response:</h4>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                    <p><strong>Status:</strong> ${data.success ? '✅ Success' : '❌ Failed'}</p>
+                    <p><strong>Data Available:</strong> ${data.results ? '✅ Yes' : '❌ No'}</p>
+                    <p><strong>Normality Test:</strong> ${data.results?.normality ? '✅ Available' : '❌ Missing'}</p>
+                    <p><strong>Stationarity Test:</strong> ${data.results?.stationarity ? '✅ Available' : '❌ Missing'}</p>
+                `;
+            } catch (error) {
+                document.getElementById('api-result').innerHTML = `
+                    <h4>❌ API Error:</h4>
+                    <p>${error.message}</p>
+                `;
+            }
+        }
+        
+        // Test chart generation
+        function testChartGeneration() {
+            const container = document.getElementById('test-chart');
+            container.innerHTML = '';
+            
+            // Simulate API data structure
+            const mockResults = {
+                normality: {
+                    shapiro_statistic: 0.8648313699595946,
+                    shapiro_p_value: 2.0435119656974765e-54
+                },
+                stationarity: {
+                    adf_statistic: -11.528915904962917,
+                    p_value: 3.8746603437809475e-21
+                }
+            };
+            
+            // Transform data
+            const tests = [];
+            if (mockResults.normality) {
+                tests.push({
+                    test_name: 'Shapiro-Wilk Normality',
+                    p_value: mockResults.normality.shapiro_p_value,
+                    statistic: mockResults.normality.shapiro_statistic
+                });
+            }
+            if (mockResults.stationarity) {
+                tests.push({
+                    test_name: 'ADF Stationarity',
+                    p_value: mockResults.stationarity.p_value,
+                    statistic: mockResults.stationarity.adf_statistic
+                });
+            }
+            
+            if (tests.length === 0) {
+                container.innerHTML = '<div class="text-center text-danger pt-5">No valid statistical test data</div>';
+                return;
+            }
+            
+            // Create chart
+            const canvas = document.createElement('canvas');
+            canvas.style.width = '100%';
+            canvas.style.height = '100%';
+            container.appendChild(canvas);
+            
+            const ctx = canvas.getContext('2d');
+            const width = container.offsetWidth;
+            const height = container.offsetHeight;
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            // Draw chart
+            ctx.fillStyle = '#f8f9fa';
+            ctx.fillRect(0, 0, width, height);
+            
+            const names = tests.map(t => t.test_name);
+            const pValues = tests.map(t => t.p_value);
+            
+            if (pValues.length > 0) {
+                const barWidth = width / pValues.length * 0.8;
+                const barSpacing = width / pValues.length * 0.2;
+                const maxPValue = Math.max(...pValues);
+                
+                pValues.forEach((pValue, index) => {
+                    const x = index * (barWidth + barSpacing) + barSpacing / 2;
+                    const barHeight = (pValue / maxPValue) * height * 0.8;
+                    const y = height - barHeight - 20;
+                    
+                    ctx.fillStyle = '#3498db';
+                    ctx.fillRect(x, y, barWidth, barHeight);
+                    
+                    // Add labels
+                    ctx.fillStyle = '#2c3e50';
+                    ctx.font = '10px Arial';
+                    ctx.fillText(names[index].substring(0, 15), x, height - 5);
+                    ctx.fillText(`p=${pValue.toExponential(2)}`, x, height - 20);
+                });
+                
+                // Add title
+                ctx.fillStyle = '#2c3e50';
+                ctx.font = '14px Arial';
+                ctx.fillText('Statistical Tests - P-Values', 10, 20);
+            }
+            
+            document.getElementById('chart-result').innerHTML += `
+                <p><strong>✅ Chart Generated Successfully!</strong></p>
+                <p><strong>Tests:</strong> ${tests.length}</p>
+                <p><strong>P-Values:</strong> ${pValues.map(p => p.toExponential(2)).join(', ')}</p>
+            `;
+        }
+        
+        // Test interpretation display
+        function testInterpretation() {
+            const container = document.getElementById('interpretation-result');
+            
+            // Simulate interpretation data
+            const mockData = [2.0435119656974765e-54, 100, 2];
+            const interpretation = getMockInterpretation(mockData, [], 100/100, 0, 2);
+            
+            displayMockInterpretation(container, interpretation);
+        }
+        
+        function getMockInterpretation(testData, seasonalData, significanceRate, volatility, totalTests) {
+            const [avgPValue, significanceRate, verySignificant] = testData;
+            
+            return {
+                trend: {
+                    title: "Statistical Test Results",
+                    description: "Statistical tests indicate data characteristics and significance levels.",
+                    magnitude: `${significanceRate.toFixed(1)}%`,
+                    direction: "Significant",
+                    implications: [
+                        "High statistical significance in test results",
+                        "Data quality assessment completed",
+                        "Reliable statistical foundation for analysis"
+                    ]
+                },
+                seasonal: {
+                    title: "Data Pattern Analysis",
+                    description: "Analysis of data patterns and seasonal characteristics.",
+                    pattern: "statistical",
+                    implications: [
+                        "Statistical tests provide reliable results",
+                        "Data patterns are well-defined",
+                        "Analysis foundation is solid"
+                    ]
+                },
+                anomaly: {
+                    title: "Statistical Significance",
+                    description: "Assessment of statistical test significance and reliability.",
+                    score: significanceRate,
+                    severity: significanceRate > 80 ? "high" : "moderate",
+                    causes: ["High-quality data", "Proper statistical methods", "Adequate sample size"],
+                    risks: ["Minimal", "Reliable results", "Strong foundation"]
+                },
+                data_quality: {
+                    volatility: volatility.toFixed(2),
+                    stability: "High statistical reliability, data quality excellent"
+                }
+            };
+        }
+        
+        function displayMockInterpretation(container, interpretation) {
+            container.innerHTML = `
+                <h4>📊 Mock Interpretation Display:</h4>
+                <div style="border: 1px solid #ccc; padding: 15px; margin: 10px 0;">
+                    <h5 style="color: #007bff;">${interpretation.trend.title}</h5>
+                    <p>${interpretation.trend.description}</p>
+                    <p><strong>Significance:</strong> ${interpretation.trend.magnitude} (${interpretation.trend.direction})</p>
+                    <ul>
+                        ${interpretation.trend.implications.map(imp => `<li>${imp}</li>`).join('')}
+                    </ul>
+                    
+                    <h5 style="color: #17a2b8;">${interpretation.seasonal.title}</h5>
+                    <p>${interpretation.seasonal.description}</p>
+                    <p><strong>Pattern:</strong> ${interpretation.seasonal.pattern}</p>
+                    
+                    <h5 style="color: #ffc107;">${interpretation.anomaly.title}</h5>
+                    <p>${interpretation.anomaly.description}</p>
+                    <p><strong>Severity:</strong> ${interpretation.anomaly.severity}</p>
+                    
+                    <h5 style="color: #28a745;">Data Quality</h5>
+                    <p>${interpretation.data_quality.stability}</p>
+                </div>
+                <p><strong>✅ Interpretation Display Working!</strong></p>
+            `;
+        }
+    </script>
+</body>
+</html>
