@@ -4,17 +4,16 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-from fastapi import FastAPI, Request, Body, HTTPException
+from fastapi import FastAPI, Request
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from datetime import datetime
 
 # Import only the SWE router for now
 try:
-    from routers import swe
+    from src.api.routers import swe
     SWE_AVAILABLE = True
 except ImportError as e:
     print(f"Warning: Could not import SWE router: {e}")
@@ -22,40 +21,40 @@ except ImportError as e:
 
 # Try to import other routers
 try:
-    from routers import flood_warning
+    from src.api.routers import flood_warning
     FLOOD_AVAILABLE = True
 except ImportError:
     FLOOD_AVAILABLE = False
 
 # Try to import enhanced interpretation service
 try:
-    from routers import enhanced_interpretation
+    from src.api.routers import enhanced_interpretation
     ENHANCED_INTERPRETATION_AVAILABLE = True
 except ImportError as e:
     print(f"Warning: Could not import enhanced interpretation router: {e}")
     ENHANCED_INTERPRETATION_AVAILABLE = False
 
 try:
-    from routers import advanced_flood_warning
+    from src.api.routers import advanced_flood_warning
     ADVANCED_FLOOD_AVAILABLE = True
 except ImportError:
     ADVANCED_FLOOD_AVAILABLE = False
 
 try:
-    from routers import agriculture
+    from src.api.routers import agriculture
     AGRICULTURE_AVAILABLE = True
 except ImportError as e:
     print(f"Warning: Could not import agriculture router: {e}")
     AGRICULTURE_AVAILABLE = False
 
 try:
-    from routers import pipeline
+    from src.api.routers import pipeline
     PIPELINE_AVAILABLE = True
 except ImportError:
     PIPELINE_AVAILABLE = False
 
 try:
-    from routers import data_science
+    from src.api.routers import data_science
     DATA_SCIENCE_AVAILABLE = True
 except ImportError as e:
     print(f"Warning: Could not import data science router: {e}")
@@ -63,7 +62,7 @@ except ImportError as e:
 
 # 尝试导入天气数据API路由
 try:
-    from routers import weather
+    from src.api.routers import weather
     WEATHER_API_AVAILABLE = True
 except ImportError as e:
     print(f"Warning: Could not import weather API router: {e}")
@@ -117,83 +116,6 @@ if ENHANCED_INTERPRETATION_AVAILABLE:
 if WEATHER_API_AVAILABLE:
     app.include_router(weather.router, prefix="/api/v1", tags=["weather"])
 
-# 添加水文学解释端点 - 直接在主应用中定义
-@app.post("/api/v1/hydrology/interpretation")
-async def hydrology_interpretation(request_data: dict = Body(...)):
-    """水文学专业解释端点 - 基于真实数据分析"""
-    try:
-        # 基于真实数据进行分析，不使用硬编码
-        analysis_type = request_data.get('analysis_type', 'general')
-        data_context = request_data.get('data_context', {})
-        
-        # 基于实际数据特征生成解释
-        interpretation = {
-            "analysis_type": analysis_type,
-            "data_context": data_context,
-            "trend": {
-                "title": "N/A",
-                "description": "Professional interpretation requires real data analysis",
-                "magnitude": "N/A",
-                "direction": "N/A",
-                "implications": ["Data analysis required"]
-            },
-            "seasonal": {
-                "title": "N/A", 
-                "description": "Professional interpretation requires real data analysis",
-                "pattern": "N/A",
-                "implications": ["Data analysis required"]
-            },
-            "anomaly": {
-                "title": "N/A",
-                "description": "Professional interpretation requires real data analysis", 
-                "score": "N/A",
-                "severity": "N/A",
-                "causes": ["Data analysis required"],
-                "risks": ["Data analysis required"]
-            },
-            "data_quality": {
-                "volatility": "N/A",
-                "stability": "Data analysis required"
-            },
-            "recommendations": ["Data analysis required for recommendations"],
-            "warnings": ["Data unavailable for warnings"],
-            "methodology": "Based on real data analysis, no hardcoded values",
-            "data_source": "Real hydrological data",
-            "timestamp": datetime.now().isoformat()
-        }
-        
-        return interpretation
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Hydrology interpretation failed: {str(e)}")
-
-# 添加分析门户访问端点
-@app.post("/api/analytics/portal-access")
-async def analytics_portal_access(request_data: dict = Body(...)):
-    """分析门户访问记录 - 基于真实访问数据"""
-    try:
-        # 基于真实访问数据记录，不使用硬编码
-        access_info = {
-            "timestamp": datetime.now().isoformat(),
-            "access_type": request_data.get('access_type', 'unknown'),
-            "user_agent": request_data.get('user_agent', 'unknown'),
-            "ip_address": request_data.get('ip_address', 'unknown'),
-            "portal_section": request_data.get('portal_section', 'unknown'),
-            "access_duration": request_data.get('access_duration', 0),
-            "data_quality": "Real access data",
-            "note": "Based on actual portal access, no simulated data"
-        }
-        
-        return {
-            "status": "success",
-            "access_recorded": access_info,
-            "message": "Portal access recorded successfully",
-            "data_source": "Real access data"
-        }
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Portal access recording failed: {str(e)}")
-
 @app.get("/")
 def read_root():
     # Redirect root to the main UI homepage
@@ -203,15 +125,14 @@ def read_root():
 def health_check():
     return {"status": "healthy", "message": "HydrAI-SWE API is running"}
 
-# Use absolute paths from project root
-templates = Jinja2Templates(directory="/home/sean/hydrai_swe/templates")
+templates = Jinja2Templates(directory="templates")
 
 # Mount static files for UI assets
-app.mount("/static", StaticFiles(directory="/home/sean/hydrai_swe/templates/ui"), name="ui_static")
+app.mount("/static", StaticFiles(directory="templates/ui"), name="ui_static")
 
 # Serve generated analysis visualizations (HTML files)
-if os.path.isdir("/home/sean/hydrai_swe/analysis_results"):
-    app.mount("/analysis_results", StaticFiles(directory="/home/sean/hydrai_swe/analysis_results"), name="analysis_results")
+if os.path.isdir("analysis_results"):
+    app.mount("/analysis_results", StaticFiles(directory="analysis_results"), name="analysis_results")
 
 @app.get('/favicon.ico')
 def favicon():

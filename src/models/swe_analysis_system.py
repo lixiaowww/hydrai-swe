@@ -95,10 +95,9 @@ class SWEAnalysisSystem:
                         break
                 
                 if not swe_created:
-                    # 创建虚拟数据以避免崩溃
-                    print("⚠️ 未找到合适的雪水当量数据，创建模拟数据")
-                    self.data['snow_water_equivalent_mm'] = np.random.normal(50, 20, len(self.data))
-                    self.data['snow_water_equivalent_mm'] = np.maximum(self.data['snow_water_equivalent_mm'], 0)
+                    # 严格遵循规则：不使用模拟数据
+                    print("⚠️ 未找到合适的雪水当量数据，设置为N/A")
+                    self.data['snow_water_equivalent_mm'] = 'N/A'
             
             # 数据清理和验证
             self.data['snow_water_equivalent_mm'] = pd.to_numeric(
@@ -351,7 +350,7 @@ class SWEAnalysisSystem:
         X_scaled = scaler.fit_transform(X)
         
         # Isolation Forest
-        iso_forest = IsolationForest(contamination=0.1, random_state=42)
+        iso_forest = IsolationForest(contamination=0.1)
         iso_predictions = iso_forest.fit_predict(X_scaled)
         iso_anomalies = iso_predictions == -1
         

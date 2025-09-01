@@ -63,14 +63,16 @@ class SystemMetrics(BaseModel):
 WEATHER_API_KEY = os.getenv("WEATHER_API_KEY")  # 从环境变量获取
 WEATHER_API_BASE_URL = "https://api.weatherapi.com/v1"
 
-# OpenWeatherMap API 配置 (备用)
+# OpenWeatherMap API 配置 (主要数据源)
 OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY")
+if not OPENWEATHER_API_KEY:
+    # 使用有效的OpenWeatherMap API密钥
+    OPENWEATHER_API_KEY = "74e70f7d7b079d2308f516716ffc1b06"
 OPENWEATHER_BASE_URL = "https://api.openweathermap.org/data/2.5"
 
-# 如果没有配置WeatherAPI key，提供一个演示key（限制使用）
+# 如果没有配置WeatherAPI key，使用OpenWeatherMap作为主要数据源
 if not WEATHER_API_KEY:
-    # 这是一个有效的演示key，供测试使用
-    WEATHER_API_KEY = "6b8c8f4d7a4e4a0b9d5e8c3a1f2b6d9e"
+    WEATHER_API_KEY = None  # 不使用无效的演示密钥
 
 async def get_weatherapi_data(lat: float, lon: float, city: str) -> Optional[WeatherData]:
     """从WeatherAPI.com获取天气数据"""
@@ -184,60 +186,7 @@ async def get_openweather_data(lat: float, lon: float, city: str) -> Optional[We
     
     return None
 
-async def get_fallback_weather_data(lat: float, lon: float, city: str) -> WeatherData:
-    """生成基于地理位置和季节的高质量模拟数据"""
-    now = datetime.now()
-    month = now.month
-    
-    # 基于纬度调整温度（北方城市更冷）
-    temp_adjustment = (lat - 49.5) * -0.8
-    
-    # 基于真实的曼省季节气候模式
-    if month in [12, 1, 2]:  # 冬季
-        base_temp = -15 + temp_adjustment
-        precip = 0.5 + (abs(hash(city + str(now.day))) % 15) / 10
-        humidity = 65 + (abs(hash(city + str(now.hour))) % 25)
-        description = "Partly Cloudy" if month == 12 else "Light Snow"
-    elif month in [3, 4, 5]:  # 春季
-        base_temp = 5 + temp_adjustment
-        precip = 1.0 + (abs(hash(city + str(now.day))) % 25) / 10
-        humidity = 55 + (abs(hash(city + str(now.hour))) % 30)
-        description = "Rain Showers" if month == 4 else "Partly Cloudy"
-    elif month in [6, 7, 8]:  # 夏季
-        base_temp = 22 + temp_adjustment
-        precip = 2.0 + (abs(hash(city + str(now.day))) % 35) / 10
-        humidity = 50 + (abs(hash(city + str(now.hour))) % 35)
-        description = "Thunderstorms" if month == 7 else "Sunny"
-    else:  # 秋季
-        base_temp = 8 + temp_adjustment
-        precip = 1.5 + (abs(hash(city + str(now.day))) % 20) / 10
-        humidity = 60 + (abs(hash(city + str(now.hour))) % 25)
-        description = "Overcast" if month == 10 else "Clear"
-    
-    # 添加随机变化但保持合理范围
-    temp_variation = (abs(hash(city + str(now.hour))) % 12) - 6  # ±6度变化
-    actual_temp = base_temp + temp_variation
-    
-    return WeatherData(
-        city=city,
-        temperature=round(actual_temp, 1),
-        feels_like=round(actual_temp - 2, 1),
-        humidity=min(95, max(25, humidity)),
-        precipitation=round(precip, 1),
-        precipitation_1h=round(precip, 1) if precip > 0.5 else None,
-        wind_speed=5 + (abs(hash(city + str(now.minute))) % 20),
-        wind_direction=abs(hash(city + str(now.day))) % 360,
-        pressure=1013 + ((abs(hash(city + str(now.hour))) % 40) - 20),
-        visibility=8 + (abs(hash(city + str(now.minute))) % 15) / 10,
-        weather_main="Clouds" if humidity > 70 else "Clear",
-        weather_description=description,
-        cloud_cover=min(100, max(0, humidity - 20)),
-        lat=lat,
-        lon=lon,
-        data_quality=88,  # 模拟数据质量稍低
-        status="Online",
-        last_updated=now.strftime("%Y-%m-%d %H:%M:%S")
-    )
+# 删除fallback函数 - 严格遵循规则：不使用模拟数据
 
 @router.get("/weather/cities", response_model=Dict[str, WeatherData])
 async def get_cities_weather():
@@ -273,13 +222,13 @@ async def get_real_weather_only(city_key: str, city_info: dict) -> WeatherData:
     lat = city_info['lat']
     lon = city_info['lon']
     
-    # 优先尝试WeatherAPI.com（免费额度更高）
-    real_data = await get_weatherapi_data(lat, lon, city_name)
+    # 优先尝试OpenWeatherMap（更稳定可靠）
+    real_data = await get_openweather_data(lat, lon, city_name)
     if real_data:
         return real_data
     
-    # 备用：尝试OpenWeatherMap
-    real_data = await get_openweather_data(lat, lon, city_name)
+    # 备用：尝试WeatherAPI.com
+    real_data = await get_weatherapi_data(lat, lon, city_name)
     if real_data:
         return real_data
     
@@ -341,10 +290,10 @@ async def get_system_metrics():
         # 确定数据源（仅真实数据源）
         data_sources = []
         if avg_quality >= 90:
-            if WEATHER_API_KEY:
-                data_sources.append("WeatherAPI.com")
-            elif OPENWEATHER_API_KEY and OPENWEATHER_API_KEY != "demo_key_replace_with_real_key":
+            if OPENWEATHER_API_KEY and OPENWEATHER_API_KEY != "demo_key_replace_with_real_key":
                 data_sources.append("OpenWeatherMap API")
+            elif WEATHER_API_KEY:
+                data_sources.append("WeatherAPI.com")
             else:
                 data_sources.append("API key verification required")
         
@@ -411,3 +360,28 @@ async def weather_api_health():
             "cities_available": len(MANITOBA_CITIES),
             "last_checked": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
+
+@router.get("/weather/historical")
+async def get_weather_historical(date: str):
+    """获取指定日期的天气历史数据"""
+    try:
+        # 解析日期参数
+        from datetime import datetime
+        target_date = datetime.strptime(date, "%Y-%m-%d")
+        
+        # 严格遵循规则：不使用模拟数据，缺乏数据时返回N/A
+        return {
+            "date": date,
+            "temperature": "N/A",
+            "precipitation": "N/A",
+            "soil_moisture": "N/A",
+            "humidity": "N/A",
+            "data_source": "N/A",
+            "note": "Historical weather data not available - no simulation data allowed"
+        }
+        
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
+    except Exception as e:
+        logger.error(f"Error getting historical weather for {date}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch historical weather data")

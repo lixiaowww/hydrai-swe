@@ -19,6 +19,14 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+# 数据路径常量 - 解决重复硬编码路径问题
+DATA_PATHS = {
+    "eccc_recent": "/home/sean/hydrai_swe/data/raw/eccc_recent/eccc_recent_combined.csv",
+    "eccc_processed": "/home/sean/hydrai_swe/data/processed/eccc_manitoba_snow_processed.csv",
+    "flood_warning_optimized": "/home/sean/hydrai_swe/data/processed/flood_warning/flood_warning_optimized.csv",
+    "hydat_streamflow": "/home/sean/hydrai_swe/data/processed/hydat_streamflow_processed.csv"
+}
+
 class FloodWarningService:
     """洪水预警服务类"""
     
@@ -26,8 +34,8 @@ class FloodWarningService:
         self.model = None
         self.scaler = None
         self.feature_names = []
-        self.model_path = "models/flood_warning_model.pkl"
-        self.scaler_path = "models/flood_warning_scaler.pkl"
+        self.model_path = "/home/sean/hydrai_swe/models/flood_warning_model.pkl"
+        self.scaler_path = "/home/sean/hydrai_swe/models/flood_warning_scaler.pkl"
         self.load_model()
     
     def load_model(self):
@@ -272,7 +280,7 @@ async def assess_flood_risk(
             raise HTTPException(status_code=503, detail="洪水预警模型未加载")
         
         # 加载优化后的数据
-        optimized_path = "data/processed/flood_warning/flood_warning_optimized.csv"
+        optimized_path = DATA_PATHS["flood_warning_optimized"]
         
         if os.path.exists(optimized_path):
             # 使用优化后的数据
@@ -281,8 +289,8 @@ async def assess_flood_risk(
             features_data = flood_service.prepare_features_from_merged(merged_data)
         else:
             # 回退到原始数据
-            weather_path = "data/raw/eccc_recent/eccc_recent_combined.csv"
-            flow_path = "data/processed/hydat_streamflow_processed.csv"
+            weather_path = DATA_PATHS["eccc_recent"]
+            flow_path = DATA_PATHS["hydat_streamflow"]
             
             if not os.path.exists(weather_path) or not os.path.exists(flow_path):
                 raise HTTPException(status_code=404, detail="数据文件不存在")
@@ -304,20 +312,25 @@ async def assess_flood_risk(
         total_count = len(risk_levels)
         avg_risk_prob = np.mean(risk_probs)
         
-        # 确定整体风险等级 - 修复逻辑
-        high_risk_ratio = high_risk_count / total_count if total_count > 0 else 0
+        # 确定整体风险等级 - 基于概率值而非二分类结果
+        # 使用平均风险概率来确定整体风险等级
+        avg_risk_prob = np.mean(risk_probs)
         
-        if high_risk_ratio > 0.2:  # 降低阈值到20%
+        # 确保概率值在合理范围内
+        if avg_risk_prob > 1.0:
+            # 如果概率值已经超过1，可能是百分比格式，需要除以100
+            avg_risk_prob = avg_risk_prob / 100.0
+        
+        # 限制概率值在0-1范围内
+        avg_risk_prob = max(0.0, min(1.0, avg_risk_prob))
+        
+        # 根据平均概率确定整体风险等级
+        if avg_risk_prob > 0.7:
             overall_risk = "HIGH"
-        elif high_risk_ratio > 0.05:  # 降低阈值到5%
+        elif avg_risk_prob > 0.3:
             overall_risk = "MEDIUM"
         else:
             overall_risk = "LOW"
-        
-        # 添加风险一致性检查
-        if high_risk_count > 0 and overall_risk == "LOW":
-            # 如果检测到高风险区域但整体风险为低，调整为中等风险
-            overall_risk = "MEDIUM"
         
         return {
             "status": "success",
@@ -351,7 +364,7 @@ async def get_real_time_risk():
             raise HTTPException(status_code=503, detail="洪水预警模型未加载")
         
         # 加载优化后的数据
-        optimized_path = "data/processed/flood_warning/flood_warning_optimized.csv"
+        optimized_path = DATA_PATHS["flood_warning_optimized"]
         
         if os.path.exists(optimized_path):
             # 使用优化后的数据
@@ -368,8 +381,8 @@ async def get_real_time_risk():
             features_data = flood_service.prepare_features_from_merged(latest_data)
         else:
             # 回退到原始数据
-            weather_path = "data/raw/eccc_recent/eccc_recent_combined.csv"
-            flow_path = "data/processed/hydat_streamflow_processed.csv"
+            weather_path = DATA_PATHS["eccc_recent"]
+            flow_path = DATA_PATHS["hydat_streamflow"]
             
             weather_data = pd.read_csv(weather_path)
             flow_data = pd.read_csv(flow_path)
@@ -394,7 +407,23 @@ async def get_real_time_risk():
         risk_level = prediction_result['risk_level'][0]
         risk_probability = prediction_result['risk_probability'][0]
         
-        risk_status = "HIGH" if risk_level == 1 else "LOW"
+        # 确保概率值在合理范围内
+        if risk_probability > 1.0:
+            # 如果概率值已经超过1，可能是百分比格式，需要除以100
+            normalized_prob = risk_probability / 100.0
+        else:
+            normalized_prob = risk_probability
+        
+        # 限制概率值在0-1范围内
+        normalized_prob = max(0.0, min(1.0, normalized_prob))
+        
+        # 根据概率确定风险等级
+        if normalized_prob > 0.7:
+            risk_status = "HIGH"
+        elif normalized_prob > 0.3:
+            risk_status = "MEDIUM"
+        else:
+            risk_status = "LOW"
         
         return {
             "status": "success",
@@ -402,7 +431,7 @@ async def get_real_time_risk():
             "data_date": latest_date.isoformat(),
             "current_risk": {
                 "level": risk_status,
-                "probability": round(risk_probability * 100, 2),
+                "probability": round(normalized_prob * 100, 1),
                 "description": {
                     "zh": "洪水风险高，需要关注" if risk_level == 1 else "洪水风险低，正常状态",
                     "en": "High flood risk, attention required" if risk_level == 1 else "Low flood risk, normal status",
@@ -427,7 +456,7 @@ async def get_real_time_risk():
         logger.error(f"实时风险评估失败: {e}")
         raise HTTPException(status_code=500, detail=f"实时风险评估失败: {str(e)}")
 
-@router.get("/flood-timeline")
+@router.get("/timeline")
 async def get_flood_timeline(
     days: int = Query(30, description="预测天数", ge=7, le=90),
     region: str = Query("red-river-basin", description="评估区域")
@@ -438,7 +467,7 @@ async def get_flood_timeline(
             raise HTTPException(status_code=503, detail="洪水预警模型未加载")
         
         # 加载优化后的数据
-        optimized_path = "data/processed/flood_warning/flood_warning_optimized.csv"
+        optimized_path = DATA_PATHS["flood_warning_optimized"]
         
         if os.path.exists(optimized_path):
             # 使用优化后的数据
@@ -447,8 +476,8 @@ async def get_flood_timeline(
             features_data = flood_service.prepare_features_from_merged(merged_data)
         else:
             # 回退到原始数据
-            weather_path = "data/raw/eccc_recent/eccc_recent_combined.csv"
-            flow_path = "data/processed/hydat_streamflow_processed.csv"
+            weather_path = DATA_PATHS["eccc_recent"]
+            flow_path = DATA_PATHS["hydat_streamflow"]
             
             if not os.path.exists(weather_path) or not os.path.exists(flow_path):
                 raise HTTPException(status_code=404, detail="数据文件不存在")
@@ -480,11 +509,35 @@ async def get_flood_timeline(
                 else:
                     date = datetime.now() + timedelta(days=i)
             
+            # 确保风险概率在合理范围内
+            if risk_prob > 1.0:
+                # 如果概率值已经超过1，可能是百分比格式，需要除以100
+                normalized_prob = risk_prob / 100.0
+            else:
+                normalized_prob = risk_prob
+            
+            # 限制概率值在0-1范围内
+            normalized_prob = max(0.0, min(1.0, normalized_prob))
+            
+            # 计算百分比，确保不超过100%
+            risk_percentage = round(normalized_prob * 100, 1)
+            
+            # 根据概率确定风险等级
+            if normalized_prob > 0.7:
+                risk_level_display = "HIGH"
+                alert_level = "WARNING"
+            elif normalized_prob > 0.3:
+                risk_level_display = "MEDIUM"
+                alert_level = "INFO"
+            else:
+                risk_level_display = "LOW"
+                alert_level = "NORMAL"
+            
             timeline_data.append({
                 "date": date.isoformat() if hasattr(date, 'isoformat') else str(date),
-                "risk_level": "HIGH" if risk_level == 1 else "LOW",
-                "risk_probability": round(risk_prob * 100, 2),
-                "alert_level": "WARNING" if risk_prob > 0.7 else "INFO" if risk_prob > 0.3 else "NORMAL"
+                "risk_level": risk_level_display,
+                "risk_probability": risk_percentage,
+                "alert_level": alert_level
             })
         
         return {
@@ -518,7 +571,7 @@ async def get_flood_history(
             end_date = datetime.now().strftime("%Y-%m-%d")
         
         # 加载优化后的数据
-        optimized_path = "data/processed/flood_warning/flood_warning_optimized.csv"
+        optimized_path = DATA_PATHS["flood_warning_optimized"]
         
         if os.path.exists(optimized_path):
             # 使用优化后的数据
@@ -538,8 +591,8 @@ async def get_flood_history(
             features_data = flood_service.prepare_features_from_merged(filtered_data)
         else:
             # 回退到原始数据
-            weather_path = "data/raw/eccc_recent/eccc_recent_combined.csv"
-            flow_path = "data/processed/hydat_streamflow_processed.csv"
+            weather_path = DATA_PATHS["eccc_recent"]
+            flow_path = DATA_PATHS["hydat_streamflow"]
             
             if not os.path.exists(weather_path) or not os.path.exists(flow_path):
                 raise HTTPException(status_code=404, detail="数据文件不存在")

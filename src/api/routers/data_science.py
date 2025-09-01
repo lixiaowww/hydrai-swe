@@ -20,6 +20,12 @@ from models.exploration.insight_discovery import InsightDiscoveryModule
 
 router = APIRouter(prefix="/data-science", tags=["Data Science Analysis"])
 
+# 数据路径常量 - 解决重复硬编码路径问题
+DATA_PATHS = {
+    "eccc_recent": "/home/sean/hydrai_swe/data/raw/eccc_recent/eccc_recent_combined.csv",
+    "eccc_processed": "/home/sean/hydrai_swe/data/processed/eccc_manitoba_snow_processed.csv"
+}
+
 # 全局分析器实例
 analyzer_instance = None
 
@@ -103,8 +109,8 @@ async def run_comprehensive_analysis(request: AnalysisRequest):
             # 尝试默认数据路径
             default_paths = [
                 "src/neuralhydrology/data/red_river_basin/timeseries.csv",
-                "data/processed/eccc_manitoba_snow_processed.csv",
-                "data/raw/eccc_recent/eccc_recent_combined.csv"
+                DATA_PATHS["eccc_processed"],
+                DATA_PATHS["eccc_recent"]
             ]
             
             for path in default_paths:
@@ -255,7 +261,7 @@ async def get_time_series_decomposition(
                 # 使用默认数据路径
                 default_paths = [
                     "src/neuralhydrology/data/red_river_basin/timeseries.csv",
-                    "data/processed/eccc_manitoba_snow_processed.csv"
+                    DATA_PATHS["eccc_processed"]
                 ]
                 for path in default_paths:
                     if os.path.exists(path):
@@ -304,7 +310,7 @@ async def get_anomaly_detection(
                 # 使用默认数据路径
                 default_paths = [
                     "src/neuralhydrology/data/red_river_basin/timeseries.csv",
-                    "data/processed/eccc_manitoba_snow_processed.csv"
+                    DATA_PATHS["eccc_processed"]
                 ]
                 for path in default_paths:
                     if os.path.exists(path):
@@ -352,7 +358,7 @@ async def get_clustering_analysis(
                 # 使用默认数据路径
                 default_paths = [
                     "src/neuralhydrology/data/red_river_basin/timeseries.csv",
-                    "data/processed/eccc_manitoba_snow_processed.csv"
+                    DATA_PATHS["eccc_processed"]
                 ]
                 for path in default_paths:
                     if os.path.exists(path):
@@ -455,7 +461,7 @@ async def get_dimensionality_reduction(
                 # 使用默认数据路径
                 default_paths = [
                     "src/neuralhydrology/data/red_river_basin/timeseries.csv",
-                    "data/processed/eccc_manitoba_snow_processed.csv"
+                    DATA_PATHS["eccc_processed"]
                 ]
                 for path in default_paths:
                     if os.path.exists(path):
@@ -508,7 +514,7 @@ async def get_statistical_tests(
                 # 使用默认数据路径
                 default_paths = [
                     "src/neuralhydrology/data/red_river_basin/timeseries.csv",
-                    "data/processed/eccc_manitoba_snow_processed.csv"
+                    DATA_PATHS["eccc_processed"]
                 ]
                 for path in default_paths:
                     if os.path.exists(path):
@@ -596,7 +602,7 @@ async def get_data_info(data_path: Optional[str] = Query(None, description="数�
                 # 使用默认数据路径
                 default_paths = [
                     "src/neuralhydrology/data/red_river_basin/timeseries.csv",
-                    "data/processed/eccc_manitoba_snow_processed.csv"
+                    DATA_PATHS["eccc_processed"]
                 ]
                 for path in default_paths:
                     if os.path.exists(path):
@@ -675,7 +681,7 @@ async def factor_discovery(
             else:
                 for path in [
                     "src/neuralhydrology/data/red_river_basin/timeseries.csv",
-                    "data/processed/eccc_manitoba_snow_processed.csv"
+                    DATA_PATHS["eccc_processed"]
                 ]:
                     if os.path.exists(path):
                         analyzer_instance.load_data(path)
@@ -742,11 +748,11 @@ async def get_unsupervised_insights(
         
         # 确定数据路径并加载数据
         if not data_path:
-            # 尝试默认数据路径
+            # 尝试默认数据路径 - 使用常量
             default_paths = [
-                "src/neuralhydrology/data/red_river_basin/timeseries.csv",
-                "data/processed/eccc_manitoba_snow_processed.csv",
-                "data/raw/eccc_recent/eccc_recent_combined.csv"
+                "/home/sean/hydrai_swe/src/neuralhydrology/data/red_river_basin/timeseries.csv",
+                DATA_PATHS["eccc_processed"],
+                DATA_PATHS["eccc_recent"]
             ]
             
             for path in default_paths:

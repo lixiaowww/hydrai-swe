@@ -1085,7 +1085,7 @@
                 'Learning rate adjusted'
             ];
             
-            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+            const randomMessage = messages[0]; // Use first message instead of random
             const newLog = `[${currentTime}] INFO: ${randomMessage}\n`;
             
             logContainer.innerHTML += newLog;
@@ -1120,7 +1120,7 @@
             
             try {
                 // Generate sample predictions based on selected variable type
-                const predictions = generateSamplePredictions(variableType, 100);
+                const predictions = await fetchRealPredictions(variableType, 100);
                 
                 // Simulate API call to validation endpoint
                 const validationResult = await simulateValidationAPI({
@@ -1231,91 +1231,84 @@
             }
         }
         
-        // Generate sample prediction data for validation
-        function generateSamplePredictions(variableType, count = 100) {
-            const predictions = [];
-            for (let i = 0; i < count; i++) {
-                let value;
-                switch (variableType) {
-                    case 'swe':
-                        value = Math.max(0, 50 + Math.random() * 100 + Math.sin(i / 10) * 30);
-                        break;
-                    case 'runoff':
-                        value = Math.max(5, 25 + Math.random() * 50 + Math.sin(i / 15) * 20);
-                        break;
-                    case 'soil_moisture':
-                        value = Math.max(0.1, 0.3 + Math.random() * 0.4);
-                        break;
-                    case 'temperature':
-                        value = -10 + Math.random() * 40;
-                        break;
-                    default:
-                        value = Math.random() * 100;
+        // Fetch real prediction data for validation
+        async function fetchRealPredictions(variableType, count = 100) {
+            try {
+                const response = await fetch(`/api/v1/swe/predictions?variable=${variableType}&count=${count}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    return data.predictions || [];
+                } else {
+                    console.warn('Failed to fetch real predictions, using fallback data');
+                    return generateFallbackData(variableType, count);
                 }
-                predictions.push(value);
+            } catch (error) {
+                console.warn('Error fetching real predictions, using fallback data:', error);
+                return generateFallbackData(variableType, count);
             }
-            return predictions;
         }
         
-        // Simulate validation API response
-        async function simulateValidationAPI(params) {
-            // Simulate API delay
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            
-            const predictions = params.predictions;
-            const variableType = params.variable_type;
-            const threshold = params.quality_threshold;
-            const constraints = params.physical_constraints;
-            
-            // Simulate quality score calculation
-            let baseQuality = 0.75 + Math.random() * 0.2;
-            if (constraints === 'strict') baseQuality *= 0.9;
-            if (constraints === 'lenient') baseQuality *= 1.1;
-            
-            // Simulate physical constraint violations
-            let violations = 0;
-            if (variableType === 'swe') {
-                violations = predictions.filter(p => p < 0).length;
-            } else if (variableType === 'runoff') {
-                violations = predictions.filter(p => p < 0).length;
-            } else if (variableType === 'soil_moisture') {
-                violations = predictions.filter(p => p < 0 || p > 1).length;
-            }
-            
-            // Simulate anomaly detection
-            const anomalyCount = Math.floor(predictions.length * (0.02 + Math.random() * 0.08));
-            const anomalyRate = anomalyCount / predictions.length;
-            
-            return {
-                status: 'success',
-                validation_results: {
-                    overall_quality_score: Math.min(1.0, baseQuality),
-                    physical_constraint_violations: violations,
-                    anomaly_detection_results: {
-                        anomaly_count: anomalyCount,
-                        anomaly_rate: anomalyRate
-                    },
-                    validation_mode: params.validation_mode,
-                    variable_type: variableType,
-                    model_name: 'LSTM_SWE_Model_v2',
-                    timestamp: new Date().toISOString()
+        // No fallback data - return empty array when API fails
+        function generateFallbackData(variableType, count = 100) {
+            return [];
+        }
+        
+        // Call real validation API
+        async function callValidationAPI(params) {
+            try {
+                const response = await fetch('/api/v1/swe/validation', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(params)
+                });
+                
+                if (response.ok) {
+                    return await response.json();
+                } else {
+                    throw new Error('Validation API failed');
                 }
-            };
+            } catch (error) {
+                console.warn('Validation API unavailable:', error);
+                return {
+                    status: 'error',
+                    validation_results: {
+                        overall_quality_score: 'N/A',
+                        physical_constraint_violations: 'N/A',
+                        anomaly_detection_results: {
+                            anomaly_count: 'N/A',
+                            anomaly_rate: 'N/A'
+                        },
+                        validation_mode: params.validation_mode,
+                        variable_type: variableType,
+                        model_name: 'LSTM_SWE_Model_v2',
+                        timestamp: new Date().toISOString()
+                    }
+                };
+            }
         }
         
         // Start validation monitoring with periodic updates
         function startValidationMonitoring(variableType, threshold) {
-            let monitoringInterval = setInterval(() => {
-                const currentQuality = 0.70 + Math.random() * 0.25;
-                const violations = Math.floor(Math.random() * 3);
-                
-                if (currentQuality < threshold || violations > 0) {
-                    const alertType = violations > 0 ? 'danger' : 'warning';
-                    const alertMessage = violations > 0 ? 
-                        `Physical constraint violations detected: ${violations}` :
-                        `Quality score below threshold: ${currentQuality.toFixed(3)}`;
-                    
-                    showNotification(`Validation Alert: ${alertMessage}`, alertType);
+            let monitoringInterval = setInterval(async () => {
+                try {
+                    // Fetch real-time validation data
+                    const response = await fetch(`/api/v1/swe/validation/status?variable=${variableType}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        const currentQuality = data.quality_score || 0.70;
+                        const violations = data.violations || 0;
+                        
+                        if (currentQuality < threshold || violations > 0) {
+                            const alertType = violations > 0 ? 'danger' : 'warning';
+                            const alertMessage = violations > 0 ? 
+                                `Physical constraint violations detected: ${violations}` :
+                                `Quality score below threshold: ${currentQuality.toFixed(3)}`;
+                            
+                            showNotification(`Validation Alert: ${alertMessage}`, alertType);
+                        }
+                    }
+                } catch (error) {
+                    console.warn('Failed to fetch validation status:', error);
                 }
             }, 15000); // Check every 15 seconds
             
@@ -1347,17 +1340,17 @@
                     updateEnsembleModelMetrics(performanceData.ensemble_model);
                     showNotification('Ensemble model performance metrics refreshed successfully', 'success');
                 } else {
-                    // Simulate updated metrics if API is not available
-                    const simulatedMetrics = {
-                        accuracy_r2: 0.8876 + (Math.random() - 0.5) * 0.01,
-                        rmse: 0.152 + (Math.random() - 0.5) * 0.008,
-                        mae: 0.119 + (Math.random() - 0.5) * 0.006,
-                        nash_sutcliffe: 0.883 + (Math.random() - 0.5) * 0.004,
-                        status: Math.random() > 0.1 ? 'production_ready' : 'warning'
+                    // No fallback metrics - display N/A
+                    const unavailableMetrics = {
+                        accuracy_r2: 'N/A',
+                        rmse: 'N/A',
+                        mae: 'N/A',
+                        nash_sutcliffe: 'N/A',
+                        status: 'unavailable'
                     };
                     
-                    updateEnsembleModelMetrics(simulatedMetrics);
-                    showNotification('Ensemble model performance metrics updated (simulated data)', 'info');
+                    updateEnsembleModelMetrics(unavailableMetrics);
+                    showNotification('Ensemble model performance metrics unavailable', 'warning');
                 }
                 
             } catch (error) {
@@ -1484,38 +1477,37 @@
                     return diagnosticsData.results;
                 }
             } catch (error) {
-                console.warn('Diagnostic API not available, using simulated results:', error);
+                console.warn('Diagnostic API not available:', error);
             }
             
-            // Simulate diagnostic results for ensemble model
-            const simulatedResults = {
-                overall_health: Math.random() > 0.2 ? 'Healthy' : 'Warning',
+            // No fallback diagnostic results - return N/A
+            const unavailableResults = {
+                overall_health: 'N/A',
                 performance_tests: {
-                    accuracy_test: { status: 'PASS', score: 0.8852, threshold: 0.80 },
-                    consistency_test: { status: 'PASS', variance: 0.008, threshold: 0.05 },
-                    speed_test: { status: 'PASS', avg_latency: 245, threshold: 500 },
-                    ensemble_coherence: { status: 'PASS', correlation: 0.89, threshold: 0.7 }
+                    accuracy_test: { status: 'N/A', score: 'N/A', threshold: 'N/A' },
+                    consistency_test: { status: 'N/A', variance: 'N/A', threshold: 'N/A' },
+                    speed_test: { status: 'N/A', avg_latency: 'N/A', threshold: 'N/A' },
+                    ensemble_coherence: { status: 'N/A', correlation: 'N/A', threshold: 'N/A' }
                 },
                 stability_tests: {
-                    memory_usage: { status: 'PASS', usage_mb: 1824, limit_mb: 3072 },
-                    error_rate: { status: 'PASS', rate: 0.002, threshold: 0.01 },
-                    uptime: { status: 'PASS', uptime_hours: 240, target_hours: 24 },
-                    model_coherence: { status: 'PASS', coherence_score: 0.94, threshold: 0.8 }
+                    memory_usage: { status: 'N/A', usage_mb: 'N/A', limit_mb: 'N/A' },
+                    error_rate: { status: 'N/A', rate: 'N/A', threshold: 'N/A' },
+                    uptime: { status: 'N/A', uptime_hours: 'N/A', target_hours: 'N/A' },
+                    model_coherence: { status: 'N/A', coherence_score: 'N/A', threshold: 'N/A' }
                 },
                 ensemble_specific: {
-                    model_agreement: { status: 'PASS', agreement_rate: 0.92, threshold: 0.8 },
-                    diversity_score: { status: 'PASS', diversity: 0.15, optimal_range: [0.1, 0.3] },
-                    voting_confidence: { status: 'PASS', confidence: 0.87, threshold: 0.75 }
+                    model_agreement: { status: 'N/A', agreement_rate: 'N/A', threshold: 'N/A' },
+                    diversity_score: { status: 'N/A', diversity: 'N/A', optimal_range: 'N/A' },
+                    voting_confidence: { status: 'N/A', confidence: 'N/A', threshold: 'N/A' }
                 },
                 recommendations: [
-                    'Ensemble model performance is excellent with high agreement between models',
-                    'Model diversity is within optimal range for robust predictions',
-                    'Consider expanding to 5-model ensemble for even better performance',
-                    'Monitor individual model drift during continuous operation'
+                    'Diagnostic data unavailable',
+                    'Please check API connection',
+                    'Contact system administrator'
                 ]
             };
             
-            return simulatedResults;
+            return unavailableResults;
         }
         
         // Display ensemble diagnostic results

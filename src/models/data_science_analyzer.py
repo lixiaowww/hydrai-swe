@@ -19,6 +19,34 @@ class DataScienceAnalyzer:
         self.data = None
         self.scaler = StandardScaler()
         self.analysis_results = {}
+        
+        # 列名映射 - 处理不同数据源的列名差异
+        self.column_mapping = {
+            'snow_water_equivalent_mm': ['Snow on Grnd (cm)', 'Total Snow (cm)', 'snow_water_equivalent_mm'],
+            'snow_depth_mm': ['Snow on Grnd (cm)', 'Total Snow (cm)', 'snow_depth_mm'],
+            'snow_fall_mm': ['Total Snow (cm)', 'snow_fall_mm'],
+            'streamflow_m3s': ['streamflow_m3s', 'flow_m3s', 'discharge_m3s']
+        }
+    
+    def _find_matching_column(self, target_column):
+        """找到匹配的实际列名"""
+        if target_column in self.data.columns:
+            return target_column
+        
+        # 检查映射
+        if target_column in self.column_mapping:
+            for possible_name in self.column_mapping[target_column]:
+                if possible_name in self.data.columns:
+                    print(f"✅ 找到匹配列: {target_column} -> {possible_name}")
+                    return possible_name
+        
+        # 尝试模糊匹配
+        for col in self.data.columns:
+            if target_column.lower() in col.lower() or col.lower() in target_column.lower():
+                print(f"✅ 模糊匹配列: {target_column} -> {col}")
+                return col
+        
+        return None
     
     def load_data(self, data_path):
         """加载数据"""
@@ -39,10 +67,16 @@ class DataScienceAnalyzer:
         print(f"\n🚨 执行高级异常检测: {column}")
         print("=" * 60)
         
-        if self.data is None or column not in self.data.columns:
+        # 尝试找到匹配的列名
+        actual_column = self._find_matching_column(column)
+        if actual_column is None:
+            print(f"⚠️ 未找到匹配列: {column}")
             return {}
         
-        series = self.data[column].dropna()
+        if self.data is None or actual_column not in self.data.columns:
+            return {}
+        
+        series = self.data[actual_column].dropna()
         if len(series) == 0:
             return {}
         
@@ -167,10 +201,16 @@ class DataScienceAnalyzer:
         print(f"\n📊 执行统计假设检验: {column}")
         print("=" * 60)
         
-        if self.data is None or column not in self.data.columns:
+        # 尝试找到匹配的列名
+        actual_column = self._find_matching_column(column)
+        if actual_column is None:
+            print(f"⚠️ 未找到匹配列: {column}")
             return {}
         
-        series = self.data[column].dropna()
+        if self.data is None or actual_column not in self.data.columns:
+            return {}
+        
+        series = self.data[actual_column].dropna()
         if len(series) == 0:
             return {}
         
@@ -209,10 +249,16 @@ class DataScienceAnalyzer:
         print(f"\n🔍 执行高级时间序列分解: {column}")
         print("=" * 60)
         
-        if self.data is None or column not in self.data.columns:
+        # 尝试找到匹配的列名
+        actual_column = self._find_matching_column(column)
+        if actual_column is None:
+            print(f"⚠️ 未找到匹配列: {column}")
             return {}
         
-        series = self.data[column].dropna()
+        if self.data is None or actual_column not in self.data.columns:
+            return {}
+        
+        series = self.data[actual_column].dropna()
         if len(series) == 0:
             return {}
         

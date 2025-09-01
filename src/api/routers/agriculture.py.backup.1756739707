@@ -261,28 +261,28 @@ async def predict_soil_moisture(request: SoilMoistureRequest):
                         "data_points": int(len(snow_data))
                     }
                     
-                    return {
-                        "status": "success",
-                        "source": "Snow Water Equivalent (SWE) as soil moisture proxy",
-                        "note": "Using snow water equivalent as a proxy for soil moisture in cold regions. This is a common approach in hydrology.",
-                        "location": request.location,
-                        "prediction_date": datetime.now().isoformat(),
-                        "prediction_stats": stats,
-                        "model_info": {
-                            "type": "SWE Proxy Model",
-                            "layers": 1,
-                            "hidden_size": 64,
-                            "method": "Statistical Analysis",
-                            "description": "Snow water equivalent to soil moisture conversion using historical data analysis"
-                        },
-                        "data_quality": {
-                            "proxy_method": "SWE to soil moisture conversion",
-                            "confidence": "medium",
-                            "limitations": "Best suited for cold regions with seasonal snow cover"
-                        },
-                        "available_features": df.columns.tolist(),
-                        "timestamp": datetime.now().isoformat()
-                    }
+                                            return {
+                            "status": "success",
+                            "source": "Snow Water Equivalent (SWE) as soil moisture proxy",
+                            "note": "Using snow water equivalent as a proxy for soil moisture in cold regions. This is a common approach in hydrology.",
+                            "location": request.location,
+                            "prediction_date": datetime.now().isoformat(),
+                            "prediction_stats": stats,
+                            "model_info": {
+                                "type": "SWE Proxy Model",
+                                "layers": 1,
+                                "hidden_size": 64,
+                                "method": "Statistical Analysis",
+                                "description": "Snow water equivalent to soil moisture conversion using historical data analysis"
+                            },
+                            "data_quality": {
+                                "proxy_method": "SWE to soil moisture conversion",
+                                "confidence": "medium",
+                                "limitations": "Best suited for cold regions with seasonal snow cover"
+                            },
+                            "available_features": df.columns.tolist(),
+                            "timestamp": datetime.now().isoformat()
+                        }
             
             # 无可用数据时返回友好信息
             return {
