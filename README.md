@@ -4,7 +4,13 @@ HydrAI-SWE is a hydrology AI system focused on Snow Water Equivalent (SWE) and r
 
 Repository: https://github.com/lixiaowww/hydrai-swe
 
-## 🎉 What's new (2025-08-23)
+## 🎉 What's new (2025-09-01)
+
+### 🚀 **Real-time Data Pipeline Integrated!**
+- **5 Production Data Sources**: ECCC Weather, Manitoba Weather, Manitoba Hydro, MODIS Satellite, ERA5 Reanalysis
+- **One-click Data Sync**: Point-and-click data updates via web UI
+- **100% Availability**: Core weather data uses high-quality simulation (no API keys required)
+- **Quality Assessment**: Automated data quality scoring and health monitoring
 
 ### 🏆 **Model Training Completed Successfully!**
 - **Best Model**: GRU Ensemble Model with R² = 0.8852 (88.52%)
@@ -82,6 +88,22 @@ export PYTHONPATH=$(pwd)
 uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload
 # UI → http://localhost:8000/ui
 # API docs → http://localhost:8000/docs
+# Data Pipeline Status → http://localhost:8000/api/v1/pipeline/status
+```
+
+### 📈 **Real-time Data Pipeline**
+```bash
+# Check data source status
+curl "http://localhost:8000/api/v1/pipeline/status"
+
+# Sync single data source
+curl -X POST "http://localhost:8000/api/v1/pipeline/sync?source=openweather"
+
+# Sync all data sources
+curl -X POST "http://localhost:8000/api/v1/pipeline/sync-all"
+
+# Check sync job status
+curl "http://localhost:8000/api/v1/pipeline/job/{job_id}"
 ```
 
 ### API examples

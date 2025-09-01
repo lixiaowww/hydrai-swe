@@ -60,6 +60,14 @@ except ImportError as e:
     print(f"Warning: Could not import data science router: {e}")
     DATA_SCIENCE_AVAILABLE = False
 
+# 尝试导入天气数据API路由
+try:
+    from src.api.routers import weather
+    WEATHER_API_AVAILABLE = True
+except ImportError as e:
+    print(f"Warning: Could not import weather API router: {e}")
+    WEATHER_API_AVAILABLE = False
+
 app = FastAPI(
     title="HydrAI-SWE API",
     description="API for the HydrAI-SWE project to serve snow water equivalent (SWE), runoff predictions, flood warning services, and historical data cross-validation.",
@@ -103,6 +111,10 @@ if DATA_SCIENCE_AVAILABLE:
 # Include enhanced interpretation service
 if ENHANCED_INTERPRETATION_AVAILABLE:
     app.include_router(enhanced_interpretation.router, tags=["enhanced_interpretation"])
+
+# 包含天气API路由
+if WEATHER_API_AVAILABLE:
+    app.include_router(weather.router, prefix="/api/v1", tags=["weather"])
 
 @app.get("/")
 def read_root():
@@ -230,5 +242,15 @@ def user_guide(request: Request):
 def api_documentation(request: Request):
     # Custom API Documentation with consistent navigation header
     return templates.TemplateResponse("ui/api_docs.html", {"request": request})
+
+@app.get("/real_data_analysis_page.html", response_class=HTMLResponse)
+def real_data_analysis_page(request: Request):
+    # Advanced Hydrology Analysis Dashboard - Professional Data Science Suite
+    return templates.TemplateResponse("real_data_analysis_page.html", {"request": request})
+
+@app.get("/real-data-analysis", response_class=HTMLResponse)
+def real_data_analysis_dashboard(request: Request):
+    # Alternative route for Advanced Hydrology Analysis Dashboard
+    return templates.TemplateResponse("real_data_analysis_page.html", {"request": request})
 
 # Removed additional UI variants to avoid accidental use of heavy UIs

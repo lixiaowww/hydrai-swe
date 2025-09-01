@@ -16,6 +16,7 @@ from datetime import datetime
 import sys
 sys.path.append('/home/sean/hydrai_swe/src')
 from models.data_science_analyzer import DataScienceAnalyzer
+from models.exploration.insight_discovery import InsightDiscoveryModule
 
 router = APIRouter(prefix="/data-science", tags=["Data Science Analysis"])
 
@@ -719,6 +720,84 @@ async def delete_analysis(analysis_id: str):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"删除分析结果失败: {str(e)}")
+
+@router.get("/unsupervised-insights")
+async def get_unsupervised_insights(
+    target_column: str = Query("estimated_soil_moisture", description="目标列名"),
+    data_path: Optional[str] = Query(None, description="数据文件路径")
+):
+    """
+    获取无监督学习洞察 - 调用真实的InsightDiscoveryModule
+    
+    Args:
+        target_column: 目标分析列名
+        data_path: 数据文件路径
+        
+    Returns:
+        dict: 无监督学习洞察结果
+    """
+    try:
+        # 创建无监督探索模块实例
+        insight_module = InsightDiscoveryModule()
+        
+        # 确定数据路径并加载数据
+        if not data_path:
+            # 尝试默认数据路径
+            default_paths = [
+                "src/neuralhydrology/data/red_river_basin/timeseries.csv",
+                "data/processed/eccc_manitoba_snow_processed.csv",
+                "data/raw/eccc_recent/eccc_recent_combined.csv"
+            ]
+            
+            for path in default_paths:
+                if os.path.exists(path):
+                    data_path = path
+                    break
+        
+        if not data_path or not os.path.exists(data_path):
+            raise HTTPException(status_code=404, detail="未找到数据文件")
+        
+        # 加载数据
+        import pandas as pd
+        data = pd.read_csv(data_path)
+        
+        # 处理日期索引
+        if 'date' in data.columns:
+            data['date'] = pd.to_datetime(data['date'])
+            data.set_index('date', inplace=True)
+        elif 'Date' in data.columns:
+            data['Date'] = pd.to_datetime(data['Date'])
+            data.set_index('Date', inplace=True)
+        
+        print(f"✅ 数据加载成功: {len(data)} 条记录")
+        print(f"📊 数据列: {list(data.columns)}")
+        
+        # 运行无监督模式发现
+        insights = insight_module.discover_patterns(data, target_column)
+        
+        # 运行解读洞察结果
+        interpretation = insight_module.interpret_insights(insights)
+        
+        # 组合完整结果
+        complete_results = {
+            "insights": _json_safe(insights),
+            "interpretation": _json_safe(interpretation)
+        }
+        
+        return {
+            "success": True,
+            "target_column": target_column,
+            "data_path": data_path,
+            "data_shape": list(data.shape),
+            "results": complete_results,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        import traceback
+        error_detail = f"无监督学习洞察失败: {str(e)}\n{traceback.format_exc()}"
+        print(f"❌ {error_detail}")
+        raise HTTPException(status_code=500, detail=error_detail)
 
 @router.get("/health")
 async def health_check():

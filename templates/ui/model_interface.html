@@ -1739,31 +1739,55 @@
         // Initialize pipeline management
         function initializePipelineManagement() {
             console.log('Initializing pipeline management...');
-            // Add a small delay to ensure DOM is fully ready
-            setTimeout(() => {
-                loadPipelineStatus();
-                // Refresh status every 30 seconds
-                setInterval(loadPipelineStatus, 30000);
-            }, 500);
+            
+            // Check if DOM element exists first
+            const checkAndLoad = () => {
+                const tbody = document.getElementById('pipeline-table-body');
+                if (tbody) {
+                    console.log('✅ Found pipeline-table-body element, loading data');
+                    loadPipelineStatus();
+                    // Refresh status every 30 seconds
+                    setInterval(loadPipelineStatus, 30000);
+                } else {
+                    console.warn('⚠️ pipeline-table-body element not found, retrying in 1 second');
+                    setTimeout(checkAndLoad, 1000);
+                }
+            };
+            
+            // Start checking after a small delay
+            setTimeout(checkAndLoad, 500);
         }
         
         // Load pipeline status from API
         async function loadPipelineStatus() {
             try {
-                console.log('Loading pipeline status...');
+                console.log('🔄 Loading pipeline status...');
                 const response = await fetch('/api/v1/pipeline/status');
-                const data = await response.json();
-                console.log('Pipeline status response:', data);
                 
-                if (data.status === 'success') {
-                    console.log('Updating pipeline table with sources:', Object.keys(data.sources));
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('📊 Pipeline status response:', data);
+                
+                if (data.status === 'success' && data.sources) {
+                    const sourceCount = Object.keys(data.sources).length;
+                    console.log(`✅ Updating pipeline table with ${sourceCount} sources:`, Object.keys(data.sources));
                     updatePipelineTable(data.sources);
                 } else {
-                    console.error('Pipeline status not successful:', data);
+                    console.error('❌ Pipeline status not successful or missing sources:', data);
+                    // Show empty state with error message
+                    updatePipelineTableWithError('API returned invalid data');
                 }
             } catch (error) {
-                console.error('Failed to load pipeline status:', error);
-                showNotification('Failed to load pipeline status', 'danger');
+                console.error('❌ Failed to load pipeline status:', error);
+                updatePipelineTableWithError(error.message);
+                // Only show notification for first few errors to avoid spam
+                if (!window.pipelineErrorCount || window.pipelineErrorCount < 3) {
+                    showNotification('Failed to load pipeline status: ' + error.message, 'danger');
+                    window.pipelineErrorCount = (window.pipelineErrorCount || 0) + 1;
+                }
             }
         }
         
@@ -1953,9 +1977,34 @@
             }
         }
         
+        // Update pipeline table with error message
+        function updatePipelineTableWithError(errorMessage) {
+            const tbody = document.getElementById('pipeline-table-body');
+            if (!tbody) {
+                console.error('❌ pipeline-table-body element not found for error display!');
+                return;
+            }
+            
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 2rem; color: #e74c3c;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 1rem;"></i><br>
+                        <strong>Unable to load pipeline data</strong><br>
+                        <small>${errorMessage}</small><br>
+                        <button class="btn btn-secondary" onclick="loadPipelineStatus()" style="margin-top: 1rem;">
+                            <i class="fas fa-retry"></i> Retry
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }
+        
         // Refresh all data sources
         async function refreshAllData() {
             try {
+                // First try to load current status to make sure API is working
+                await loadPipelineStatus();
+                
                 const response = await fetch('/api/v1/pipeline/sync-all', {
                     method: 'POST'
                 });
@@ -1970,7 +2019,7 @@
                 }
             } catch (error) {
                 console.error('Failed to sync all sources:', error);
-                showNotification('Failed to sync all sources', 'danger');
+                showNotification('Failed to sync all sources: ' + error.message, 'danger');
             }
         }
     </script>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Minimal Chart Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>Minimal Chart Test</h1>
+    <canvas id="myChart" width="400" height="200"></canvas>
+    
+    <script>
+        console.log('=== MINIMAL CHART TEST ===');
+        console.log('Chart.js loaded:', typeof Chart !== 'undefined');
+        
+        // Wait for page to load
+        window.onload = function() {
+            console.log('Window loaded, creating chart...');
+            
+            const canvas = document.getElementById('myChart');
+            console.log('Canvas element:', canvas);
+            
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                console.log('2D context:', ctx);
+                
+                try {
+                    const chart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: ['A', 'B', 'C'],
+                            datasets: [{
+                                label: 'Test',
+                                data: [1, 2, 3],
+                                borderColor: 'red'
+                            }]
+                        }
+                    });
+                    console.log('Chart created successfully:', chart);
+                } catch (error) {
+                    console.error('Error creating chart:', error);
+                }
+            } else {
+                console.error('Canvas not found!');
+            }
+        };
+    </script>
+</body>
+</html>

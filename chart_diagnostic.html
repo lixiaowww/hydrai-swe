@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chart Diagnostic Tool</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ccc; }
+        .success { color: green; }
+        .error { color: red; }
+        .warning { color: orange; }
+        .chart-container { width: 400px; height: 300px; margin: 20px 0; border: 1px solid #ddd; }
+        #log { background: #f5f5f5; padding: 10px; height: 200px; overflow-y: scroll; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <h1>Chart Diagnostic Tool</h1>
+    
+    <div class="test-section">
+        <h2>1. Library Loading Test</h2>
+        <div id="library-test"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. DOM Element Test</h2>
+        <div id="dom-test"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. Canvas Context Test</h2>
+        <div id="canvas-test"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>4. Chart Creation Test</h2>
+        <div class="chart-container">
+            <canvas id="testChart"></canvas>
+        </div>
+        <div id="chart-test"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>5. Debug Log</h2>
+        <div id="log"></div>
+    </div>
+    
+    <script>
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : type === 'warning' ? 'warning' : '';
+            logDiv.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+        
+        // Test 1: Library Loading
+        function testLibraryLoading() {
+            log('Testing library loading...');
+            const libraryTest = document.getElementById('library-test');
+            
+            if (typeof Chart !== 'undefined') {
+                libraryTest.innerHTML = '<span class="success">✅ Chart.js loaded successfully</span>';
+                log('Chart.js loaded successfully', 'success');
+            } else {
+                libraryTest.innerHTML = '<span class="error">❌ Chart.js failed to load</span>';
+                log('Chart.js failed to load', 'error');
+            }
+        }
+        
+        // Test 2: DOM Elements
+        function testDOMElements() {
+            log('Testing DOM elements...');
+            const domTest = document.getElementById('dom-test');
+            
+            const canvas = document.getElementById('testChart');
+            if (canvas) {
+                domTest.innerHTML = '<span class="success">✅ Canvas element found</span>';
+                log('Canvas element found', 'success');
+            } else {
+                domTest.innerHTML = '<span class="error">❌ Canvas element not found</span>';
+                log('Canvas element not found', 'error');
+            }
+        }
+        
+        // Test 3: Canvas Context
+        function testCanvasContext() {
+            log('Testing canvas context...');
+            const canvasTest = document.getElementById('canvas-test');
+            
+            const canvas = document.getElementById('testChart');
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                if (ctx) {
+                    canvasTest.innerHTML = '<span class="success">✅ 2D context created successfully</span>';
+                    log('2D context created successfully', 'success');
+                } else {
+                    canvasTest.innerHTML = '<span class="error">❌ Failed to create 2D context</span>';
+                    log('Failed to create 2D context', 'error');
+                }
+            } else {
+                canvasTest.innerHTML = '<span class="error">❌ Canvas not available for context test</span>';
+                log('Canvas not available for context test', 'error');
+            }
+        }
+        
+        // Test 4: Chart Creation
+        function testChartCreation() {
+            log('Testing chart creation...');
+            const chartTest = document.getElementById('chart-test');
+            
+            const canvas = document.getElementById('testChart');
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                if (ctx) {
+                    try {
+                        const chart = new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: ['A', 'B', 'C'],
+                                datasets: [{
+                                    label: 'Test Data',
+                                    data: [1, 2, 3],
+                                    borderColor: 'rgb(75, 192, 192)',
+                                    tension: 0.1
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false
+                            }
+                        });
+                        
+                        chartTest.innerHTML = '<span class="success">✅ Chart created successfully</span>';
+                        log('Chart created successfully', 'success');
+                        
+                        // Test chart methods
+                        if (typeof chart.update === 'function') {
+                            log('Chart methods available', 'success');
+                        } else {
+                            log('Chart methods not available', 'warning');
+                        }
+                        
+                    } catch (error) {
+                        chartTest.innerHTML = `<span class="error">❌ Chart creation failed: ${error.message}</span>`;
+                        log(`Chart creation failed: ${error.message}`, 'error');
+                        log(`Error stack: ${error.stack}`, 'error');
+                    }
+                } else {
+                    chartTest.innerHTML = '<span class="error">❌ Cannot create chart without 2D context</span>';
+                    log('Cannot create chart without 2D context', 'error');
+                }
+            } else {
+                chartTest.innerHTML = '<span class="error">❌ Cannot create chart without canvas</span>';
+                log('Cannot create chart without canvas', 'error');
+            }
+        }
+        
+        // Run all tests
+        function runAllTests() {
+            log('=== STARTING DIAGNOSTIC TESTS ===');
+            
+            setTimeout(() => testLibraryLoading(), 100);
+            setTimeout(() => testDOMElements(), 200);
+            setTimeout(() => testCanvasContext(), 300);
+            setTimeout(() => testChartCreation(), 400);
+            
+            log('All tests scheduled', 'info');
+        }
+        
+        // Run tests when page loads
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', runAllTests);
+        } else {
+            runAllTests();
+        }
+        
+        // Also run on window load
+        window.addEventListener('load', function() {
+            log('Window loaded, running tests again...', 'info');
+            setTimeout(runAllTests, 500);
+        });
+    </script>
+</body>
+</html>

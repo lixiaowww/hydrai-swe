@@ -492,15 +492,50 @@
         // 加载系统指标
         async function loadSystemMetrics() {
             try {
-                // 模拟系统指标数据（基于曼省特征）
-                const metrics = generateSystemMetrics();
+                console.log('🔄 Loading real system metrics from API...');
                 
-                document.getElementById('totalStations').textContent = metrics.activeStations;
-                document.getElementById('dataQuality').textContent = metrics.dataQuality + '%';
-                document.getElementById('avgTemp').textContent = metrics.avgTemp + '°C';
-                document.getElementById('totalPrecip').textContent = metrics.precipitation + ' mm';
+                // 首先尝试从真实API获取数据
+                const response = await fetch('/api/v1/weather/system-metrics');
+                
+                if (response.ok) {
+                    const metrics = await response.json();
+                    console.log('✅ Real system metrics loaded:', metrics);
+                    
+                    // 检查是否有真实数据，如果没有显示n/a
+                    document.getElementById('totalStations').textContent = metrics.active_stations > 0 ? metrics.active_stations : 'n/a';
+                    document.getElementById('dataQuality').textContent = metrics.data_quality_avg > 0 ? metrics.data_quality_avg.toFixed(1) + '%' : 'n/a';
+                    document.getElementById('avgTemp').textContent = metrics.avg_temperature !== 0 ? metrics.avg_temperature + '°C' : 'n/a';
+                    document.getElementById('totalPrecip').textContent = metrics.total_precipitation !== 0 ? metrics.total_precipitation + ' mm' : 'n/a';
+                    
+                    // 显示数据状态
+                    const hasRealData = metrics.active_stations > 0 && metrics.data_quality_avg > 0;
+                    const statusMessage = hasRealData ? 'Real-time API' : 'API key required';
+                    
+                    // 更新页面标题显示数据源信息
+                    const lastUpdateSpan = document.getElementById('lastUpdate');
+                    if (lastUpdateSpan) {
+                        lastUpdateSpan.textContent = metrics.last_updated + ` (${statusMessage})`;
+                    }
+                    
+                    // 如果没有真实数据，显示警告
+                    if (!hasRealData) {
+                        showError('No real weather data available - OpenWeatherMap API key required for live data');
+                    }
+                } else {
+                    console.warn('⚠️ API unavailable, showing n/a data');
+                    throw new Error('API not available');
+                }
             } catch (error) {
-                console.error('Failed to load system metrics:', error);
+                console.error('❌ Failed to load real system metrics, showing n/a:', error);
+                
+                // 显示n/a而不是模拟数据
+                document.getElementById('totalStations').textContent = 'n/a';
+                document.getElementById('dataQuality').textContent = 'n/a';
+                document.getElementById('avgTemp').textContent = 'n/a';
+                document.getElementById('totalPrecip').textContent = 'n/a';
+                
+                // 显示需要API key的提示
+                showError('Unable to connect to weather API. Please configure OpenWeatherMap API key for real-time data.');
             }
         }
 
@@ -536,50 +571,133 @@
         // 加载城市数据
         async function loadCitiesData() {
             const container = document.getElementById('citiesContainer');
-            let citiesHtml = '';
             
-            for (const [cityKey, cityInfo] of Object.entries(manitobaCities)) {
-                const weatherData = generateCityWeatherData(cityInfo);
-                const statusClass = getStatusClass(weatherData.dataQuality);
+            try {
+                console.log('🔄 Loading real cities weather data from API...');
                 
-                citiesHtml += `
-                    <div class="col-lg-3 col-md-6 mb-3">
-                        <div class="city-card">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <h6 class="mb-0">${cityInfo.displayName}</h6>
-                                <span class="station-status ${statusClass}">${weatherData.status}</span>
+                // 首先尝试从真实API获取数据
+                const response = await fetch('/api/v1/weather/cities');
+                
+                if (response.ok) {
+                    const citiesWeatherData = await response.json();
+                    console.log('✅ Real weather data loaded for cities:', Object.keys(citiesWeatherData));
+                    
+                    let citiesHtml = '';
+                    
+                    for (const [cityKey, cityInfo] of Object.entries(manitobaCities)) {
+                        const weatherData = citiesWeatherData[cityKey];
+                        
+                        if (weatherData) {
+                            const hasRealData = weatherData.data_quality > 0;
+                            const statusClass = getStatusClass(weatherData.data_quality);
+                            const status = hasRealData ? weatherData.status : 'Offline';
+                            
+                            // 显示n/a而不是0值
+                            const temperature = hasRealData ? `${weatherData.temperature}°C` : 'n/a';
+                            const precipitation = hasRealData ? `${weatherData.precipitation}mm` : 'n/a';
+                            const humidity = hasRealData ? `${weatherData.humidity}%` : 'n/a';
+                            const windSpeed = hasRealData ? Math.round(weatherData.wind_speed) : 'n/a';
+                            const description = hasRealData ? weatherData.weather_description : 'Data unavailable';
+                            const quality = hasRealData ? `${weatherData.data_quality}%` : 'n/a';
+                            
+                            citiesHtml += `
+                                <div class="col-lg-3 col-md-6 mb-3">
+                                    <div class="city-card">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <h6 class="mb-0">${weatherData.city}</h6>
+                                            <span class="station-status ${statusClass}">${status}</span>
+                                        </div>
+                                        <div class="row text-center">
+                                            <div class="col-6">
+                                                <i class="fas fa-thermometer-half text-danger"></i>
+                                                <div class="fw-bold">${temperature}</div>
+                                                <small class="text-muted">Temperature</small>
+                                            </div>
+                                            <div class="col-6">
+                                                <i class="fas fa-cloud-rain text-primary"></i>
+                                                <div class="fw-bold">${precipitation}</div>
+                                                <small class="text-muted">Precipitation</small>
+                                            </div>
+                                        </div>
+                                        <div class="row text-center mt-2">
+                                            <div class="col-6">
+                                                <i class="fas fa-eye text-info"></i>
+                                                <div class="fw-bold">${humidity}</div>
+                                                <small class="text-muted">Humidity</small>
+                                            </div>
+                                            <div class="col-6">
+                                                <i class="fas fa-wind text-success"></i>
+                                                <div class="fw-bold">${windSpeed}</div>
+                                                <small class="text-muted">Wind km/h</small>
+                                            </div>
+                                        </div>
+                                        <small class="text-muted mt-2 d-block">
+                                            ${description} | Quality: ${quality}<br>
+                                            ${hasRealData ? `Lat: ${weatherData.lat.toFixed(4)}°, Lon: ${weatherData.lon.toFixed(4)}°` : 'API key required for real data'}
+                                        </small>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    }
+                    
+                    container.innerHTML = citiesHtml;
+                } else {
+                    console.warn('⚠️ Weather API unavailable, using fallback data');
+                    throw new Error('Weather API not available');
+                }
+            } catch (error) {
+                console.error('❌ Failed to load real weather data, showing n/a:', error);
+                
+                // 显示n/a数据而不是模拟数据
+                let citiesHtml = '';
+                
+                for (const [cityKey, cityInfo] of Object.entries(manitobaCities)) {
+                    citiesHtml += `
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="city-card">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="mb-0">${cityInfo.displayName}</h6>
+                                    <span class="station-status status-offline">Offline</span>
+                                </div>
+                                <div class="row text-center">
+                                    <div class="col-6">
+                                        <i class="fas fa-thermometer-half text-muted"></i>
+                                        <div class="fw-bold text-muted">n/a</div>
+                                        <small class="text-muted">Temperature</small>
+                                    </div>
+                                    <div class="col-6">
+                                        <i class="fas fa-cloud-rain text-muted"></i>
+                                        <div class="fw-bold text-muted">n/a</div>
+                                        <small class="text-muted">Precipitation</small>
+                                    </div>
+                                </div>
+                                <div class="row text-center mt-2">
+                                    <div class="col-6">
+                                        <i class="fas fa-eye text-muted"></i>
+                                        <div class="fw-bold text-muted">n/a</div>
+                                        <small class="text-muted">Humidity</small>
+                                    </div>
+                                    <div class="col-6">
+                                        <i class="fas fa-wind text-muted"></i>
+                                        <div class="fw-bold text-muted">n/a</div>
+                                        <small class="text-muted">Wind km/h</small>
+                                    </div>
+                                </div>
+                                <small class="text-muted mt-2 d-block">
+                                    API key required for real data<br>
+                                    Lat: ${cityInfo.lat}°, Lon: ${cityInfo.lon}°
+                                </small>
                             </div>
-                            <div class="row text-center">
-                                <div class="col-6">
-                                    <i class="fas fa-thermometer-half text-danger"></i>
-                                    <div class="fw-bold">${weatherData.temperature}°C</div>
-                                    <small class="text-muted">Temperature</small>
-                                </div>
-                                <div class="col-6">
-                                    <i class="fas fa-cloud-rain text-primary"></i>
-                                    <div class="fw-bold">${weatherData.precipitation}mm</div>
-                                    <small class="text-muted">Precipitation</small>
-                                </div>
-                            </div>
-                            <div class="row text-center mt-2">
-                                <div class="col-6">
-                                    <i class="fas fa-eye text-info"></i>
-                                    <div class="fw-bold">${weatherData.humidity}%</div>
-                                    <small class="text-muted">Humidity</small>
-                                </div>
-                                <div class="col-6">
-                                    <i class="fas fa-wind text-success"></i>
-                                    <div class="fw-bold">${weatherData.windSpeed}</div>
-                                    <small class="text-muted">Wind km/h</small>
-                                </div>
-                            </div>
-                            <small class="text-muted mt-2 d-block">Lat: ${cityInfo.lat}°, Lon: ${cityInfo.lon}°</small>
                         </div>
-                    </div>
-                `;
+                    `;
+                }
+                
+                container.innerHTML = citiesHtml;
+                
+                // 显示需要API key的提示
+                showError('Weather API unavailable. Please configure OpenWeatherMap API key for real-time weather data.');
             }
-            
-            container.innerHTML = citiesHtml;
         }
 
         // 生成城市天气数据
