@@ -533,9 +533,9 @@ def get_real_time_station_data():
 
 @router.post("/analysis")
 def run_swe_analysis(
-    mode: str = Body("seasonal", embed=True, description="seasonal | anomaly | correlation | comprehensive"),
-    data_path: str | None = Body(None, embed=True, description="Optional CSV path; if None, try default Red River dataset"),
-    column: str = Body("snow_water_equivalent_mm", embed=True),
+    mode: str = Body("seasonal", description="seasonal | anomaly | correlation | comprehensive"),
+    data_path: str | None = Body(None, description="Optional CSV path; if None, try default Red River dataset"),
+    column: str = Body("snow_water_equivalent_mm"),
 ):
     """Run SWE analysis using src/models/swe_analysis_system.py.
     Returns JSON summaries suitable for UI consumption.
@@ -543,22 +543,31 @@ def run_swe_analysis(
     try:
         # from ...models.swe_analysis_system import SWEAnalysisSystem
         # analyzer = SWEAnalysisSystem()
-        # 检查真实数据文件是否存在
-        if data_path is None:
-            data_path = "/home/sean/hydrai_swe/src/neuralhydrology/data/red_river_basin/timeseries.csv"
-        
-        # 验证数据文件是否存在
-        if not os.path.exists(data_path):
-            raise HTTPException(status_code=404, detail=f"真实数据文件不存在: {data_path}")
-        
-        # 尝试加载真实数据
+        # 使用新的数据管理器获取数据
         try:
-            real_data = pd.read_csv(data_path)
-            if real_data.empty:
-                raise HTTPException(status_code=404, detail="数据文件为空")
+            import sys
+            sys.path.append('/home/sean/hydrai_swe/src/core')
+            from data_manager import get_data_manager
+            from data_transformer import get_transformer
             
-            # 创建基于真实数据的分析器
-            class RealDataAnalyzer:
+            # 获取数据管理器
+            dm = get_data_manager()
+            
+            # 获取SWE数据
+            real_data = dm.get_latest_data("swe", force_sync=True)
+            logger.info(f"✅ 使用数据管理器获取SWE数据，形状: {real_data.shape}")
+            
+            # 转换数据格式
+            transformer = get_transformer("swe")
+            real_data = transformer.transform_for_analysis(real_data)
+            logger.info(f"✅ SWE数据转换完成，转换后形状: {real_data.shape}")
+            
+        except Exception as e:
+            logger.error(f"❌ 数据管理器获取SWE数据失败: {e}")
+            raise HTTPException(status_code=503, detail=f"SWE数据获取失败: {str(e)}")
+        
+        # 创建基于真实数据的分析器
+        class RealDataAnalyzer:
                 def __init__(self, data):
                     self.data = data
                     # 确保date列存在并转换为datetime
@@ -566,49 +575,140 @@ def run_swe_analysis(
                         self.data['date'] = pd.to_datetime(self.data['Date/Time'])
                     elif 'date' in self.data.columns:
                         self.data['date'] = pd.to_datetime(self.data['date'])
+                    
+                    # 列名映射 - 处理不同数据源的列名差异
+                    self.column_mapping = {
+                        'snow_water_equivalent_mm': ['swe_mm', 'Snow on Grnd (cm)', 'Total Snow (cm)', 'snow_water_equivalent_mm'],
+                        'snow_depth_mm': ['snow_depth_cm', 'Snow on Grnd (cm)', 'Total Snow (cm)', 'snow_depth_mm'],
+                        'snow_fall_mm': ['Total Snow (cm)', 'snow_fall_mm'],
+                        'streamflow_m3s': ['streamflow_m3s', 'flow_m3s', 'discharge_m3s']
+                    }
+                
+                def _find_matching_column(self, target_column):
+                    """找到匹配的实际列名"""
+                    print(f"🔍 查找列: {target_column}")
+                    print(f"📊 可用列: {list(self.data.columns)}")
+                    
+                    if target_column in self.data.columns:
+                        print(f"✅ 直接匹配: {target_column}")
+                        return target_column
+                    
+                    # 检查映射
+                    if target_column in self.column_mapping:
+                        print(f"🔍 检查映射: {self.column_mapping[target_column]}")
+                        for possible_name in self.column_mapping[target_column]:
+                            if possible_name in self.data.columns:
+                                print(f"✅ 找到匹配列: {target_column} -> {possible_name}")
+                                return possible_name
+                    
+                    # 尝试模糊匹配
+                    for col in self.data.columns:
+                        if target_column.lower() in col.lower() or col.lower() in target_column.lower():
+                            print(f"✅ 模糊匹配列: {target_column} -> {col}")
+                            return col
+                    
+                    print(f"❌ 未找到匹配列: {target_column}")
+                    return None
                 
                 def load_data(self, path):
                     # 数据已经在初始化时加载
                     return True
                 
                 def seasonal_analysis(self, column):
-                    if column not in self.data.columns:
-                        raise ValueError(f"列 {column} 不存在于数据中")
+                    # 智能列名映射 - 处理不同数据源的列名差异
+                    actual_column = self._find_matching_column(column)
+                    if actual_column is None:
+                        raise ValueError(f"列 {column} 不存在于数据中，可用列: {list(self.data.columns)}")
                     
                     # 基于真实数据的季节性分析
-                    monthly_means = self.data.groupby(self.data['date'].dt.month)[column].mean()
+                    monthly_means = self.data.groupby(self.data['date'].dt.month)[actual_column].mean()
                     seasonal_indices = [float(monthly_means.get(m, 0)) for m in range(1, 13)]
                     
+                    # 计算真实的趋势分析
+                    from scipy import stats
+                    import numpy as np
+                    
+                    # 计算年度趋势
+                    years = self.data['date'].dt.year.unique()
+                    annual_means = []
+                    for year in sorted(years):
+                        year_data = self.data[self.data['date'].dt.year == year][actual_column].mean()
+                        if not pd.isna(year_data):
+                            annual_means.append(year_data)
+                    
+                    if len(annual_means) >= 3:
+                        # 计算趋势
+                        x = np.arange(len(annual_means))
+                        slope, intercept, r_value, p_value, std_err = stats.linregress(x, annual_means)
+                        trend_per_decade = slope * 10  # 转换为每十年的趋势
+                    else:
+                        trend_per_decade = 0.0
+                        p_value = 1.0
+                    
+                    # 找到峰值月份
+                    peak_month = monthly_means.idxmax() if len(monthly_means) > 0 else None
+                    
                     return {
-                        "annual_cycle": {"trend_analysis": {"trend_per_decade": 0.0, "p_value": 1.0}},
-                        "monthly_patterns": {"overall_mean": float(self.data[column].mean()), "seasonal_indices": seasonal_indices},
-                        "frequency_analysis": {"main_period": 365.0}
+                        "annual_cycle": {"trend_analysis": {"trend_per_decade": float(trend_per_decade), "p_value": float(p_value)}},
+                        "monthly_patterns": {"overall_mean": float(self.data[actual_column].mean()), "seasonal_indices": seasonal_indices, "peak_month": int(peak_month) if peak_month else None},
+                        "frequency_analysis": {"main_period": 365.0, "seasonal_strength": float(monthly_means.std()) if len(monthly_means) > 0 else 0.0}
                     }
                 
                 def anomaly_detection(self, column):
-                    if column not in self.data.columns:
-                        raise ValueError(f"列 {column} 不存在于数据中")
+                    # 智能列名映射
+                    actual_column = self._find_matching_column(column)
+                    if actual_column is None:
+                        raise ValueError(f"列 {column} 不存在于数据中，可用列: {list(self.data.columns)}")
                     
                     # 基于真实数据的异常检测
-                    values = self.data[column].dropna()
+                    values = self.data[actual_column].dropna()
+                    if len(values) == 0:
+                        return {"combined": {"combined_score": 0.0, "threshold": 0.0, "combined_anomalies": []}}
+                    
                     mean_val = values.mean()
                     std_val = values.std()
                     threshold = mean_val + 2 * std_val
                     
-                    return {"combined": {"combined_score": 0.0, "threshold": float(threshold), "combined_anomalies": [0] * len(values)}}
+                    # 计算真实的异常分数
+                    anomalies = []
+                    for val in values:
+                        if val > threshold:
+                            anomalies.append(1)
+                        else:
+                            anomalies.append(0)
+                    
+                    combined_score = sum(anomalies) / len(anomalies) if len(anomalies) > 0 else 0.0
+                    
+                    return {"combined": {"combined_score": float(combined_score), "threshold": float(threshold), "combined_anomalies": anomalies}}
                 
                 def correlation_analysis(self, column):
-                    if column not in self.data.columns:
-                        raise ValueError(f"列 {column} 不存在于数据中")
+                    # 智能列名映射
+                    actual_column = self._find_matching_column(column)
+                    if actual_column is None:
+                        raise ValueError(f"列 {column} 不存在于数据中，可用列: {list(self.data.columns)}")
                     
                     # 基于真实数据的相关性分析
-                    return {"target_correlations": {}}
+                    numeric_cols = self.data.select_dtypes(include=['number']).columns.tolist()
+                    correlations = {}
+                    
+                    for col in numeric_cols:
+                        if col != actual_column and col in self.data.columns:
+                            try:
+                                corr = self.data[actual_column].corr(self.data[col])
+                                if not pd.isna(corr):
+                                    correlations[col] = float(corr)
+                            except:
+                                continue
+                    
+                    # 按相关性绝对值排序
+                    sorted_correlations = dict(sorted(correlations.items(), key=lambda x: abs(x[1]), reverse=True))
+                    
+                    return {"target_correlations": sorted_correlations}
             
-            analyzer = RealDataAnalyzer(real_data)
-            analyzer.load_data(data_path)
-            
-        except Exception as data_error:
-            raise HTTPException(status_code=500, detail=f"加载真实数据失败: {str(data_error)}")
+        print(f"🔍 分析器初始化，数据形状: {real_data.shape}")
+        print(f"📊 分析器数据列名: {list(real_data.columns)}")
+        
+        analyzer = RealDataAnalyzer(real_data)
         if analyzer.data is None or len(analyzer.data) == 0:
             raise HTTPException(status_code=404, detail="No data loaded for analysis")
 

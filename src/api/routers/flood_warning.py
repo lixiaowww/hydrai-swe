@@ -466,89 +466,62 @@ async def get_flood_timeline(
         if flood_service.model is None:
             raise HTTPException(status_code=503, detail="洪水预警模型未加载")
         
-        # 加载优化后的数据
-        optimized_path = DATA_PATHS["flood_warning_optimized"]
+        # 优先使用数据管道同步数据
+        merged_data = None
         
-        if os.path.exists(optimized_path):
-            # 使用优化后的数据
-            merged_data = pd.read_csv(optimized_path)
-            # 直接使用合并后的数据，不需要再次合并
-            features_data = flood_service.prepare_features_from_merged(merged_data)
+        # 强制使用最新同步数据并转换为模型格式
+        import glob
+        import os
+        import sys
+        sys.path.append('/home/sean/hydrai_swe/src/models')
+        
+        sync_files = glob.glob("/home/sean/hydrai_swe/data/processed/flood_warning/flood_sync_*.csv")
+        if sync_files:
+            # 按时间排序，使用最新的
+            latest_sync = max(sync_files, key=os.path.getctime)
+            sync_data = pd.read_csv(latest_sync)
+            logger.info(f"✅ 强制使用最新同步数据: {latest_sync}")
+            
+            # 转换数据格式以匹配模型期望
+            try:
+                from flood_data_transformer import FloodDataTransformer
+                transformer = FloodDataTransformer()
+                merged_data = transformer.transform_sync_to_model_format(sync_data)
+                logger.info(f"✅ 数据格式转换成功，转换后形状: {merged_data.shape}")
+            except Exception as e:
+                logger.error(f"❌ 数据格式转换失败: {e}")
+                raise HTTPException(status_code=500, detail=f"数据格式转换失败: {str(e)}")
         else:
-            # 回退到原始数据
-            weather_path = DATA_PATHS["eccc_recent"]
-            flow_path = DATA_PATHS["hydat_streamflow"]
-            
-            if not os.path.exists(weather_path) or not os.path.exists(flow_path):
-                raise HTTPException(status_code=404, detail="数据文件不存在")
-            
-            weather_data = pd.read_csv(weather_path)
-            flow_data = pd.read_csv(flow_path)
-            
-            # 准备特征
-            features_data = flood_service.prepare_features(weather_data, flow_data)
+            logger.error("❌ 没有找到同步数据文件，拒绝使用过时静态数据")
+            raise HTTPException(status_code=503, detail="无可用实时数据")
         
-        # 预测风险
-        prediction_result = flood_service.predict_flood_risk(features_data)
+        if merged_data is None:
+            raise HTTPException(status_code=404, detail="无可用数据文件")
         
-        # 生成时间线数据
-        timeline_data = []
-        for i, (risk_level, risk_prob) in enumerate(zip(
-            prediction_result['risk_level'], 
-            prediction_result['risk_probability']
-        )):
-            # 计算日期（假设数据是按时间顺序排列的）
-            if os.path.exists(optimized_path):
-                if i < len(merged_data):
-                    date = merged_data.iloc[i]['Date/Time']
-                else:
-                    date = datetime.now() + timedelta(days=i)
-            else:
-                if i < len(weather_data):
-                    date = weather_data.iloc[i]['Date/Time']
-                else:
-                    date = datetime.now() + timedelta(days=i)
+        # 使用简化预测器，绕过复杂模型
+        try:
+            from simple_flood_predictor import SimpleFloodPredictor
+            predictor = SimpleFloodPredictor()
             
-            # 确保风险概率在合理范围内
-            if risk_prob > 1.0:
-                # 如果概率值已经超过1，可能是百分比格式，需要除以100
-                normalized_prob = risk_prob / 100.0
-            else:
-                normalized_prob = risk_prob
+            # 直接使用转换后的数据进行预测
+            prediction_result = predictor.predict_flood_risk(merged_data, days)
+            logger.info(f"✅ 简化洪水预测成功，预测天数: {days}")
             
-            # 限制概率值在0-1范围内
-            normalized_prob = max(0.0, min(1.0, normalized_prob))
-            
-            # 计算百分比，确保不超过100%
-            risk_percentage = round(normalized_prob * 100, 1)
-            
-            # 根据概率确定风险等级
-            if normalized_prob > 0.7:
-                risk_level_display = "HIGH"
-                alert_level = "WARNING"
-            elif normalized_prob > 0.3:
-                risk_level_display = "MEDIUM"
-                alert_level = "INFO"
-            else:
-                risk_level_display = "LOW"
-                alert_level = "NORMAL"
-            
-            timeline_data.append({
-                "date": date.isoformat() if hasattr(date, 'isoformat') else str(date),
-                "risk_level": risk_level_display,
-                "risk_probability": risk_percentage,
-                "alert_level": alert_level
-            })
+        except Exception as e:
+            logger.error(f"❌ 简化洪水预测失败: {e}")
+            raise HTTPException(status_code=500, detail=f"洪水预测失败: {str(e)}")
+        
+        # 直接使用简化预测器的时间线数据
+        timeline_data = prediction_result['timeline']
         
         return {
             "status": "success",
             "region": region,
             "timeline": timeline_data[:days],  # 只返回请求的天数
-            "summary": {
-                "total_days": len(timeline_data[:days]),
-                "high_risk_days": sum(1 for x in timeline_data[:days] if x['risk_level'] == 'HIGH'),
-                "average_risk": round(np.mean([x['risk_probability'] for x in timeline_data[:days]]), 2)
-            }
+            "summary": prediction_result['summary'],
+            "data_source": prediction_result['data_source'],
+            "prediction_method": prediction_result['prediction_method'],
+            "timestamp": prediction_result['timestamp']
         }
         
     except Exception as e:

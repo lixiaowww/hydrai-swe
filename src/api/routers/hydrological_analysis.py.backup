@@ -1,0 +1,268 @@
+"""
+水文分析API路由
+提供流域水文循环分析和洪水频率分析接口
+"""
+
+from fastapi import APIRouter, HTTPException, Query
+from pydantic import BaseModel
+from typing import Optional, Dict, Any
+import pandas as pd
+import numpy as np
+import os
+from datetime import datetime
+
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+from models.hydrological_analysis_system import HydrologicalAnalysisSystem
+
+router = APIRouter()
+
+# 数据路径配置
+DATA_PATHS = {
+    'eccc_manitoba_snow': '/home/sean/hydrai_swe/data/processed/eccc_manitoba_snow_processed.csv',
+    'hydat_streamflow': '/home/sean/hydrai_swe/data/processed/hydat_streamflow_processed.csv',
+    'weather_station': '/home/sean/hydrai_swe/data/processed/weather_station_processed.csv',
+    'combined_hydrological': '/home/sean/hydrai_swe/data/processed/combined_hydrological_data.csv'
+}
+
+class AnalysisRequest(BaseModel):
+    analysis_type: str = "comprehensive"  # comprehensive, water_balance, flood_frequency
+    data_source: Optional[str] = None
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    parameters: Optional[Dict[str, Any]] = None
+
+class AnalysisResponse(BaseModel):
+    status: str
+    analysis_type: str
+    results: Dict[str, Any]
+    recommendations: list
+    timestamp: str
+    data_source: str
+
+@router.post("/api/v1/hydrology/comprehensive-analysis", response_model=AnalysisResponse)
+async def run_comprehensive_hydrological_analysis(request: AnalysisRequest):
+    """运行综合水文分析"""
+    try:
+        # 确定数据源
+        data_path = None
+        if request.data_source and request.data_source in DATA_PATHS:
+            data_path = DATA_PATHS[request.data_source]
+        else:
+            # 自动选择可用的数据文件
+            for path in DATA_PATHS.values():
+                if os.path.exists(path):
+                    data_path = path
+                    break
+        
+        if not data_path or not os.path.exists(data_path):
+            raise HTTPException(status_code=404, detail="未找到可用的水文数据文件")
+        
+        # 初始化分析系统
+        analysis_system = HydrologicalAnalysisSystem(data_path=data_path)
+        
+        # 运行分析
+        results = analysis_system.run_comprehensive_analysis(request.analysis_type)
+        
+        if 'error' in results:
+            raise HTTPException(status_code=500, detail=results['error'])
+        
+        # 生成报告
+        report = analysis_system.generate_analysis_report(results)
+        
+        return AnalysisResponse(
+            status="success",
+            analysis_type=request.analysis_type,
+            results=results,
+            recommendations=report.get('recommendations', []),
+            timestamp=datetime.now().isoformat(),
+            data_source=os.path.basename(data_path)
+        )
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"水文分析失败: {str(e)}")
+
+@router.get("/api/v1/hydrology/water-balance")
+async def get_water_balance_analysis(
+    data_source: Optional[str] = Query(None, description="数据源"),
+    precip_col: str = Query("precipitation", description="降水列名"),
+    runoff_col: str = Query("runoff", description="径流列名"),
+    et_col: str = Query("evapotranspiration", description="蒸散发列名"),
+    soil_col: str = Query("soil_moisture", description="土壤水分列名")
+):
+    """获取流域水量平衡分析"""
+    try:
+        # 确定数据源
+        data_path = None
+        if data_source and data_source in DATA_PATHS:
+            data_path = DATA_PATHS[data_source]
+        else:
+            for path in DATA_PATHS.values():
+                if os.path.exists(path):
+                    data_path = path
+                    break
+        
+        if not data_path or not os.path.exists(data_path):
+            raise HTTPException(status_code=404, detail="未找到可用的水文数据文件")
+        
+        # 优先使用数据管道同步数据，然后回退到静态文件
+        # 1. 尝试从数据管道获取最新数据
+try:
+    import sys
+            sys.path.append("/home/sean/hydrai_swe/src")
+            from models.real_data_loader import RealDataLoader
+    data_loader = RealDataLoader()
+    
+    # 尝试获取实时水文数据
+    pipeline_data = data_loader._try_pipeline_data_sync("hydrological_analysis", 30)
+    if pipeline_data and "data" in pipeline_data:
+        df = pipeline_data["data"]
+        logger.info(f"使用数据管道同步数据: {pipeline_data.get("source", "unknown")}")
+except Exception as e:
+    logger.warning(f"数据管道同步失败: {e}")
+
+# 2. 如果管道数据不可用，使用静态文件
+if df is None:
+    df = pd.read_csv(data_path)
+    logger.warning(f"使用静态数据文件: {data_path} (数据可能过时)")
+        
+        # 初始化水量平衡分析
+        from models.hydrological_analysis_system import WatershedWaterBalance
+        water_balance = WatershedWaterBalance(df)
+        
+        # 运行分析
+        balance_results = water_balance.calculate_water_balance(
+            precip_col, runoff_col, et_col, soil_col
+        )
+        runoff_analysis = water_balance.analyze_precipitation_runoff_relationship()
+        
+        return {
+            "status": "success",
+            "water_balance": balance_results,
+            "precipitation_runoff_relationship": runoff_analysis,
+            "data_source": os.path.basename(data_path),
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"水量平衡分析失败: {str(e)}")
+
+@router.get("/api/v1/hydrology/flood-frequency")
+async def get_flood_frequency_analysis(
+    data_source: Optional[str] = Query(None, description="数据源"),
+    flow_col: str = Query("flow", description="流量列名"),
+    date_col: str = Query("date", description="日期列名")
+):
+    """获取洪水频率分析"""
+    try:
+        # 确定数据源
+        data_path = None
+        if data_source and data_source in DATA_PATHS:
+            data_path = DATA_PATHS[data_source]
+        else:
+            for path in DATA_PATHS.values():
+                if os.path.exists(path):
+                    data_path = path
+                    break
+        
+        if not data_path or not os.path.exists(data_path):
+            raise HTTPException(status_code=404, detail="未找到可用的水文数据文件")
+        
+        # 优先使用数据管道同步数据，然后回退到静态文件
+        # 1. 尝试从数据管道获取最新数据
+try:
+    import sys
+            sys.path.append("/home/sean/hydrai_swe/src")
+            from models.real_data_loader import RealDataLoader
+    data_loader = RealDataLoader()
+    
+    # 尝试获取实时水文数据
+    pipeline_data = data_loader._try_pipeline_data_sync("hydrological_analysis", 30)
+    if pipeline_data and "data" in pipeline_data:
+        df = pipeline_data["data"]
+        logger.info(f"使用数据管道同步数据: {pipeline_data.get("source", "unknown")}")
+except Exception as e:
+    logger.warning(f"数据管道同步失败: {e}")
+
+# 2. 如果管道数据不可用，使用静态文件
+if df is None:
+    df = pd.read_csv(data_path)
+    logger.warning(f"使用静态数据文件: {data_path} (数据可能过时)")
+        
+        # 初始化洪水频率分析
+        from models.hydrological_analysis_system import FloodFrequencyAnalysis
+        flood_analysis = FloodFrequencyAnalysis(df)
+        
+        # 运行分析
+        annual_max = flood_analysis.extract_annual_maximum_flows(flow_col, date_col)
+        gumbel_results = flood_analysis.fit_gumbel_distribution()
+        log_pearson_results = flood_analysis.fit_log_pearson_iii()
+        
+        return {
+            "status": "success",
+            "annual_maximum_flows": annual_max,
+            "gumbel_distribution": gumbel_results,
+            "log_pearson_distribution": log_pearson_results,
+            "data_source": os.path.basename(data_path),
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"洪水频率分析失败: {str(e)}")
+
+@router.get("/api/v1/hydrology/available-data-sources")
+async def get_available_data_sources():
+    """获取可用的数据源列表"""
+    available_sources = {}
+    
+    for name, path in DATA_PATHS.items():
+        if os.path.exists(path):
+            try:
+                df = pd.read_csv(path)
+                available_sources[name] = {
+                    "path": path,
+                    "rows": len(df),
+                    "columns": list(df.columns),
+                    "file_size": os.path.getsize(path)
+                }
+            except Exception as e:
+                available_sources[name] = {
+                    "path": path,
+                    "error": str(e)
+                }
+    
+    return {
+        "status": "success",
+        "available_sources": available_sources,
+        "total_sources": len(available_sources),
+        "timestamp": datetime.now().isoformat()
+    }
+
+@router.get("/api/v1/hydrology/analysis-methods")
+async def get_analysis_methods():
+    """获取可用的分析方法"""
+    return {
+        "status": "success",
+        "analysis_methods": {
+            "water_balance": {
+                "name": "流域水量平衡分析",
+                "description": "基于水量平衡方程分析降水、径流、蒸散发和土壤水分变化",
+                "parameters": ["precipitation", "runoff", "evapotranspiration", "soil_moisture"],
+                "outputs": ["balance_closure", "runoff_coefficient", "et_coefficient"]
+            },
+            "flood_frequency": {
+                "name": "洪水频率分析",
+                "description": "基于年最大流量进行频率分析，拟合Gumbel和Log-Pearson III分布",
+                "parameters": ["annual_maximum_flows"],
+                "outputs": ["design_flows", "return_periods", "goodness_of_fit"]
+            },
+            "precipitation_runoff": {
+                "name": "降水-径流关系分析",
+                "description": "分析降水与径流的相关性和滞后关系",
+                "parameters": ["precipitation", "runoff"],
+                "outputs": ["correlation", "regression", "lag_analysis"]
+            }
+        },
+        "timestamp": datetime.now().isoformat()
+    }

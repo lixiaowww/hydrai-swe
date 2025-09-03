@@ -1018,14 +1018,14 @@
                     </div>
                 </div>
 
-                <!-- SWE Analysis Card -->
+                <!-- Comprehensive Hydrological Analysis Card -->
                 <div class="card">
                     <div class="card-header">
-                        <i class="fas fa-chart-line"></i>
-                        <div class="card-title">Advanced SWE Analysis</div>
+                        <i class="fas fa-water"></i>
+                        <div class="card-title">Comprehensive Hydrological Analysis</div>
                         <div class="status-indicator">
                             <div class="status-dot status-green"></div>
-                            <span>ML-Powered</span>
+                            <span>Professional Suite</span>
                         </div>
                     </div>
                     <div class="card-body">
@@ -1033,72 +1033,62 @@
                         <div class="forecast-controls">
                             <div class="forecast-options">
                                 <label>Analysis Type:</label>
-                                <select id="swe-analysis-mode" class="forecast-select">
-                                    <option value="seasonal" selected>Seasonal Trends</option>
-                                    <option value="anomaly">Anomaly Detection</option>
-                                    <option value="correlation">Correlation Analysis</option>
-                                    <option value="comprehensive">Comprehensive Report</option>
-                                    <option value="insight-discovery">AI Insights Discovery</option>
+                                <select id="hydrology-analysis-mode" class="forecast-select">
+                                    <option value="comprehensive" selected>Comprehensive Analysis</option>
+                                    <option value="water_balance">Watershed Water Balance</option>
+                                    <option value="flood_frequency">Flood Frequency Analysis</option>
+                                    <option value="precipitation_runoff">Precipitation-Runoff Relationship</option>
                                 </select>
                             </div>
                             <div class="forecast-options">
-                                <label>Time Period:</label>
-                                <select id="analysis-period-select" class="forecast-select">
-                                    <option value="current-season">Current Season</option>
-                                    <option value="last-year">Last Year</option>
-                                    <option value="5-years" selected>Last 5 Years</option>
-                                    <option value="custom">Custom Range</option>
+                                <label>Data Source:</label>
+                                <select id="hydrology-data-source" class="forecast-select">
+                                    <option value="auto" selected>Auto Select</option>
+                                    <option value="eccc_manitoba_snow">ECCC Manitoba Snow</option>
+                                    <option value="hydat_streamflow">HYDAT Streamflow</option>
+                                    <option value="weather_station">Weather Station</option>
+                                    <option value="combined_hydrological">Combined Data</option>
                                 </select>
                             </div>
                         </div>
                         
-                        <!-- Custom Date Range (hidden by default) -->
-                        <div id="custom-date-range" class="date-range-selector" style="display: none;">
-                            <div class="date-group">
-                                <label>Start Date:</label>
-                                <input type="date" id="analysis-start-date" class="date-input" value="2020-01-01">
+                        <!-- Analysis Parameters -->
+                        <div class="forecast-controls">
+                            <div class="forecast-options">
+                                <label>Precipitation Column:</label>
+                                <input type="text" id="precip-column" class="forecast-select" value="precipitation" placeholder="precipitation">
                             </div>
-                            <div class="date-group">
-                                <label>End Date:</label>
-                                <input type="date" id="analysis-end-date" class="date-input" value="2024-12-31">
+                            <div class="forecast-options">
+                                <label>Runoff Column:</label>
+                                <input type="text" id="runoff-column" class="forecast-select" value="runoff" placeholder="runoff">
                             </div>
                         </div>
                         
-                        <!-- AI Insights Discovery Options (hidden by default) -->
-                        <div id="insight-discovery-options" class="forecast-controls" style="display: none;">
+                        <div class="forecast-controls">
                             <div class="forecast-options">
-                                <label>Discovery Mode:</label>
-                                <select id="insight-mode-select" class="forecast-select">
-                                    <option value="anomaly">Anomaly Detection</option>
-                                    <option value="clustering">Data Clustering</option>
-                                    <option value="pca">Dimensionality Analysis</option>
-                                    <option value="time_patterns">Time Patterns</option>
-                                    <option value="swe_cold_factors">SWE Cold Factors Discovery</option>
-                                    <option value="comprehensive">All Insights</option>
-                                </select>
+                                <label>Evapotranspiration Column:</label>
+                                <input type="text" id="et-column" class="forecast-select" value="evapotranspiration" placeholder="evapotranspiration">
                             </div>
                             <div class="forecast-options">
-                                <label>Target Variable:</label>
-                                <select id="target-column-select" class="forecast-select">
-                                    <option value="Snow on Grnd (cm)" selected>Snow Depth</option>
-                                    <option value="snow_water_equivalent_mm">SWE</option>
-                                    <option value="temperature">Temperature</option>
-                                    <option value="precipitation">Precipitation</option>
-                                </select>
+                                <label>Flow Column:</label>
+                                <input type="text" id="flow-column" class="forecast-select" value="flow" placeholder="flow">
                             </div>
                         </div>
                         
                         <div class="model-actions">
-                            <button onclick="runAdvancedSWEAnalysis()" class="btn btn-primary">
+                            <button onclick="runHydrologicalAnalysis()" class="btn btn-primary">
                                 <i class="fas fa-play"></i> Run Analysis
                             </button>
-                            <button onclick="resetSWEAnalysis()" class="btn" style="background: #6c757d;">
+                            <button onclick="resetHydrologicalAnalysis()" class="btn" style="background: #6c757d;">
                                 <i class="fas fa-redo"></i> Reset
+                            </button>
+                            <button onclick="showAvailableDataSources()" class="btn" style="background: #17a2b8;">
+                                <i class="fas fa-database"></i> Data Sources
                             </button>
                         </div>
                         
-                        <div id="swe-analysis-status" class="mt-2"></div>
-                        <div id="swe-analysis-results" class="mt-3"></div>
+                        <div id="hydrology-analysis-status" class="mt-2"></div>
+                        <div id="hydrology-analysis-results" class="mt-3"></div>
                     </div>
                 </div>
 
@@ -1150,6 +1140,60 @@
                                         <p class="mb-2"><i class="fas fa-database"></i> Real Data Processing</p>
                                         <p class="mb-2"><i class="fas fa-robot"></i> AI-Powered Insights</p>
                                         <p class="mb-0"><i class="fas fa-microscope"></i> Expert Interpretations</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Water Resources Management Decision Support -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-balance-scale"></i>
+                        <div class="card-title">Water Resources Management Decision Support</div>
+                        <div class="status-indicator">
+                            <div class="status-dot status-green"></div>
+                            <span>Multi-Objective Optimization</span>
+                        </div>
+                    </div>
+                    
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h5><i class="fas fa-cogs"></i> Advanced Decision Support System</h5>
+                                <p class="text-muted mb-3">Professional water resources management tools with multi-objective optimization, reservoir operation planning, and water allocation strategies.</p>
+                                
+                                <div class="analysis-features">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <ul class="feature-list">
+                                                <li><i class="fas fa-tint text-primary"></i> Reservoir Operation Optimization</li>
+                                                <li><i class="fas fa-chart-pie text-success"></i> Water Allocation Planning</li>
+                                                <li><i class="fas fa-shield-alt text-warning"></i> Multi-Objective Optimization</li>
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <ul class="feature-list">
+                                                <li><i class="fas fa-users text-info"></i> User Priority Management</li>
+                                                <li><i class="fas fa-chart-line text-purple"></i> Efficiency Analysis</li>
+                                                <li><i class="fas fa-lightbulb text-success"></i> Decision Recommendations</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4 text-center">
+                                <div class="analysis-portal">
+                                    <button class="btn btn-primary btn-lg mb-3" onclick="openWaterResourcesManagement()">
+                                        <i class="fas fa-external-link-alt"></i> Launch Management Suite
+                                    </button>
+                                    
+                                    <div class="portal-features text-small">
+                                        <p class="mb-2"><i class="fas fa-robot"></i> AI-Powered Optimization</p>
+                                        <p class="mb-2"><i class="fas fa-chart-bar"></i> Real-time Analysis</p>
+                                        <p class="mb-0"><i class="fas fa-graduation-cap"></i> Expert Decision Support</p>
                                     </div>
                                 </div>
                             </div>
@@ -4200,37 +4244,206 @@ function initializeForecastControls() {
         }
         
         // Enhanced SWE Analysis with Insight Discovery Integration
-        async function runAdvancedSWEAnalysis() {
-            const analysisMode = document.getElementById('swe-analysis-mode').value;
-            const periodSelect = document.getElementById('analysis-period-select').value;
-            const statusDiv = document.getElementById('swe-analysis-status');
-            const resultsDiv = document.getElementById('swe-analysis-results');
+        async function runHydrologicalAnalysis() {
+            const analysisMode = document.getElementById('hydrology-analysis-mode').value;
+            const dataSource = document.getElementById('hydrology-data-source').value;
+            const statusDiv = document.getElementById('hydrology-analysis-status');
+            const resultsDiv = document.getElementById('hydrology-analysis-results');
             
             // Clear previous results
-            statusDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Initializing analysis...';
+            statusDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Initializing hydrological analysis...';
             resultsDiv.innerHTML = '';
             
             try {
-                // Handle different analysis modes
-                if (analysisMode === 'insight-discovery') {
-                    await runInsightDiscoveryAnalysis();
-                } else {
-                    await runStandardSWEAnalysis(analysisMode, periodSelect);
+                // Prepare request parameters
+                const requestData = {
+                    analysis_type: analysisMode,
+                    data_source: dataSource === 'auto' ? null : dataSource,
+                    parameters: {
+                        precip_col: document.getElementById('precip-column').value,
+                        runoff_col: document.getElementById('runoff-column').value,
+                        et_col: document.getElementById('et-column').value,
+                        flow_col: document.getElementById('flow-column').value
+                    }
+                };
+                
+                // Call the hydrological analysis API
+                const response = await fetch('/api/v1/hydrology/comprehensive-analysis', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
                 
-                statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> Analysis completed successfully';
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> Hydrological analysis completed successfully';
+                    renderHydrologicalAnalysisResults(result, resultsDiv);
+                } else {
+                    throw new Error(result.message || 'Analysis failed');
+                }
                 
             } catch (error) {
-                console.error('SWE analysis failed:', error);
+                console.error('Hydrological analysis failed:', error);
                 statusDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Analysis failed';
                 resultsDiv.innerHTML = `
                     <div class="alert alert-danger">
-                        <h4><i class="fas fa-exclamation-circle"></i> Analysis Failed</h4>
-                        <p>Unable to complete the requested SWE analysis.</p>
+                        <h4><i class="fas fa-exclamation-circle"></i> Hydrological Analysis Failed</h4>
+                        <p>Unable to complete the requested hydrological analysis.</p>
                         <p><strong>Error:</strong> ${error.message}</p>
-                        <p><em>Please try adjusting the parameters or contact support if the issue persists.</em></p>
+                        <p><em>Please check your data sources and parameters, or contact support if the issue persists.</em></p>
                     </div>
                 `;
+            }
+        }
+        
+        function renderHydrologicalAnalysisResults(result, container) {
+            const { results, recommendations, data_source } = result;
+            
+            let html = `
+                <div class="analysis-results">
+                    <div class="alert alert-success">
+                        <h5><i class="fas fa-check-circle"></i> Analysis Completed</h5>
+                        <p><strong>Data Source:</strong> ${data_source}</p>
+                        <p><strong>Analysis Type:</strong> ${result.analysis_type}</p>
+                        <p><strong>Timestamp:</strong> ${new Date(result.timestamp).toLocaleString()}</p>
+                    </div>
+            `;
+            
+            // Water Balance Results
+            if (results.water_balance && !results.water_balance.error) {
+                const wb = results.water_balance;
+                html += `
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h6><i class="fas fa-balance-scale"></i> Watershed Water Balance</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Total Precipitation:</strong> ${wb.precipitation_total?.toFixed(2) || 'N/A'} mm</p>
+                                    <p><strong>Total Runoff:</strong> ${wb.runoff_total?.toFixed(2) || 'N/A'} mm</p>
+                                    <p><strong>Total Evapotranspiration:</strong> ${wb.evapotranspiration_total?.toFixed(2) || 'N/A'} mm</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Runoff Coefficient:</strong> ${(wb.runoff_coefficient * 100)?.toFixed(1) || 'N/A'}%</p>
+                                    <p><strong>ET Coefficient:</strong> ${(wb.et_coefficient * 100)?.toFixed(1) || 'N/A'}%</p>
+                                    <p><strong>Balance Closure:</strong> ${(wb.balance_closure * 100)?.toFixed(1) || 'N/A'}%</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Flood Frequency Results
+            if (results.gumbel_distribution && !results.gumbel_distribution.error) {
+                const gd = results.gumbel_distribution;
+                html += `
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h6><i class="fas fa-flood"></i> Flood Frequency Analysis (Gumbel Distribution)</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Location Parameter:</strong> ${gd.location_parameter?.toFixed(3) || 'N/A'}</p>
+                                    <p><strong>Scale Parameter:</strong> ${gd.scale_parameter?.toFixed(3) || 'N/A'}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Design Flows (m³/s):</h6>
+                                    <p><strong>2-year:</strong> ${gd.design_flows?.['2_year']?.toFixed(2) || 'N/A'}</p>
+                                    <p><strong>10-year:</strong> ${gd.design_flows?.['10_year']?.toFixed(2) || 'N/A'}</p>
+                                    <p><strong>100-year:</strong> ${gd.design_flows?.['100_year']?.toFixed(2) || 'N/A'}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Precipitation-Runoff Relationship
+            if (results.precipitation_runoff && !results.precipitation_runoff.error) {
+                const pr = results.precipitation_runoff;
+                html += `
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h6><i class="fas fa-chart-line"></i> Precipitation-Runoff Relationship</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Correlation:</strong> ${pr.correlation?.toFixed(3) || 'N/A'}</p>
+                                    <p><strong>R²:</strong> ${pr.r_squared?.toFixed(3) || 'N/A'}</p>
+                                    <p><strong>P-value:</strong> ${pr.p_value?.toFixed(4) || 'N/A'}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Regression Slope:</strong> ${pr.regression_slope?.toFixed(3) || 'N/A'}</p>
+                                    <p><strong>Best Lag:</strong> ${pr.best_lag?.lag_days || 'N/A'} days</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Recommendations
+            if (recommendations && recommendations.length > 0) {
+                html += `
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h6><i class="fas fa-lightbulb"></i> Recommendations</h6>
+                        </div>
+                        <div class="card-body">
+                            <ul>
+                                ${recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+        
+        function resetHydrologicalAnalysis() {
+            document.getElementById('hydrology-analysis-mode').value = 'comprehensive';
+            document.getElementById('hydrology-data-source').value = 'auto';
+            document.getElementById('precip-column').value = 'precipitation';
+            document.getElementById('runoff-column').value = 'runoff';
+            document.getElementById('et-column').value = 'evapotranspiration';
+            document.getElementById('flow-column').value = 'flow';
+            document.getElementById('hydrology-analysis-status').innerHTML = '';
+            document.getElementById('hydrology-analysis-results').innerHTML = '';
+        }
+        
+        async function showAvailableDataSources() {
+            try {
+                const response = await fetch('/api/v1/hydrology/available-data-sources');
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    let html = '<div class="alert alert-info"><h6><i class="fas fa-database"></i> Available Data Sources</h6><ul>';
+                    for (const [name, info] of Object.entries(result.available_sources)) {
+                        if (info.rows) {
+                            html += `<li><strong>${name}:</strong> ${info.rows} rows, ${info.columns.length} columns</li>`;
+                        } else {
+                            html += `<li><strong>${name}:</strong> Error - ${info.error}</li>`;
+                        }
+                    }
+                    html += '</ul></div>';
+                    
+                    document.getElementById('hydrology-analysis-results').innerHTML = html;
+                }
+            } catch (error) {
+                console.error('Failed to fetch data sources:', error);
             }
         }
         
@@ -5641,6 +5854,35 @@ function initializeForecastControls() {
                 console.warn('Portal tracking failed:', error);
             }
         }
+        
+        function openWaterResourcesManagement() {
+            // Redirect to dedicated water resources management page
+            try {
+                console.log('Water Resources Management Portal accessed at:', new Date().toISOString());
+                
+                // Show notification to user
+                showNotification('Opening Water Resources Management Suite...', 'info');
+                
+                // Open in new tab
+                window.open('/water-resources-management', '_blank');
+                
+                // Optional: Track usage statistics
+                if (typeof fetch !== 'undefined') {
+                    fetch('/api/analytics/portal-access', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            portal: 'water_resources_management',
+                            timestamp: new Date().toISOString(),
+                            source_page: 'enhanced_ui'
+                        })
+                    }).catch(err => console.log('Analytics tracking failed:', err));
+                }
+            } catch (error) {
+                console.error('Error opening water resources management:', error);
+            }
+        }
+
         
         // Alternative function for inline embedding (if needed in future)
         function embedAdvancedAnalysis() {

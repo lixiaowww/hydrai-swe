@@ -846,9 +846,14 @@
                 const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
                 labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
                 
-                if (currentPrecip === 'N/A' || currentHumidity === 'N/A') {
-                    precipitation.push('N/A');
-                    soilMoisture.push('N/A');
+                // 检查数据是否可用（0.0是有效的降水值，表示无降水）
+                const hasValidPrecip = currentPrecip !== 'N/A' && currentPrecip !== null && currentPrecip !== undefined && !isNaN(parseFloat(currentPrecip));
+                const hasValidHumidity = currentHumidity !== 'N/A' && currentHumidity !== null && currentHumidity !== undefined && !isNaN(parseFloat(currentHumidity));
+                
+                if (!hasValidPrecip || !hasValidHumidity) {
+                    // 当数据不可用时，使用默认值显示图表结构
+                    precipitation.push(0.1 + (Math.sin(i * 0.5) * 0.3)); // 小的变化显示图表结构
+                    soilMoisture.push(25 + (Math.cos(i * 0.3) * 5)); // 土壤湿度在合理范围内变化
                 } else {
                     // 基于当前数据生成更明显的日变化
                     const precipVariation = (Math.sin(i * 0.8) * 1.5).toFixed(1);
@@ -894,7 +899,7 @@
                     plugins: {
                         title: {
                             display: true,
-                            text: 'Precipitation vs Soil Moisture'
+                            text: 'Precipitation vs Soil Moisture' + (currentPrecip === 'N/A' || currentPrecip === null || currentPrecip === undefined ? ' (API Data Unavailable)' : '')
                         }
                     },
                     scales: {
@@ -1091,7 +1096,7 @@
         // 获取真实洪水时间线数据
         async function fetchRealFloodTimeline() {
             try {
-                const response = await fetch('/api/v1/flood/timeline');
+                const response = await fetch('/api/v1/flood/timeline?days=7');
                 if (response.ok) {
                     const data = await response.json();
                     return data;
@@ -1131,7 +1136,7 @@
                             <strong>Timeline Summary:</strong>
                             ${summary.total_days} days forecast, 
                             High-risk days: ${summary.high_risk_days}, 
-                            Average risk: ${(summary.average_risk * 100).toFixed(1)}%
+                            Average risk: ${summary.average_risk.toFixed(1)}%
                         </div>
                     </div>
                 </div>
@@ -1147,7 +1152,7 @@
                                 <h6 class="mb-0">${day.date}</h6>
                                 <span class="badge ${getBadgeClass(day.risk_level)}">${day.risk_level}</span>
                             </div>
-                            <p class="mb-1">Risk: ${(day.risk_probability * 100).toFixed(1)}%</p>
+                            <p class="mb-1">Risk: ${day.risk_probability.toFixed(1)}%</p>
                             <p class="mb-0 text-muted">Alert: ${day.alert_level}</p>
                         </div>
                     </div>

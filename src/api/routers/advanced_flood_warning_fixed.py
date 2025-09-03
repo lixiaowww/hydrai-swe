@@ -32,8 +32,6 @@ def load_flood_data_with_pipeline_sync():
     
     # 1. 尝试从数据管道获取最新数据
     try:
-        import sys
-        sys.path.append('/home/sean/hydrai_swe/src')
         from models.real_data_loader import RealDataLoader
         data_loader = RealDataLoader()
         
@@ -45,18 +43,22 @@ def load_flood_data_with_pipeline_sync():
     except Exception as e:
         logger.warning(f"数据管道同步失败: {e}")
     
-    # 2. 强制使用最新同步数据，拒绝静态数据
+    # 2. 如果管道数据不可用，使用静态文件（按优先级）
     if merged_data is None:
-        import glob
-        sync_files = glob.glob("/home/sean/hydrai_swe/data/processed/flood_warning/flood_sync_*.csv")
-        if sync_files:
-            # 按时间排序，使用最新的
-            latest_sync = max(sync_files, key=os.path.getctime)
-            merged_data = pd.read_csv(latest_sync)
-            logger.info(f"✅ 强制使用最新同步数据: {latest_sync}")
-        else:
-            logger.error("❌ 没有找到同步数据文件，拒绝使用过时静态数据")
-            raise HTTPException(status_code=503, detail="无可用实时数据")
+        static_paths = [
+            "data/processed/flood_warning/flood_warning_fixed_features.csv",
+            "data/processed/flood_warning/flood_warning_test_data.csv", 
+            "data/processed/flood_warning/flood_warning_optimized.csv"
+        ]
+        
+        for path in static_paths:
+            if os.path.exists(path):
+                merged_data = pd.read_csv(path)
+                logger.warning(f"使用静态数据文件: {path} (数据可能过时)")
+                break
+        
+        if merged_data is None:
+            raise HTTPException(status_code=404, detail="无可用数据文件")
     
     return merged_data
 

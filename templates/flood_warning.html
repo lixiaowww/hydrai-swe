@@ -470,7 +470,7 @@ function displayRiskAssessment(result) {
     // 更新风险等级显示
     document.getElementById('riskLevel').textContent = result.risk_level;
     document.getElementById('riskScore').textContent = result.risk_score;
-    document.getElementById('riskProbability').textContent = `${(result.risk_probability * 100).toFixed(1)}%`;
+    document.getElementById('riskProbability').textContent = `${result.risk_probability.toFixed(1)}%`;
     document.getElementById('warningLevel').textContent = result.warning_level;
     document.getElementById('warningDescription').textContent = result.warning_description;
     document.getElementById('recommendedAction').textContent = result.recommended_action;

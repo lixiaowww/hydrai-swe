@@ -15,8 +15,17 @@ from datetime import datetime
 # 导入数据科学分析器
 import sys
 sys.path.append('/home/sean/hydrai_swe/src')
-from models.data_science_analyzer import DataScienceAnalyzer
-from models.exploration.insight_discovery import InsightDiscoveryModule
+sys.path.append('/home/sean/hydrai_swe/src/models')
+
+try:
+    from data_science_analyzer import DataScienceAnalyzer
+    from exploration.insight_discovery import InsightDiscoveryModule
+    DATA_SCIENCE_AVAILABLE = True
+except ImportError as e:
+    print(f"Warning: Could not import data science modules: {e}")
+    DataScienceAnalyzer = None
+    InsightDiscoveryModule = None
+    DATA_SCIENCE_AVAILABLE = False
 
 router = APIRouter(prefix="/data-science", tags=["Data Science Analysis"])
 
@@ -499,10 +508,10 @@ async def get_statistical_tests(
     Args:
         column: 要分析的列名
         data_path: 数据文件路径
-        
-    Returns:
-        dict: 统计检验结果
     """
+    # 检查数据科学模块是否可用
+    if not DATA_SCIENCE_AVAILABLE:
+        raise HTTPException(status_code=503, detail="数据科学模块不可用")
     try:
         global analyzer_instance
         
@@ -671,7 +680,7 @@ async def factor_discovery(
     top_k: int = Query(10, ge=1, le=50),
     data_path: Optional[str] = Query(None, description="数据文件路径")
 ):
-    """无监督冷门影响因素发现接口。"""
+    """无监督冷门影响因素发现接口"""
     try:
         global analyzer_instance
         if analyzer_instance is None or analyzer_instance.data is None:

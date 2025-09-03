@@ -232,10 +232,11 @@ async function loadFallbackData() {
         const peakDateEl = document.getElementById('peak-date-value');
         const activeStationsEl = document.getElementById('active-stations-value');
         
-        if (totalSnowEl) totalSnowEl.textContent = '95.0 mm';
-        if (vsHistoricalEl) vsHistoricalEl.textContent = '0%';
-        if (peakDateEl) peakDateEl.textContent = 'Dec 19';
-        if (activeStationsEl) activeStationsEl.textContent = '2';
+        // 显示数据不可用，不使用硬编码数据
+        if (totalSnowEl) totalSnowEl.textContent = 'N/A';
+        if (vsHistoricalEl) vsHistoricalEl.textContent = 'N/A';
+        if (peakDateEl) peakDateEl.textContent = 'N/A';
+        if (activeStationsEl) activeStationsEl.textContent = 'N/A';
         
         const riskLevelEl = document.getElementById('risk-level-value');
         const peakRiskEl = document.getElementById('peak-risk-period-value');
@@ -243,13 +244,13 @@ async function loadFallbackData() {
         const alertLeadTimeEl = document.getElementById('alert-lead-time-value');
         const floodAlertEl = document.getElementById('flood-alert-content');
         
-        if (riskLevelEl) riskLevelEl.textContent = 'LOW';
-        if (peakRiskEl) peakRiskEl.textContent = 'Mar-Apr 2025';
-        if (regionsAtRiskEl) regionsAtRiskEl.textContent = 'None';
-        if (alertLeadTimeEl) alertLeadTimeEl.textContent = '48 hours';
-        if (floodAlertEl) floodAlertEl.textContent = 'Current conditions indicate low flood risk. Monitor weather forecasts for changes.';
+        if (riskLevelEl) riskLevelEl.textContent = 'N/A';
+        if (peakRiskEl) peakRiskEl.textContent = 'N/A';
+        if (regionsAtRiskEl) regionsAtRiskEl.textContent = 'N/A';
+        if (alertLeadTimeEl) alertLeadTimeEl.textContent = 'N/A';
+        if (floodAlertEl) floodAlertEl.textContent = 'Data not available. Please check data pipeline connection.';
         
-        console.log('Fallback data loaded successfully');
+        console.log('Data unavailable - no fallback data allowed');
         
     } catch (error) {
         console.error('Failed to load fallback data:', error);

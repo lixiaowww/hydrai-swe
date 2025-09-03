@@ -16,6 +16,13 @@
 - [INTERFACE_ORGANIZATION.md](INTERFACE_ORGANIZATION.md) - 界面组织结构
 - [ENHANCED_UI_EN.md](ENHANCED_UI_EN.md) - 增强英文界面说明
 
+## 🎓 学习指南 (新增)
+
+- [docs/learning/README.md](docs/learning/README.md) - 学习文档导航
+- [docs/learning/PYTHON_BASICS_GUIDE.md](docs/learning/PYTHON_BASICS_GUIDE.md) - Python基础学习指南
+- [docs/learning/MACHINE_LEARNING_BASICS.md](docs/learning/MACHINE_LEARNING_BASICS.md) - 机器学习基础指南
+- [COMPLETE_LEARNING_GUIDE.md](COMPLETE_LEARNING_GUIDE.md) - 完整学习指南（综合版）
+
 ## 🌱 农业模块文档 (新增)
 
 ### **农业功能文档**

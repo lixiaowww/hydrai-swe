@@ -1,6 +1,10 @@
+# 必须在任何导入之前设置Python路径
 import os
-from dotenv import load_dotenv
+import sys
+sys.path.append('/home/sean/hydrai_swe/src')
+sys.path.append('/home/sean/hydrai_swe/src/models')
 
+from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
@@ -47,6 +51,20 @@ try:
 except ImportError as e:
     print(f"Warning: Could not import agriculture router: {e}")
     AGRICULTURE_AVAILABLE = False
+
+try:
+    from routers import hydrological_analysis
+    HYDROLOGICAL_ANALYSIS_AVAILABLE = True
+except ImportError as e:
+    print(f"Warning: Could not import hydrological analysis router: {e}")
+    HYDROLOGICAL_ANALYSIS_AVAILABLE = False
+
+try:
+    from routers import water_resources_management
+    WATER_RESOURCES_MANAGEMENT_AVAILABLE = True
+except ImportError as e:
+    print(f"Warning: Could not import water resources management router: {e}")
+    WATER_RESOURCES_MANAGEMENT_AVAILABLE = False
 
 try:
     from routers import pipeline
@@ -98,6 +116,12 @@ if FLOOD_AVAILABLE:
 if AGRICULTURE_AVAILABLE:
     app.include_router(agriculture.router, prefix="/api/v1/agriculture", tags=["agriculture"])
 
+if HYDROLOGICAL_ANALYSIS_AVAILABLE:
+    app.include_router(hydrological_analysis.router, tags=["hydrological_analysis"])
+
+if WATER_RESOURCES_MANAGEMENT_AVAILABLE:
+    app.include_router(water_resources_management.router, prefix="/api/v1/water-resources", tags=["water_resources_management"])
+
 # Temporarily disabled advanced flood warning due to data quality issues
 # if ADVANCED_FLOOD_AVAILABLE:
 #     app.include_router(advanced_flood_warning.router, prefix="/api/v2/flood", tags=["advanced_flood_warning"])
@@ -122,45 +146,144 @@ if WEATHER_API_AVAILABLE:
 async def hydrology_interpretation(request_data: dict = Body(...)):
     """水文学专业解释端点 - 基于真实数据分析"""
     try:
+        import pandas as pd
+        import numpy as np
+        from scipy import stats
+        
         # 基于真实数据进行分析，不使用硬编码
         analysis_type = request_data.get('analysis_type', 'general')
         data_context = request_data.get('data_context', {})
         
-        # 基于实际数据特征生成解释
-        interpretation = {
-            "analysis_type": analysis_type,
-            "data_context": data_context,
-            "trend": {
-                "title": "N/A",
-                "description": "Professional interpretation requires real data analysis",
-                "magnitude": "N/A",
-                "direction": "N/A",
-                "implications": ["Data analysis required"]
-            },
-            "seasonal": {
-                "title": "N/A", 
-                "description": "Professional interpretation requires real data analysis",
-                "pattern": "N/A",
-                "implications": ["Data analysis required"]
-            },
-            "anomaly": {
-                "title": "N/A",
-                "description": "Professional interpretation requires real data analysis", 
-                "score": "N/A",
-                "severity": "N/A",
-                "causes": ["Data analysis required"],
-                "risks": ["Data analysis required"]
-            },
-            "data_quality": {
-                "volatility": "N/A",
-                "stability": "Data analysis required"
-            },
-            "recommendations": ["Data analysis required for recommendations"],
-            "warnings": ["Data unavailable for warnings"],
-            "methodology": "Based on real data analysis, no hardcoded values",
-            "data_source": "Real hydrological data",
-            "timestamp": datetime.now().isoformat()
-        }
+        # 尝试加载真实数据进行分析
+        data_path = "/home/sean/hydrai_swe/data/processed/eccc_manitoba_snow_processed.csv"
+        
+        try:
+            if os.path.exists(data_path):
+                df = pd.read_csv(data_path)
+                df['date'] = pd.to_datetime(df['date'], errors='coerce')
+                df = df.dropna(subset=['date'])
+                
+                # 分析SWE数据
+                swe_col = None
+                for col in ['Snow on Grnd (cm)', 'snow_water_equivalent_mm', 'Total Snow (cm)']:
+                    if col in df.columns:
+                        swe_col = col
+                        break
+                
+                if swe_col is not None and len(df) > 0:
+                    swe_data = df[swe_col].dropna()
+                    
+                    if len(swe_data) > 0:
+                        # 计算真实统计信息
+                        mean_swe = float(swe_data.mean())
+                        std_swe = float(swe_data.std())
+                        max_swe = float(swe_data.max())
+                        min_swe = float(swe_data.min())
+                        
+                        # 计算趋势
+                        if len(swe_data) >= 10:
+                            x = np.arange(len(swe_data))
+                            slope, intercept, r_value, p_value, std_err = stats.linregress(x, swe_data)
+                            trend_direction = "increasing" if slope > 0 else "decreasing" if slope < 0 else "stable"
+                            trend_magnitude = abs(slope)
+                        else:
+                            trend_direction = "insufficient data"
+                            trend_magnitude = 0.0
+                        
+                        # 季节性分析
+                        if 'date' in df.columns:
+                            monthly_means = df.groupby(df['date'].dt.month)[swe_col].mean()
+                            peak_month = monthly_means.idxmax() if len(monthly_means) > 0 else None
+                            seasonal_strength = float(monthly_means.std()) if len(monthly_means) > 0 else 0.0
+                        else:
+                            peak_month = None
+                            seasonal_strength = 0.0
+                        
+                        # 异常检测
+                        threshold = mean_swe + 2 * std_swe
+                        anomalies = swe_data[swe_data > threshold]
+                        anomaly_rate = len(anomalies) / len(swe_data) if len(swe_data) > 0 else 0.0
+                        
+                        # 生成专业解释
+                        interpretation = {
+                            "analysis_type": analysis_type,
+                            "data_context": data_context,
+                            "trend": {
+                                "title": f"SWE Trend Analysis ({trend_direction})",
+                                "description": f"Based on {len(swe_data)} data points, SWE shows {trend_direction} trend with magnitude {trend_magnitude:.3f}",
+                                "magnitude": f"{trend_magnitude:.3f}",
+                                "direction": trend_direction,
+                                "implications": [
+                                    f"Current SWE range: {min_swe:.1f} - {max_swe:.1f} mm",
+                                    f"Mean SWE: {mean_swe:.1f} ± {std_swe:.1f} mm",
+                                    "Trend analysis based on real historical data"
+                                ]
+                            },
+                            "seasonal": {
+                                "title": f"Seasonal Pattern Analysis",
+                                "description": f"Peak SWE typically occurs in month {peak_month}" if peak_month else "Seasonal patterns analyzed from real data",
+                                "pattern": f"Peak month: {peak_month}" if peak_month else "Pattern analysis available",
+                                "implications": [
+                                    f"Seasonal strength: {seasonal_strength:.2f}",
+                                    "Based on Environment Canada historical data",
+                                    "Manitoba-specific seasonal characteristics"
+                                ]
+                            },
+                            "anomaly": {
+                                "title": f"Anomaly Detection Results",
+                                "description": f"Detected {len(anomalies)} anomalies out of {len(swe_data)} observations",
+                                "score": f"{anomaly_rate:.3f}",
+                                "severity": "moderate" if anomaly_rate > 0.05 else "low",
+                                "causes": [
+                                    "Extreme weather events",
+                                    "Measurement errors",
+                                    "Natural variability"
+                                ],
+                                "risks": [
+                                    "Flood risk during high SWE periods",
+                                    "Water scarcity during low SWE periods"
+                                ]
+                            },
+                            "data_quality": {
+                                "volatility": f"{std_swe:.2f}",
+                                "stability": "good" if std_swe < mean_swe * 0.5 else "moderate"
+                            },
+                            "recommendations": [
+                                "Monitor SWE trends for flood prediction",
+                                "Use seasonal patterns for water resource planning",
+                                "Consider anomaly events in risk assessment"
+                            ],
+                            "warnings": [
+                                "Data based on historical observations",
+                                "Climate change may affect future patterns"
+                            ],
+                            "methodology": "Statistical analysis of Environment Canada SWE data",
+                            "data_source": "Environment Canada Manitoba Snow Data",
+                            "timestamp": datetime.now().isoformat()
+                        }
+                    else:
+                        raise Exception("No valid SWE data found")
+                else:
+                    raise Exception("SWE column not found in data")
+            else:
+                raise Exception("Data file not found")
+                
+        except Exception as data_error:
+            # 如果数据分析失败，返回错误信息而不是硬编码的N/A
+            interpretation = {
+                "analysis_type": analysis_type,
+                "data_context": data_context,
+                "error": f"Data analysis failed: {str(data_error)}",
+                "trend": {"title": "Analysis Error", "description": "Unable to analyze data"},
+                "seasonal": {"title": "Analysis Error", "description": "Unable to analyze data"},
+                "anomaly": {"title": "Analysis Error", "description": "Unable to analyze data"},
+                "data_quality": {"volatility": "unknown", "stability": "unknown"},
+                "recommendations": ["Check data availability and format"],
+                "warnings": ["Data analysis unavailable"],
+                "methodology": "Error in data processing",
+                "data_source": "Data analysis failed",
+                "timestamp": datetime.now().isoformat()
+            }
         
         return interpretation
         
@@ -227,6 +350,11 @@ def favicon():
 def ui(request: Request):
     # Main end-user interface - English enhanced version
     return templates.TemplateResponse("ui/enhanced_en.html", {"request": request})
+
+@app.get("/water-resources-management", response_class=HTMLResponse)
+def water_resources_management(request: Request):
+    # Water Resources Management Decision Support page
+    return templates.TemplateResponse("ui/water_resources_management.html", {"request": request})
 
 @app.get("/ui/enhanced_en", response_class=HTMLResponse)
 def ui_enhanced_english(request: Request):
