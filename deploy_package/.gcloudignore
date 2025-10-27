@@ -1,0 +1,145 @@
+# This file specifies files that are *not* uploaded to Google Cloud
+# using gcloud. It follows the same syntax as .gitignore, with the addition of
+# "#!include" directives (which insert the entries of the given .gitignore-style
+# file at that point).
+
+#!include .gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments (IMPORTANT!)
+venv/
+env/
+ENV/
+.venv/
+virtualenv/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.cursor/
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# GitHub
+.github/
+
+# Data files (too large for deployment)
+data/
+*.h5
+*.hdf5
+*.nc
+*.csv
+validation_results/
+
+# Models (keep only necessary ones)
+models/swe/
+models/flood_levels/
+models/swe_robust/
+models/*.joblib
+models/*.pkl
+models/training_summary_*.json
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+*.tmp
+temp/
+.cache/
+
+# Documentation (keep only essential)
+docs/
+*.md
+!README.md
+!DATA_STRATEGY.md
+
+# Examples
+examples/
+
+# Frontend build
+frontend/node_modules/
+frontend/dist/
+node_modules/
+
+# Test files
+tests/
+pytest.ini
+.coveragerc
+.editorconfig
+.flake8
+.pre-commit-config.yaml
+
+# Scripts that are not needed in production
+scripts/analysis/
+scripts/training/
+scripts/validation/
+scripts/fetchers/
+nsidc*.py
+download_*.py
+train_*.py
+test_*.py
+process_*.py
+generate_*.py
+fix_*.py
+analyze_*.py
+fetch_*.py
+continuous_*.py
+nightly_*.py
+
+# Backup files
+*.backup
+*.bak
+*~
+
+# Large binary files
+*.zip
+*.tar.gz
+*.db-journal
+
+# Configuration files not needed in production
+pyproject.toml
+.editorconfig
+.flake8
+
+# Old/deprecated files
+*_old.py
+*_backup.py
+*_deprecated.py
+
+# Specific large directories
+src/neuralhydrology/

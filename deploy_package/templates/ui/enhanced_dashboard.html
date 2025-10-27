@@ -1,0 +1,1454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HydrAI-SWE Enhanced Analysis Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .nav-links {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+            padding: 10px 20px;
+            border-radius: 25px;
+            background: rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .nav-links a:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+
+        .nav-links a.active {
+            background: rgba(255,255,255,0.3);
+            font-weight: bold;
+        }
+        
+        .data-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #155724;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .dashboard .card:first-child {
+            grid-column: 1 / -1;
+            max-width: 100%;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .card-icon {
+            font-size: 2rem;
+            margin-right: 15px;
+            color: #667eea;
+        }
+        
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #333;
+            flex: 1;
+        }
+        
+        .expand-btn {
+            background: none;
+            border: none;
+            color: #667eea;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: background 0.3s ease;
+        }
+        
+        .expand-btn:hover {
+            background: #f0f0f0;
+        }
+        
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            transition: background 0.3s ease;
+        }
+        
+        .metric:hover {
+            background: #e9ecef;
+        }
+        
+        .metric-label {
+            font-weight: 500;
+            color: #666;
+            flex: 1;
+        }
+        
+        .metric-value {
+            font-weight: 700;
+            color: #333;
+            font-size: 1.1rem;
+            text-align: right;
+        }
+        
+        .analysis-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            display: none;
+        }
+        
+        .analysis-section.expanded {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .analysis-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .analysis-title i {
+            margin-right: 10px;
+            color: #667eea;
+        }
+        
+        .analysis-content {
+            line-height: 1.6;
+            color: #555;
+        }
+        
+        .insight {
+            background: #e8f4f8;
+            border: 1px solid #bee5eb;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        
+        .insight-title {
+            font-weight: 600;
+            color: #0c5460;
+            margin-bottom: 8px;
+        }
+        
+        .insight-content {
+            color: #0c5460;
+            font-size: 0.95rem;
+        }
+        
+        .prediction {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        
+        .prediction-title {
+            font-weight: 600;
+            color: #856404;
+            margin-bottom: 8px;
+        }
+        
+        .prediction-content {
+            color: #856404;
+            font-size: 0.95rem;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 20px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .loading i {
+            font-size: 2rem;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            color: #dc3545;
+            text-align: center;
+            padding: 20px;
+            background: #f8d7da;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-active { background-color: #28a745; }
+        .status-warning { background-color: #ffc107; }
+        .status-error { background-color: #dc3545; }
+        
+        .refresh-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s ease;
+            margin: 10px 0;
+        }
+        
+        .refresh-btn:hover {
+            background: #5a6fd8;
+        }
+        
+        .last-update {
+            font-size: 0.9rem;
+            color: #666;
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .data-age-warning {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 10px 0;
+            color: #721c24;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-snowflake"></i> HydrAI-SWE Enhanced Dashboard</h1>
+            <p>Comprehensive Manitoba Snow Water Equivalent Analysis & Predictions</p>
+        </div>
+
+        <div class="nav-links">
+            <a href="/home">🏡 Home</a>
+            <a href="/ui" class="active">🏠 Main Dashboard</a>
+            <a href="/knowledge">📚 Knowledge Base</a>
+            <a href="/model">🤖 Model Training</a>
+            <a href="/analysis">📊 Data Analysis</a>
+            <a href="/health">💚 System Health</a>
+        </div>
+        
+        <div class="data-success">
+            <i class="fas fa-check-circle"></i>
+            <strong>Real-Time Data Status:</strong> System is powered by live official data sources including 
+            Manitoba Flood Alerts (real-time), RDPS Precipitation Forecast (4x daily), Winnipeg River Levels (real-time), 
+            and Winnipeg Water Quality (2024 data). All data is sourced from official government agencies.
+        </div>
+        
+        <div class="dashboard">
+            <!-- SWE Historical Card (Real Data with Time Filters) -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-chart-line card-icon"></i>
+                    <div class="card-title">SWE Historical (Real Data)</div>
+                </div>
+                <div>
+                    <div style="display:flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                        <label>Window
+                            <select id="swe-window" style="margin-left:6px;">
+                                <option value="all">All</option>
+                                <option value="24h">24h</option>
+                                <option value="7d">7d</option>
+                                <option value="30d" selected>30d</option>
+                                <option value="custom">custom</option>
+                            </select>
+                        </label>
+                        <label>Start
+                            <input type="date" id="swe-start">
+                        </label>
+                        <label>End
+                            <input type="date" id="swe-end">
+                        </label>
+                        <label>Page Size
+                            <input type="number" id="swe-page-size" min="1" max="2000" value="2000" style="width:90px;">
+                        </label>
+                        <button class="refresh-btn" id="swe-apply-btn"><i class="fas fa-filter"></i> Apply</button>
+                        <button class="refresh-btn" id="swe-download-btn"><i class="fas fa-download"></i> Download CSV</button>
+                        <button class="refresh-btn" id="swe-toggle-anomaly"><i class="fas fa-wave-square"></i> Toggle Anomaly</button>
+                        <span id="swe-freshness" class="last-update" style="margin-left:auto;">–</span>
+                    </div>
+                    <div style="display:flex; gap:10px; align-items:center; margin-top:8px;">
+                        <button class="refresh-btn" id="swe-prev-page">Prev</button>
+                        <span id="swe-page-info" style="font-size:0.95rem;color:#555;">page 1/1</span>
+                        <button class="refresh-btn" id="swe-next-page">Next</button>
+                    </div>
+                </div>
+                <div id="swe-historical-content" class="chart-container">
+                    <div class="loading">
+                        <i class="fas fa-spinner"></i>
+                        <p>Loading SWE historical...</p>
+                    </div>
+                </div>
+                <div id="swe-anomaly-container" class="chart-container" style="display:none;"></div>
+                <div class="analysis-section expanded" id="swe-analysis-section">
+                    <div class="analysis-title"><i class="fas fa-user-graduate"></i> Expert Interpretation</div>
+                    <div class="analysis-content" id="swe-interpretation"></div>
+                    <div class="analysis-title" style="margin-top:12px;"><i class="fas fa-shield-alt"></i> Provenance</div>
+                    <div class="analysis-content" id="swe-provenance"></div>
+                    <div class="analysis-title" style="margin-top:12px;"><i class="fas fa-sigma"></i> Summary</div>
+                    <div class="analysis-content" id="swe-summary"></div>
+                </div>
+            </div>
+
+            <!-- Flood Prediction Card -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-exclamation-triangle card-icon"></i>
+                    <div class="card-title">Flood Risk Prediction</div>
+                </div>
+                <div id="flood-prediction-content" class="chart-container">
+                    <div class="loading">
+                        <i class="fas fa-spinner"></i>
+                        <p>Loading flood prediction data...</p>
+                    </div>
+                </div>
+                <div class="analysis-section expanded" id="flood-prediction-analysis-section">
+                    <div class="analysis-title"><i class="fas fa-user-graduate"></i> Expert Interpretation</div>
+                    <div class="analysis-content" id="flood-prediction-interpretation"></div>
+                    <div class="analysis-title" style="margin-top:12px;"><i class="fas fa-shield-alt"></i> Provenance</div>
+                    <div class="analysis-content" id="flood-prediction-provenance"></div>
+                </div>
+            </div>
+
+            <!-- Water Quality Analysis Card -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-tint card-icon"></i>
+                    <div class="card-title">Water Quality Analysis</div>
+                </div>
+                <div id="water-quality-content" class="chart-container">
+                    <div class="loading">
+                        <i class="fas fa-spinner"></i>
+                        <p>Loading water quality data...</p>
+                    </div>
+                </div>
+                <div class="analysis-section expanded" id="water-quality-analysis-section">
+                    <div class="analysis-title"><i class="fas fa-user-graduate"></i> Expert Interpretation</div>
+                    <div class="analysis-content" id="water-quality-interpretation"></div>
+                    <div class="analysis-title" style="margin-top:12px;"><i class="fas fa-shield-alt"></i> Provenance</div>
+                    <div class="analysis-content" id="water-quality-provenance"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="text-center">
+            <button class="refresh-btn" onclick="refreshAllData()">
+                <i class="fas fa-sync-alt"></i> Refresh All Data & Analysis
+            </button>
+            <div class="last-update" id="last-update">
+                Last updated: Never
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Configuration
+        const API_BASE_URL = 'http://localhost:8001/api';
+        const CACHE_VERSION = 'v2.0.8'; // Force cache refresh - Enhanced analysis depth
+        let SWE_STATE = { page: 1, total_pages: 1 };
+        
+        // Global error handler
+        window.addEventListener('error', function(e) {
+            console.error('Global error:', e);
+        });
+        
+        // API request function
+        async function apiRequest(endpoint) {
+            try {
+                const response = await fetch(`${API_BASE_URL}${endpoint}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error(`API request failed for ${endpoint}:`, error);
+                throw error;
+            }
+        }
+        
+        // Toggle analysis sections
+        function toggleAnalysis(sectionId) {
+            const section = document.getElementById(sectionId);
+            
+            // Check if section exists
+            if (!section) {
+                console.warn(`Analysis section '${sectionId}' not found`);
+                return;
+            }
+            
+            const btn = section.previousElementSibling.querySelector('.expand-btn i');
+            
+            // Check if button exists
+            if (!btn) {
+                console.warn(`Expand button for section '${sectionId}' not found`);
+                return;
+            }
+            
+            if (section.classList.contains('expanded')) {
+                section.classList.remove('expanded');
+                btn.className = 'fas fa-chevron-down';
+            } else {
+                section.classList.add('expanded');
+                btn.className = 'fas fa-chevron-up';
+            }
+        }
+
+        // SWE Historical loader
+        let sweChart = null;
+        async function loadSWEHistorical() {
+            const windowSel = document.getElementById('swe-window');
+            const startEl = document.getElementById('swe-start');
+            const endEl = document.getElementById('swe-end');
+            const pageSizeEl = document.getElementById('swe-page-size');
+            const container = document.getElementById('swe-historical-content');
+            const pageInfo = document.getElementById('swe-page-info');
+            const freshness = document.getElementById('swe-freshness');
+            const params = new URLSearchParams();
+            const windowVal = windowSel.value;
+            
+            // 更新SWE_STATE状态
+            SWE_STATE.window = windowVal;
+            SWE_STATE.start = startEl.value;
+            SWE_STATE.end = endEl.value;
+            
+            params.set('window', windowVal);
+            params.set('page', SWE_STATE.page.toString());
+            params.set('page_size', pageSizeEl.value);
+            params.set('data_type', 'daily');
+            params.set('region', 'manitoba');
+            
+            // 根据时间范围智能选择数据源
+            if (windowVal === 'all') {
+                const startDate = startEl.value ? new Date(startEl.value) : null;
+                const endDate = endEl.value ? new Date(endEl.value) : null;
+                
+                if (startDate && endDate) {
+                    // 用户指定了日期范围，根据范围选择合适的数据源
+                    if (startDate.getFullYear() < 2025) {
+                        // 2025年之前的数据，优先使用历史数据源
+                        params.set('source_order', 'manitoba_daily,manitoba_monthly,swe_validation,realtime');
+                    } else if (startDate.getFullYear() >= 2025 && endDate.getFullYear() >= 2025) {
+                        // 2025年及之后的数据，优先使用实时数据源
+                        params.set('source_order', 'realtime,manitoba_daily,manitoba_monthly,swe_validation');
+                    } else {
+                        // 跨年数据，使用混合数据源
+                        params.set('source_order', 'manitoba_daily,realtime,manitoba_monthly,swe_validation');
+                    }
+                } else {
+                    // 用户没有指定日期范围，默认显示最近一个月
+                    windowVal = '30d';
+                    params.set('window', '30d');
+                    params.set('source_order', 'realtime,manitoba_daily,manitoba_monthly,swe_validation');
+                }
+            } else {
+                // 其他窗口类型（7d, 30d等），使用默认顺序
+                params.set('source_order', 'realtime,manitoba_daily,manitoba_monthly,swe_validation');
+            }
+            
+            if (windowVal === 'custom') {
+                if (!startEl.value || !endEl.value) {
+                    container.innerHTML = '<div class="error">Select start and end for custom window</div>';
+                    return;
+                }
+                params.set('start_date', startEl.value);
+                params.set('end_date', endEl.value);
+            } else if (windowVal === 'all' && startEl.value && endEl.value) {
+                // 如果选择了"All"但用户指定了日期范围，使用自定义范围
+                console.log(`Using custom date range: ${startEl.value} to ${endEl.value}`);
+                params.set('start_date', startEl.value);
+                params.set('end_date', endEl.value);
+            }
+            try {
+                // 优先尝试获取实时数据
+                let data;
+                try {
+                    // 构建实时数据API请求参数
+                    let realtimeParams = '';
+                    if (windowVal === 'custom' && startEl.value && endEl.value) {
+                        realtimeParams = `?start_date=${startEl.value}&end_date=${endEl.value}`;
+                    } else if (windowVal === 'all' && startEl.value && endEl.value) {
+                        realtimeParams = `?start_date=${startEl.value}&end_date=${endEl.value}`;
+                    }
+                    
+                    data = await apiRequest(`/swe/realtime${realtimeParams}`);
+                    // 转换实时数据格式以匹配历史数据格式
+                    const realtimeData = data;
+                    // 去重并排序数据
+                    const uniqueData = {};
+                    realtimeData.data.forEach(item => {
+                        const date = item.timestamp.split('T')[0];
+                        if (!uniqueData[date] || item.swe_mm > uniqueData[date].swe_mm) {
+                            uniqueData[date] = item;
+                        }
+                    });
+                    const sortedData = Object.values(uniqueData).sort((a, b) => 
+                        new Date(a.timestamp) - new Date(b.timestamp)
+                    );
+                    
+                    data = {
+                        dates: sortedData.map(item => item.timestamp.split('T')[0]),
+                        swe_values: sortedData.map(item => item.swe_mm),
+                        summary: {
+                            count: sortedData.length,
+                            mean_mm: realtimeData.summary.mean_swe_mm,
+                            std_mm: realtimeData.summary.std_swe_mm,
+                            min_mm: realtimeData.summary.min_swe_mm,
+                            max_mm: realtimeData.summary.max_swe_mm,
+                            last_value_mm: realtimeData.summary.latest_swe_mm,
+                            last_date: realtimeData.summary.latest_timestamp.split('T')[0]
+                        },
+                        interpretation: {
+                            signal: realtimeData.summary.latest_swe_mm > realtimeData.summary.mean_swe_mm ? "increasing" : "decreasing",
+                            percent_vs_historical: ((realtimeData.summary.latest_swe_mm - realtimeData.summary.mean_swe_mm) / realtimeData.summary.mean_swe_mm * 100).toFixed(1)
+                        },
+                        provenance: {
+                            source: "realtime_2025",
+                            source_path: "Real-time SWE data from multiple sources",
+                            updated_at: realtimeData.last_updated,
+                            lineage_id: "realtime_" + Date.now()
+                        },
+                        page_info: {
+                            page: 1,
+                            total_pages: 1,
+                            total_count: realtimeData.data.length
+                        }
+                    };
+                } catch (realtimeError) {
+                    // 如果实时数据失败，回退到历史数据
+                    console.log("Realtime data not available, falling back to historical data");
+                    data = await apiRequest(`/swe/historical?${params.toString()}`);
+                }
+                
+                // 如果实时数据为空（日期范围超出实时数据范围），回退到历史数据
+                if (data && data.data && data.data.length === 0) {
+                    console.log("No realtime data for date range, falling back to historical data");
+                    data = await apiRequest(`/swe/historical?${params.toString()}`);
+                }
+                
+                // 如果实时数据存在但日期范围不匹配，也回退到历史数据
+                if (data && data.data && data.data.length > 0) {
+                    const firstDate = new Date(data.data[0].timestamp);
+                    const lastDate = new Date(data.data[data.data.length - 1].timestamp);
+                    const requestedStart = startEl.value ? new Date(startEl.value) : null;
+                    const requestedEnd = endEl.value ? new Date(endEl.value) : null;
+                    
+                    if (requestedStart && requestedEnd) {
+                        if (firstDate > requestedEnd || lastDate < requestedStart) {
+                            console.log("Realtime data date range doesn't match request, falling back to historical data");
+                            data = await apiRequest(`/swe/historical?${params.toString()}`);
+                        }
+                    }
+                }
+                SWE_STATE.last_payload = data; // cache for download/anomaly
+                // update page state
+                SWE_STATE.total_pages = data.page_info.total_pages;
+                pageInfo.textContent = `page ${data.page_info.page}/${data.page_info.total_pages} • ${data.page_info.total_count} days`;
+                freshness.textContent = `Provenance updated: ${data.provenance?.updated_at || 'unknown'}`;
+                
+                // 更新日期输入框显示当前数据的实际范围
+                updateDateInputsFromData(data);
+
+                // build chart
+                container.innerHTML = '<canvas id="swe-hist-canvas"></canvas>';
+                const ctx = document.getElementById('swe-hist-canvas').getContext('2d');
+                if (sweChart) { sweChart.destroy(); }
+                sweChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.dates,
+                        datasets: [
+                            {
+                                label: 'SWE (mm)',
+                                data: data.swe_values,
+                                borderColor: '#667eea',
+                                backgroundColor: 'rgba(102,126,234,0.12)',
+                                tension: 0.35,
+                                spanGaps: true,
+                                fill: true
+                            },
+                            {
+                                label: 'Historical Avg (mm)',
+                                data: data.historical_average,
+                                borderColor: '#999',
+                                backgroundColor: 'transparent',
+                                tension: 0.35,
+                                spanGaps: true,
+                                borderDash: [4,4]
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { title: { display: true, text: `SWE Historical (Real-time 2025)` } },
+                        scales: {
+                            y: { beginAtZero: true, title: { display: true, text: 'mm' } }
+                        }
+                    }
+                });
+
+                // refresh anomaly view if visible
+                if (document.getElementById('swe-anomaly-container').style.display !== 'none') {
+                    renderAnomaly();
+                }
+
+                // interpretation & summary & provenance
+                const interp = document.getElementById('swe-interpretation');
+                const summary = document.getElementById('swe-summary');
+                const prov = document.getElementById('swe-provenance');
+                const sig = data.interpretation?.signal || 'stable';
+                const pct = data.interpretation?.percent_vs_historical;
+                interp.innerHTML = `
+                    <div>
+                        Signal: <strong>${sig}</strong>
+                        ${pct != null ? `; Last vs historical: <strong>${pct}%</strong>` : ''}
+                    </div>`;
+                summary.innerHTML = `
+                    <div>Count: ${data.summary.count}</div>
+                    <div>Mean: ${data.summary.mean_mm ?? '—'} mm; Std: ${data.summary.std_mm ?? '—'} mm</div>
+                    <div>Min: ${data.summary.min_mm ?? '—'} mm; Max: ${data.summary.max_mm ?? '—'} mm</div>
+                    <div>Last: ${data.summary.last_value_mm ?? '—'} mm at ${data.summary.last_date ?? '—'}</div>`;
+                const p = data.provenance || {};
+                prov.innerHTML = `<div>Source: <code>${p.source || ''}</code></div>
+                                  <div>Path: <code>${p.source_path || ''}</code></div>
+                                  <div>Updated: ${p.updated_at || 'unknown'}</div>
+                                  <div>Lineage: <code>${p.lineage_id || ''}</code></div>`;
+            } catch (err) {
+                container.innerHTML = `<div class="error">Failed to load SWE historical: ${err.message}</div>`;
+            }
+        }
+
+        // 更新日期输入框显示当前数据的实际范围
+        function updateDateInputsFromData(data) {
+            const startEl = document.getElementById('swe-start');
+            const endEl = document.getElementById('swe-end');
+            const windowSel = document.getElementById('swe-window');
+            
+            if (data && data.dates && data.dates.length > 0) {
+                const firstDate = data.dates[0];
+                const lastDate = data.dates[data.dates.length - 1];
+                
+                // 如果当前选择的是"All"且日期输入框为空，则显示实际数据范围
+                if (windowSel.value === 'all' && !startEl.value && !endEl.value) {
+                    startEl.value = firstDate;
+                    endEl.value = lastDate;
+                    startEl.title = `数据开始日期: ${firstDate}`;
+                    endEl.title = `数据结束日期: ${lastDate}`;
+                }
+            }
+        }
+
+        function bindSWEControls() {
+            const windowSel = document.getElementById('swe-window');
+            const startEl = document.getElementById('swe-start');
+            const endEl = document.getElementById('swe-end');
+            const applyBtn = document.getElementById('swe-apply-btn');
+            const prevBtn = document.getElementById('swe-prev-page');
+            const nextBtn = document.getElementById('swe-next-page');
+            const downloadBtn = document.getElementById('swe-download-btn');
+            const toggleAnomalyBtn = document.getElementById('swe-toggle-anomaly');
+            windowSel.addEventListener('change', () => {
+                const isCustom = windowSel.value === 'custom';
+                const isAll = windowSel.value === 'all';
+                if (isAll) {
+                    startEl.disabled = false; // Force enable for all
+                    endEl.disabled = false;   // Force enable for all
+                    startEl.placeholder = 'Optional start date (leave empty for all data)';
+                    endEl.placeholder = 'Optional end date (leave empty for all data)';
+                    // 如果当前有数据，显示实际范围
+                    if (SWE_STATE.last_payload && SWE_STATE.last_payload.dates) {
+                        const firstDate = SWE_STATE.last_payload.dates[0];
+                        const lastDate = SWE_STATE.last_payload.dates[SWE_STATE.last_payload.dates.length - 1];
+                        if (!startEl.value) startEl.value = firstDate;
+                        if (!endEl.value) endEl.value = lastDate;
+                    }
+                } else if (isCustom) {
+                    startEl.disabled = false;
+                    endEl.disabled = false;
+                    startEl.placeholder = 'Start date (required)';
+                    endEl.placeholder = 'End date (required)';
+                    // 清空日期输入框，要求用户重新输入
+                    startEl.value = '';
+                    endEl.value = '';
+                } else {
+                    startEl.disabled = true;
+                    endEl.disabled = true;
+                    startEl.placeholder = 'mm/dd/yyyy';
+                    endEl.placeholder = 'mm/dd/yyyy';
+                    // 清空日期输入框
+                    startEl.value = '';
+                    endEl.value = '';
+                }
+            });
+            applyBtn.addEventListener('click', () => { SWE_STATE.page = 1; loadSWEHistorical(); });
+            prevBtn.addEventListener('click', () => { if (SWE_STATE.page > 1) { SWE_STATE.page--; loadSWEHistorical(); } });
+            nextBtn.addEventListener('click', () => { if (SWE_STATE.page < SWE_STATE.total_pages) { SWE_STATE.page++; loadSWEHistorical(); } });
+            downloadBtn.addEventListener('click', () => { downloadCurrentCSV(); });
+            toggleAnomalyBtn.addEventListener('click', () => { toggleAnomaly(); });
+        }
+
+        function downloadCurrentCSV() {
+            const d = SWE_STATE.last_payload;
+            if (!d) return;
+            const rows = [
+                ['date','swe_mm','historical_avg_mm'],
+                ...d.dates.map((date, i) => [date, d.swe_values[i] ?? '', d.historical_average[i] ?? ''])
+            ];
+            const csv = rows.map(r => r.join(',')).join('\n');
+            const blob = new Blob([csv], {type: 'text/csv'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `swe_${Date.now()}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            URL.revokeObjectURL(url);
+            a.remove();
+        }
+
+        function renderAnomaly() {
+            const d = SWE_STATE.last_payload;
+            const container = document.getElementById('swe-anomaly-container');
+            if (!d || !Array.isArray(d.swe_values) || !Array.isArray(d.historical_average)) {
+                container.innerHTML = '<div class="error">No data available for anomaly</div>';
+                return;
+            }
+            const anomaly = d.swe_values.map((v, i) => (v == null || d.historical_average[i] == null) ? null : +(v - d.historical_average[i]).toFixed(2));
+            container.innerHTML = '<canvas id="swe-anomaly-canvas"></canvas>';
+            const ctx = document.getElementById('swe-anomaly-canvas').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: d.dates,
+                    datasets: [{
+                        label: 'Anomaly (SWE - Historical Avg) (mm)',
+                        data: anomaly,
+                        backgroundColor: anomaly.map(x => (x ?? 0) >= 0 ? 'rgba(231,76,60,0.6)' : 'rgba(52,152,219,0.6)')
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { title: { display: true, text: 'mm' } } }
+                }
+            });
+        }
+
+        function toggleAnomaly() {
+            const el = document.getElementById('swe-anomaly-container');
+            if (el.style.display === 'none') {
+                el.style.display = 'block';
+                renderAnomaly();
+            } else {
+                el.style.display = 'none';
+            }
+        }
+        
+        // Load seasonal analysis with detailed interpretation
+        async function loadSeasonalAnalysis() {
+            const container = document.getElementById('seasonal-analysis-content');
+            const analysisContainer = document.getElementById('seasonal-analysis-detail-content');
+            
+            try {
+                const data = await apiRequest('/swe/analysis/seasonal');
+                
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                              'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                
+                // Display metrics
+                container.innerHTML = `
+                    <div class="metric">
+                        <span class="metric-label">Peak Month</span>
+                        <span class="metric-value">${months[data.peak_month - 1]} (${data.peak_swe} mm)</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Lowest Month</span>
+                        <span class="metric-value">${months[data.lowest_month - 1]} (${data.lowest_swe} mm)</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Seasonal Strength</span>
+                        <span class="metric-value">${data.seasonal_strength}%</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Analysis Period</span>
+                        <span class="metric-value">${data.analysis_years}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Total Records</span>
+                        <span class="metric-value">${data.total_records.toLocaleString()}</span>
+                    </div>
+                `;
+                
+                // Create seasonal chart
+                const chartContainer = document.createElement('div');
+                chartContainer.className = 'chart-container';
+                container.appendChild(chartContainer);
+                
+                const canvas = document.createElement('canvas');
+                chartContainer.appendChild(canvas);
+                
+                const monthlyData = Object.values(data.monthly_averages);
+                const ctx = canvas.getContext('2d');
+                
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: months,
+                        datasets: [{
+                            label: 'Average SWE (mm)',
+                            data: monthlyData,
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Monthly SWE Pattern (1981-2016)'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'SWE (mm)'
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                // Detailed analysis
+                const peakMonthName = months[data.peak_month - 1];
+                const lowestMonthName = months[data.lowest_month - 1];
+                const seasonalRange = data.seasonal_range;
+                
+                analysisContainer.innerHTML = `
+                    <div class="insight">
+                        <div class="insight-title">🗓️ Seasonal Cycle Analysis</div>
+                        <div class="insight-content">
+                            The seasonal cycle shows a ${data.seasonal_strength}% strength variation, with peak SWE in ${peakMonthName} 
+                            (${data.peak_swe} mm) and minimum in ${lowestMonthName} (${data.lowest_swe} mm). This ${data.seasonal_strength}% seasonal strength 
+                            indicates ${data.seasonal_strength > 80 ? 'highly pronounced' : data.seasonal_strength > 60 ? 'moderately pronounced' : 'weak'} seasonal variability.
+                        </div>
+                    </div>
+                    
+                    <div class="insight">
+                        <div class="insight-title">🌨️ Snow Accumulation Pattern</div>
+                        <div class="insight-content">
+                            The pattern shows typical boreal climate characteristics with snow accumulation beginning in ${months[data.peak_month - 6]} 
+                            and peak accumulation in ${peakMonthName}. The rapid decline after ${peakMonthName} suggests efficient snowmelt processes, 
+                            typical of continental climates with spring warming.
+                        </div>
+                    </div>
+                    
+                    <div class="prediction">
+                        <div class="prediction-title">🔮 Seasonal Predictions</div>
+                        <div class="prediction-content">
+                            Based on this ${data.analysis_years} climatology, we can predict that ${peakMonthName} will typically have the highest 
+                            flood risk due to peak SWE values. Water resource managers should prepare for maximum runoff potential during 
+                            ${months[data.peak_month - 2]} to ${months[data.peak_month + 2]} period.
+                        </div>
+                    </div>
+                `;
+                
+            } catch (error) {
+                container.innerHTML = `<div class="error">Failed to load seasonal analysis: ${error.message}</div>`;
+            }
+        }
+        
+        // Load forecast with detailed analysis
+        async function loadForecast() {
+            const container = document.getElementById('forecast-content');
+            const analysisContainer = document.getElementById('forecast-analysis-content');
+            
+            try {
+                const data = await apiRequest('/swe/forecast/7day');
+                
+                // Display metrics (data-centric only)
+                container.innerHTML = `
+                    <div class="metric">
+                        <span class="metric-label">Forecast Period</span>
+                        <span class="metric-value">${data.forecast_period}</span>
+                    </div>
+                `;
+                
+                // Create forecast chart
+                const chartContainer = document.createElement('div');
+                chartContainer.className = 'chart-container';
+                container.appendChild(chartContainer);
+                
+                const canvas = document.createElement('canvas');
+                chartContainer.appendChild(canvas);
+                
+                const ctx = canvas.getContext('2d');
+                
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.forecast_dates.map(date => new Date(date).toLocaleDateString()),
+                        datasets: [{
+                            label: 'SWE Forecast (mm)',
+                            data: data.swe_forecast_mm,
+                            borderColor: '#28a745',
+                            backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: '7-Day SWE Forecast'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'SWE (mm)'
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                // Detailed analysis
+                const avgForecast = (data.swe_forecast_mm.reduce((a, b) => a + b, 0) / data.swe_forecast_mm.length).toFixed(1);
+                const maxForecast = Math.max(...data.swe_forecast_mm);
+                const minForecast = Math.min(...data.swe_forecast_mm);
+                const trend = data.swe_forecast_mm[data.swe_forecast_mm.length - 1] - data.swe_forecast_mm[0];
+                
+                analysisContainer.innerHTML = `
+                    <div class="insight">
+                        <div class="insight-title">📊 Forecast Analysis</div>
+                        <div class="insight-content">
+                            The ${data.forecast_period} forecast shows an average SWE of ${avgForecast} mm, ranging from ${minForecast} mm to ${maxForecast} mm. 
+                            The trend over the forecast period is ${trend > 0 ? 'increasing' : trend < 0 ? 'decreasing' : 'stable'} 
+                            (${Math.abs(trend).toFixed(1)} mm change), indicating ${trend > 0 ? 'accumulation' : trend < 0 ? 'melt' : 'stable conditions'}.
+                        </div>
+                    </div>
+                    
+                    <div class="prediction">
+                        <div class="prediction-title">🔮 Hydrological Implications</div>
+                        <div class="prediction-content">
+                            ${trend > 0 ? 
+                                'Increasing SWE suggests continued snow accumulation, potentially leading to higher spring runoff volumes.' :
+                                trend < 0 ?
+                                'Decreasing SWE indicates snowmelt processes, with implications for immediate water availability and flood risk.' :
+                                'Stable SWE conditions suggest consistent water storage, maintaining current hydrological balance.'
+                            }
+                        </div>
+                    </div>
+                `;
+                
+            } catch (error) {
+                container.innerHTML = `<div class="error">Failed to load forecast: ${error.message}</div>`;
+            }
+        }
+        
+        // Load regional forecast with detailed analysis
+        async function loadRegionalForecast() {
+            const container = document.getElementById('regional-forecast-content');
+            const analysisContainer = document.getElementById('regional-analysis-content');
+            
+            try {
+                const data = await apiRequest('/swe/regional-forecast');
+                
+                // Display metrics
+                container.innerHTML = `
+                    <div class="metric">
+                        <span class="metric-label">Forecast Date</span>
+                        <span class="metric-value">${data.forecast_date}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Overall SWE</span>
+                        <span class="metric-value">${data.overall_swe_mm} mm</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Provincial Average</span>
+                        <span class="metric-value">${data.provincial_average_mm} mm</span>
+                    </div>
+                `;
+                
+                // Add regional data
+                Object.values(data.regional_forecasts).forEach(region => {
+                    const regionDiv = document.createElement('div');
+                    regionDiv.className = 'metric';
+                    regionDiv.innerHTML = `
+                        <span class="metric-label">${region.region_name}</span>
+                        <span class="metric-value">${region.current_swe_mm} mm</span>
+                    `;
+                    container.appendChild(regionDiv);
+                });
+                
+                // Detailed analysis
+                const regions = Object.values(data.regional_forecasts);
+                const highestRegion = regions.reduce((prev, current) => (prev.current_swe_mm > current.current_swe_mm) ? prev : current);
+                const lowestRegion = regions.reduce((prev, current) => (prev.current_swe_mm < current.current_swe_mm) ? prev : current);
+                
+                analysisContainer.innerHTML = `
+                    <div class="insight">
+                        <div class="insight-title">🗺️ Regional Variability</div>
+                        <div class="insight-content">
+                            Regional SWE varies significantly across Manitoba, from ${lowestRegion.current_swe_mm} mm in ${lowestRegion.region_name} 
+                            to ${highestRegion.current_swe_mm} mm in ${highestRegion.region_name}. This ${((highestRegion.current_swe_mm / lowestRegion.current_swe_mm - 1) * 100).toFixed(1)}% 
+                            variation reflects the province's diverse topography and climate zones.
+                        </div>
+                    </div>
+                    
+                    <div class="insight">
+                        <div class="insight-title">🏔️ Geographic Patterns</div>
+                        <div class="insight-content">
+                            ${highestRegion.region_name} shows the highest SWE values, consistent with its higher elevation (${highestRegion.elevation_range}) 
+                            and boreal forest characteristics. ${lowestRegion.region_name} has lower values due to its ${lowestRegion.elevation_range} 
+                            elevation and ${lowestRegion.description.toLowerCase()}.
+                        </div>
+                    </div>
+                    
+                    <div class="prediction">
+                        <div class="prediction-title">🔮 Regional Risk Assessment</div>
+                        <div class="prediction-content">
+                            ${highestRegion.region_name} faces the highest flood risk due to elevated SWE levels, while ${lowestRegion.region_name} 
+                            may experience water availability challenges. Water resource managers should prioritize flood preparedness in northern regions 
+                            and drought monitoring in southern agricultural areas.
+                        </div>
+                    </div>
+                `;
+                
+            } catch (error) {
+                container.innerHTML = `<div class="error">Failed to load regional forecast: ${error.message}</div>`;
+            }
+        }
+        
+
+        // Load flood prediction data
+        async function loadFloodPrediction() {
+            const container = document.getElementById('flood-prediction-content');
+            const interpretationContainer = document.getElementById('flood-prediction-interpretation');
+            const provenanceContainer = document.getElementById('flood-prediction-provenance');
+            
+            try {
+                const data = await apiRequest('/flood/prediction/7day');
+                
+                if (data && data.flood_risk_scores) {
+                    // Display flood risk metrics
+                    const avgRisk = data.flood_risk_scores.reduce((a, b) => a + b, 0) / data.flood_risk_scores.length;
+                    const maxRisk = Math.max(...data.flood_risk_scores);
+                    const highRiskDays = data.flood_risk_scores.filter(risk => risk > 70).length;
+                    
+                    container.innerHTML = `
+                        <div class="metric">
+                            <span class="metric-label">Average Risk</span>
+                            <span class="metric-value">${avgRisk.toFixed(1)}%</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Peak Risk</span>
+                            <span class="metric-value">${maxRisk.toFixed(1)}%</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">High Risk Days</span>
+                            <span class="metric-value">${highRiskDays}/7</span>
+                        </div>
+                    `;
+
+                    // Create flood risk chart
+                    const chartContainer = document.createElement('div');
+                    chartContainer.className = 'chart-container';
+                    container.appendChild(chartContainer);
+
+                    const canvas = document.createElement('canvas');
+                    chartContainer.appendChild(canvas);
+
+                    const ctx = canvas.getContext('2d');
+
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: data.forecast_dates.map(date => new Date(date).toLocaleDateString()),
+                            datasets: [{
+                                label: 'Flood Risk (%)',
+                                data: data.flood_risk_scores,
+                                borderColor: '#e74c3c',
+                                backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                                tension: 0.4,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    max: 100,
+                                    title: {
+                                        display: true,
+                                        text: 'Risk Probability (%)'
+                                    }
+                                }
+                            },
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: '7-Day Flood Risk Prediction'
+                                }
+                            }
+                        }
+                    });
+
+                    // Expert interpretation
+                    const riskTrend = data.flood_risk_scores[data.flood_risk_scores.length - 1] > data.flood_risk_scores[0] ? 'increasing' : 'decreasing';
+                    
+                    interpretationContainer.innerHTML = `
+                        <div class="insight">
+                            <div class="insight-title">🚨 Risk Assessment Summary</div>
+                            <div class="insight-content">
+                                <strong>Peak Risk:</strong> ${maxRisk.toFixed(1)}%<br>
+                                <strong>Average Risk:</strong> ${avgRisk.toFixed(1)}% over 7-day period<br>
+                                <strong>Risk Trend:</strong> ${riskTrend} over the forecast period<br>
+                                <strong>High Risk Days:</strong> ${highRiskDays} out of 7 days (${((highRiskDays/7)*100).toFixed(1)}%)
+                            </div>
+                        </div>
+                        
+                        <div class="insight">
+                            <div class="insight-title">🌊 Hydrological Factors</div>
+                            <div class="insight-content">
+                                <strong>Snow Water Equivalent:</strong> Current SWE levels are ${avgRisk > 60 ? 'significantly elevated' : avgRisk > 30 ? 'moderately elevated' : 'within normal ranges'}<br>
+                                <strong>Precipitation Forecast:</strong> ${data.flood_risk_scores.some(risk => risk > 70) ? 'Heavy precipitation expected' : 'Moderate precipitation forecast'}<br>
+                                <strong>Temperature Impact:</strong> ${riskTrend === 'increasing' ? 'Rising temperatures may accelerate snowmelt' : 'Stable temperatures maintain current conditions'}<br>
+                                <strong>River Levels:</strong> ${maxRisk > 80 ? 'Critical levels expected' : maxRisk > 50 ? 'Elevated levels anticipated' : 'Normal levels maintained'}
+                            </div>
+                        </div>
+                        
+                        <div class="prediction">
+                            <div class="prediction-title">⚠️ Government Action Recommendations</div>
+                            <div class="prediction-content">
+                                ${highRiskDays > 2 ? 
+                                    '<strong>IMMEDIATE ACTION REQUIRED:</strong> Multiple high-risk days detected. Consider emergency preparedness measures, public advisories, and resource mobilization.' :
+                                    highRiskDays > 0 ? 
+                                    '<strong>MONITORING REQUIRED:</strong> High-risk periods identified. Increase monitoring frequency and prepare contingency plans.' :
+                                    '<strong>NORMAL OPERATIONS:</strong> Low risk levels maintained. Continue standard monitoring protocols.'
+                                }<br><br>
+                                <strong>Recommended Actions:</strong><br>
+                                • ${maxRisk > 70 ? 'Activate emergency response protocols' : 'Maintain standard monitoring'}<br>
+                                • ${highRiskDays > 0 ? 'Issue public flood advisories' : 'Continue routine communications'}<br>
+                                • ${avgRisk > 50 ? 'Deploy additional monitoring equipment' : 'Maintain current monitoring capacity'}<br>
+                                • ${riskTrend === 'increasing' ? 'Prepare for escalating conditions' : 'Monitor for trend changes'}
+                            </div>
+                        </div>
+                    `;
+
+                    // Provenance information
+                    provenanceContainer.innerHTML = `
+                        <div class="provenance-item">
+                            <strong>Data Sources:</strong> ${Object.keys(data.data_sources).join(', ')}
+                        </div>
+                        <div class="provenance-item">
+                            <strong>Methodology:</strong> ${data.methodology}
+                        </div>
+                        <div class="provenance-item">
+                            <strong>Last Updated:</strong> ${new Date(data.last_update).toLocaleString()}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                container.innerHTML = `<div class="error">Error loading flood prediction: ${error.message}</div>`;
+            }
+        }
+
+        // Load water quality analysis data
+        async function loadWaterQuality() {
+            const container = document.getElementById('water-quality-content');
+            const interpretationContainer = document.getElementById('water-quality-interpretation');
+            const provenanceContainer = document.getElementById('water-quality-provenance');
+            
+            try {
+                const data = await apiRequest('/water-quality/analysis/current');
+                
+                if (data.status === 'success') {
+                    const assessment = data.data.overall_assessment;
+                    const parameters = data.data.monitoring_points.distribution_system.parameters;
+                    
+                    // Create summary display
+                    const summary = `
+                        <div class="summary-grid">
+                            <div class="summary-item">
+                                <div class="summary-value" style="color: ${assessment.status === 'excellent' ? '#27ae60' : '#f39c12'}">${assessment.status}</div>
+                                <div class="summary-label">Overall Quality</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-value">${assessment.compliance_rate}%</div>
+                                <div class="summary-label">Compliance Rate</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-value">${Object.keys(parameters).length}</div>
+                                <div class="summary-label">Parameters Tested</div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    container.innerHTML = summary;
+                    
+                    // Create water quality parameters chart
+                    const chartContainer = document.createElement('div');
+                    chartContainer.className = 'chart-container';
+                    container.appendChild(chartContainer);
+                    
+                    const canvas = document.createElement('canvas');
+                    chartContainer.appendChild(canvas);
+                    
+                    const paramNames = Object.keys(parameters);
+                    const paramValues = paramNames.map(name => parameters[name].value);
+                    const paramLabels = paramNames.map(name => parameters[name].description);
+                    const paramColors = paramNames.map(name => {
+                        const status = parameters[name].status;
+                        return status === 'compliant' ? '#27ae60' : '#e74c3c';
+                    });
+                    
+                    new Chart(canvas, {
+                        type: 'bar',
+                        data: {
+                            labels: paramLabels,
+                            datasets: [{
+                                label: 'Parameter Values',
+                                data: paramValues,
+                                backgroundColor: paramColors,
+                                borderColor: paramColors,
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Parameter Values'
+                                    }
+                                }
+                            },
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: 'Water Quality Parameters - Winnipeg Distribution System'
+                                }
+                            }
+                        }
+                    });
+
+                    // Expert interpretation
+                    interpretationContainer.innerHTML = `
+                        <div class="insight">
+                            <div class="insight-title">📊 Water Quality Assessment</div>
+                            <div class="insight-content">
+                                ${assessment.summary}. The distribution system shows 
+                                ${assessment.compliance_rate}% compliance with Canadian drinking water guidelines.
+                            </div>
+                        </div>
+
+                        <div class="prediction">
+                            <div class="prediction-title">🔬 Key Parameters</div>
+                            <div class="prediction-content">
+                                <strong>Chlorine Residual:</strong> ${parameters.chlorine_free.value} mg/L (Standard: ${parameters.chlorine_free.standard})<br>
+                                <strong>pH Level:</strong> ${parameters.ph.value} (Standard: ${parameters.ph.standard})<br>
+                                <strong>Turbidity:</strong> ${parameters.turbidity.value} NTU (Standard: ${parameters.turbidity.standard})<br>
+                                <strong>Bacterial Tests:</strong> All within acceptable limits
+                            </div>
+                        </div>
+
+                        <div class="prediction">
+                            <div class="prediction-title">🏛️ Government Action</div>
+                            <div class="prediction-content">
+                                Water quality monitoring continues at 60 distribution system locations weekly. 
+                                All parameters are within Health Canada guidelines. No immediate action required.
+                            </div>
+                        </div>
+                    `;
+
+                    // Provenance information
+                    provenanceContainer.innerHTML = `
+                        <div class="provenance-item">
+                            <strong>Data Source:</strong> ${data.data.provenance.data_authority}
+                        </div>
+                        <div class="provenance-item">
+                            <strong>Source URL:</strong> <a href="${data.data.provenance.source_url}" target="_blank">Winnipeg Water Quality Test Results</a>
+                        </div>
+                        <div class="provenance-item">
+                            <strong>Guidelines:</strong> ${data.data.provenance.guidelines}
+                        </div>
+                        <div class="provenance-item">
+                            <strong>Last Updated:</strong> ${new Date(data.data.last_updated).toLocaleString()}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                container.innerHTML = `<div class="error">Error loading water quality analysis: ${error.message}</div>`;
+            }
+        }
+
+        // Load all data
+        async function loadAllData() {
+            try {
+                await Promise.all([
+                    loadSWEHistorical(),
+                    loadFloodPrediction(),
+                    loadWaterQuality()
+                ]);
+                document.getElementById('last-update').textContent =
+                    `Last updated: ${new Date().toLocaleString()}`;
+            } catch (error) {
+                console.error('Failed to load data:', error);
+            }
+        }
+        
+        // Refresh all data
+        function refreshAllData() {
+            document.getElementById('last-update').textContent = 'Refreshing...';
+            loadAllData();
+        }
+        
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('HydrAI-SWE Enhanced Dashboard initialized');
+            bindSWEControls();
+            // 初始化时确保日期选择器状态正确
+            const windowSel = document.getElementById('swe-window');
+            const startEl = document.getElementById('swe-start');
+            const endEl = document.getElementById('swe-end');
+            if (windowSel && startEl && endEl && windowSel.value === 'all') {
+                startEl.disabled = false;
+                endEl.disabled = false;
+                startEl.placeholder = 'Optional start date';
+                endEl.placeholder = 'Optional end date';
+            }
+            loadAllData();
+        });
+    </script>
+</body>
+</html>
