@@ -259,11 +259,14 @@ def get_water_quality():
     """获取当前水质分析数据"""
     return {
         "status": "success",
-        "quality": {
+        "data": {
+            "overall_assessment": "Good",
             "overall_score": 8.5,
             "turbidity": "Good",
             "chlorine": "Normal",
-            "ph": 7.2
+            "ph": 7.2,
+            "temperature": 15.5,
+            "dissolved_oxygen": 9.2
         }
     }
 
