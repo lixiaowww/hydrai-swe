@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HydrAI-SWE Analysis Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #0891b2;
+            --accent: #f59e0b;
+            --background: #f1f5f9;
+            --surface: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --danger: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--background);
+            color: var(--text-main);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .dashboard-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .dashboard-header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            letter-spacing: -0.02em;
+        }
+
+        .dashboard-header p {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+        }
+
+        .nav-links {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 50px;
+            flex-wrap: wrap;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            background: var(--surface);
+            transition: all 0.2s ease;
+            font-weight: 600;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border);
+        }
+
+        .nav-links a:hover {
+            transform: translateY(-2px);
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .nav-links a.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+        }
+
+        .analysis-section {
+            margin-bottom: 40px;
+        }
+
+        .analysis-section h2 {
+            color: var(--text-main);
+            margin-bottom: 25px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .analysis-section h2::before {
+            content: '';
+            display: block;
+            width: 6px;
+            height: 24px;
+            background: var(--primary);
+            border-radius: 3px;
+        }
+
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 30px;
+        }
+
+        .data-card {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            border: 1px solid var(--border);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .data-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+        }
+
+        .featured-card {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            border: none;
+        }
+
+        .featured-card .data-card-header h3 {
+            color: white;
+        }
+
+        .featured-card .metric-row {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .featured-card .metric-label {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .featured-card .metric-value {
+            color: white;
+        }
+
+        .featured-card .data-source {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            backdrop-filter: blur(4px);
+        }
+
+        .data-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .data-card-header h3 {
+            color: var(--text-main);
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .data-source {
+            background: #eff6ff;
+            color: var(--primary);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .analysis-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-row {
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .metric-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        .metric-value {
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: var(--text-main);
+            line-height: 1.2;
+        }
+
+        .metric-unit {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-left: 4px;
+        }
+
+        .trend-indicator {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            width: fit-content;
+        }
+
+        .trend-increasing {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .trend-decreasing {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .trend-stable {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 320px;
+            width: 100%;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--primary);
+        }
+
+        .error {
+            background: #fef2f2;
+            color: #991b1b;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid #fee2e2;
+        }
+
+        .last-update {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .analysis-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .dashboard-header h1 {
+                font-size: 2rem;
+            }
+
+            .analysis-metrics {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="dashboard-header">
+            <h1><i class="fas fa-water"></i> HydrAI-SWE</h1>
+            <p>Intelligent Snow Water Equivalent Prediction System</p>
+        </div>
+
+        <div class="nav-links">
+            <a href="/home">🏠 Home</a>
+            <a href="/ui">📊 Dashboard</a>
+            <a href="/analysis" class="active">📈 Analysis</a>
+            <a href="/model">🤖 Model Training</a>
+            <a href="/knowledge">📚 Knowledge Base</a>
+            <a href="/about">ℹ️ About</a>
+        </div>
+
+        <div class="analysis-section">
+            <h2>Real-time Analysis</h2>
+            <div class="analysis-grid">
+                <!-- Regional Forecast Analysis Card - FEATURED -->
+                <div class="data-card featured-card">
+                    <div class="data-card-header">
+                        <h3>🌍 Regional Forecast Analysis</h3>
+                        <span class="data-source">Latest & Most Important</span>
+                    </div>
+                    <div class="data-card-content">
+                        <div class="analysis-metrics">
+                            <div class="metric-row">
+                                <span class="metric-label">Regional Coverage:</span>
+                                <span class="metric-value" id="regional-coverage">--</span>
+                                <span class="metric-unit">stations</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Risk Level:</span>
+                                <span class="metric-value" id="risk-level">--</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Confidence:</span>
+                                <span class="metric-value" id="forecast-confidence">--</span>
+                                <span class="metric-unit">%</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Update Time:</span>
+                                <span class="metric-value" id="last-update-time">--</span>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="regional-forecast-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SWE Trend Analysis Card -->
+                <div class="data-card">
+                    <div class="data-card-header">
+                        <h3>SWE Trend Analysis</h3>
+                        <span class="data-source">Real Data Analysis</span>
+                    </div>
+                    <div class="data-card-content">
+                        <div class="analysis-metrics">
+                            <div class="metric-row">
+                                <span class="metric-label">Current SWE:</span>
+                                <span class="metric-value" id="current-swe">--</span>
+                                <span class="metric-unit">mm</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Average SWE:</span>
+                                <span class="metric-value" id="average-swe">--</span>
+                                <span class="metric-unit">mm</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Trend:</span>
+                                <span class="metric-value trend-indicator" id="trend-direction">--</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Change:</span>
+                                <span class="metric-value" id="change-percentage">--</span>
+                                <span class="metric-unit">%</span>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="swe-trend-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Environmental Correlations Card -->
+                <div class="data-card">
+                    <div class="data-card-header">
+                        <h3>Environmental Correlations</h3>
+                        <span class="data-source">Statistical Analysis</span>
+                    </div>
+                    <div class="data-card-content">
+                        <div class="analysis-metrics">
+                            <div class="metric-row">
+                                <span class="metric-label">Temperature:</span>
+                                <span class="metric-value" id="temp-correlation">--</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Precipitation:</span>
+                                <span class="metric-value" id="precip-correlation">--</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Wind Speed:</span>
+                                <span class="metric-value" id="wind-correlation">--</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Humidity:</span>
+                                <span class="metric-value" id="humidity-correlation">--</span>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="correlation-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seasonal Analysis Card -->
+                <div class="data-card">
+                    <div class="data-card-header">
+                        <h3>Seasonal Analysis</h3>
+                        <span class="data-source">Pattern Recognition</span>
+                    </div>
+                    <div class="data-card-content">
+                        <div class="chart-container">
+                            <canvas id="seasonal-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Forecast Analysis Card -->
+                <div class="data-card">
+                    <div class="data-card-header">
+                        <h3>7-Day Forecast</h3>
+                        <span class="data-source">Predictive Model</span>
+                    </div>
+                    <div class="data-card-content">
+                        <div class="chart-container">
+                            <canvas id="forecast-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="last-update" id="last-update">
+            Last updated: Loading...
+        </div>
+    </div>
+
+    <script>
+        // API Configuration
+        const API_BASE_URL = '/api';
+        const CACHE_VERSION = 'v2.0.5'; // Force cache refresh - Regional Forecast featured
+
+        // Global error handler
+        window.addEventListener('error', function (e) {
+            console.error('Global error:', e);
+        });
+
+        // API request function
+        async function apiRequest(endpoint) {
+            try {
+                const cacheSep = endpoint.includes('?') ? '&' : '?';
+                const response = await fetch(`${API_BASE_URL}${endpoint}${cacheSep}v=${CACHE_VERSION}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error(`API request failed for ${endpoint}:`, error);
+                throw error;
+            }
+        }
+
+        // Load SWE trend analysis (metrics from /analysis/trends, series from /historical 30d)
+        async function loadSWETrendAnalysis() {
+            try {
+                const trend = await apiRequest('/swe/analysis/trends');
+                document.getElementById('current-swe').textContent = (trend.current_swe_mm ?? trend.current_swe ?? '--');
+                document.getElementById('average-swe').textContent = (trend.average_swe_mm ?? trend.average_swe ?? '--');
+                const trendElement = document.getElementById('trend-direction');
+                const changeElement = document.getElementById('change-percentage');
+                const dir = trend.trend || trend.trend_direction || 'stable';
+                trendElement.textContent = dir;
+                trendElement.className = `metric-value trend-indicator trend-${dir}`;
+                const chg = trend.change_percentage ?? trend.change_pct ?? 0;
+                changeElement.textContent = (typeof chg === 'number' ? chg.toFixed(1) : chg);
+                changeElement.style.color = (chg ?? 0) >= 0 ? '#22543d' : '#742a2a';
+
+                const hist = await apiRequest('/swe/historical?window=30d&region=manitoba&data_type=daily&page_size=2000');
+                const ctx = document.getElementById('swe-trend-chart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: hist.dates || [],
+                        datasets: [{
+                            label: 'SWE (mm)',
+                            data: hist.swe_values || [],
+                            borderColor: '#2563eb',
+                            backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { title: { display: true, text: 'SWE Trend (Last 30d)' } },
+                        scales: { y: { beginAtZero: true, title: { display: true, text: 'SWE (mm)' } } }
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading SWE trend analysis:', error);
+                document.getElementById('swe-trend-chart').innerHTML = '<div class="error">Error loading trend data</div>';
+            }
+        }
+
+        // Load environmental correlations (map from backend keys)
+        async function loadEnvironmentalCorrelations() {
+            try {
+                const resp = await apiRequest('/swe/analysis/correlation');
+                const ca = resp.correlation_analysis || {};
+                const temp = ca.seasonal_pattern?.correlation ?? 0;
+                const precip = ca.monthly_pattern?.correlation ?? 0;
+                const longterm = ca.long_term_trend?.correlation ?? 0;
+                document.getElementById('temp-correlation').textContent = temp.toFixed?.(3) ?? temp;
+                document.getElementById('precip-correlation').textContent = precip.toFixed?.(3) ?? precip;
+                document.getElementById('wind-correlation').textContent = '--';
+                document.getElementById('humidity-correlation').textContent = (longterm.toFixed ? longterm.toFixed(3) : longterm);
+
+                const ctx = document.getElementById('correlation-chart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Seasonal (DoY)', 'Monthly', '—', 'Long-term (Year)'],
+                        datasets: [{
+                            label: 'Correlation with SWE',
+                            data: [
+                                temp || 0,
+                                precip || 0,
+                                0,
+                                longterm || 0
+                            ],
+                            backgroundColor: [
+                                '#2563eb',
+                                '#0891b2',
+                                '#f59e0b',
+                                '#64748b'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Environmental Correlations with SWE'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                min: -1,
+                                max: 1,
+                                title: {
+                                    display: true,
+                                    text: 'Correlation Coefficient'
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading environmental correlations:', error);
+                document.getElementById('correlation-chart').innerHTML = '<div class="error">Error loading correlation data</div>';
+            }
+        }
+
+        // Load seasonal analysis (map monthly_averages)
+        async function loadSeasonalAnalysis() {
+            try {
+                const data = await apiRequest('/swe/analysis/seasonal');
+
+                const ctx = document.getElementById('seasonal-chart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                        datasets: [{
+                            label: 'Average SWE (mm)',
+                            data: (data.monthly_averages ? Object.values(data.monthly_averages) : []),
+                            borderColor: '#0891b2',
+                            backgroundColor: 'rgba(8, 145, 178, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Seasonal SWE Patterns'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'SWE (mm)'
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading seasonal analysis:', error);
+                document.getElementById('seasonal-chart').innerHTML = '<div class="error">Error loading seasonal data</div>';
+            }
+        }
+
+        // Load forecast analysis (map backend keys)
+        async function loadForecastAnalysis() {
+            try {
+                const data = await apiRequest('/swe/forecast/7day');
+
+                const ctx = document.getElementById('forecast-chart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.forecast_dates || [],
+                        datasets: [{
+                            label: 'Forecasted SWE (mm)',
+                            data: data.swe_forecast_mm || [],
+                            borderColor: '#7c3aed',
+                            backgroundColor: 'rgba(124, 58, 237, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }, {
+                            label: 'Confidence Interval',
+                            data: (data.confidence_bands_mm ? data.confidence_bands_mm.upper : []),
+                            borderColor: '#7c3aed',
+                            backgroundColor: 'rgba(124, 58, 237, 0.05)',
+                            borderDash: [5, 5],
+                            fill: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: '7-Day SWE Forecast'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'SWE (mm)'
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading forecast analysis:', error);
+                document.getElementById('forecast-chart').innerHTML = '<div class="error">Error loading forecast data</div>';
+            }
+        }
+
+        // Load Regional Forecast Analysis (build arrays from object)
+        async function loadRegionalForecastAnalysis() {
+            try {
+                const data = await apiRequest('/swe/regional-forecast');
+                document.getElementById('regional-coverage').textContent = Object.keys(data.regional_forecasts || {}).length;
+                document.getElementById('risk-level').textContent = '—';
+                document.getElementById('forecast-confidence').textContent = '—';
+                document.getElementById('last-update-time').textContent = data.last_update || data.forecast_date || '--';
+
+                const regions = Object.values(data.regional_forecasts || {});
+                const labels = regions.map(r => r.region_name);
+                const vals = regions.map(r => r.current_swe_mm);
+                const hist = regions.map(r => r.average_swe_mm);
+                const ctx = document.getElementById('regional-forecast-chart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'SWE Forecast (mm)',
+                            data: vals,
+                            borderColor: '#2563eb',
+                            backgroundColor: 'rgba(37, 99, 235, 0.15)',
+                            pointBackgroundColor: '#2563eb',
+                            pointBorderColor: '#ffffff',
+                            pointRadius: 4,
+                            tension: 0.35,
+                            fill: true
+                        }, {
+                            label: 'Historical Average',
+                            data: hist,
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.08)',
+                            borderDash: [6, 4],
+                            pointRadius: 0,
+                            tension: 0.35
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Regional SWE Forecast Analysis',
+                                color: '#333'
+                            },
+                            legend: {
+                                labels: {
+                                    color: '#333'
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                ticks: {
+                                    color: '#333'
+                                },
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.08)'
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    color: '#333'
+                                },
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.08)'
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'SWE (mm)',
+                                    color: '#333'
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading regional forecast analysis:', error);
+                document.getElementById('regional-forecast-chart').innerHTML = '<div class="error">Error loading regional forecast data</div>';
+            }
+        }
+
+        // Load all analysis data
+        async function loadAllAnalysisData() {
+            try {
+                await Promise.all([
+                    loadRegionalForecastAnalysis(),
+                    loadSWETrendAnalysis(),
+                    loadEnvironmentalCorrelations(),
+                    loadSeasonalAnalysis(),
+                    loadForecastAnalysis()
+                ]);
+
+                document.getElementById('last-update').textContent =
+                    `Last updated: ${new Date().toLocaleString()}`;
+            } catch (error) {
+                console.error('Failed to load some analysis data:', error);
+            }
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('HydrAI-SWE Analysis Dashboard initialized');
+            loadAllAnalysisData();
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - HydrAI-SWE</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --text-color: #2d3748;
+            --text-muted: #718096;
+            --accent-color: #667eea;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--primary-gradient);
+            min-height: 100vh;
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .nav-links {
+            text-align: center;
+            margin-bottom: 50px;
+            animation: fadeIn 1s ease-out;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            margin: 0 10px;
+            padding: 12px 25px;
+            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(5px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 500;
+            display: inline-block;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-links a.active {
+            background: white;
+            color: var(--accent-color);
+            font-weight: 700;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 50px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            margin-bottom: 40px;
+            backdrop-filter: blur(10px);
+            animation: fadeInUp 0.8s ease-out;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .profile-section {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 60px;
+            align-items: start;
+        }
+
+        .profile-image-container {
+            position: relative;
+            text-align: center;
+        }
+
+        .profile-image {
+            width: 240px;
+            height: 240px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 6px solid white;
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .profile-image:hover {
+            transform: scale(1.02);
+        }
+
+        .profile-content h2 {
+            color: var(--text-color);
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            font-weight: 800;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+        }
+
+        .profile-role {
+            font-size: 1.2em;
+            color: var(--accent-color);
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .profile-bio {
+            font-size: 1.1em;
+            color: #4a5568;
+            margin-bottom: 30px;
+            line-height: 1.8;
+        }
+
+        .journey-list {
+            list-style: none;
+            margin-bottom: 30px;
+        }
+
+        .journey-list li {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .journey-list i {
+            color: var(--accent-color);
+            font-size: 1.2em;
+            margin-right: 15px;
+            margin-top: 4px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .journey-title {
+            font-weight: 700;
+            color: var(--text-color);
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .journey-desc {
+            color: var(--text-muted);
+            font-size: 0.95em;
+        }
+
+        .contact-btn {
+            display: inline-flex;
+            align-items: center;
+            background: var(--primary-gradient);
+            color: white;
+            text-decoration: none;
+            padding: 15px 35px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .contact-btn i {
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        .contact-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .milestones-section h2 {
+            color: var(--text-color);
+            margin-bottom: 40px;
+            font-size: 2em;
+            text-align: center;
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        .milestones-section h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 4px;
+            background: var(--primary-gradient);
+            border-radius: 2px;
+        }
+
+        .timeline {
+            position: relative;
+            padding: 20px 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 50px;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: #e2e8f0;
+            border-radius: 2px;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 50px;
+            padding-left: 100px;
+        }
+
+        .timeline-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .timeline-marker {
+            position: absolute;
+            left: 36px;
+            top: 0;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: white;
+            border: 4px solid var(--accent-color);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
+            z-index: 1;
+        }
+
+        .timeline-date {
+            position: absolute;
+            left: -120px;
+            /* Adjusted for layout */
+            top: 2px;
+            font-weight: 700;
+            color: var(--accent-color);
+            text-align: right;
+            width: 150px;
+            /* Ensure enough width */
+            display: none;
+            /* Hidden in this layout, moved inside for better mobile support */
+        }
+
+        .timeline-date-badge {
+            display: inline-block;
+            background: #edf2f7;
+            color: var(--accent-color);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+
+        .timeline-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid #edf2f7;
+            transition: transform 0.3s ease;
+        }
+
+        .timeline-content:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .timeline-title {
+            font-size: 1.4em;
+            font-weight: 700;
+            color: var(--text-color);
+            margin-bottom: 15px;
+        }
+
+        .timeline-list {
+            list-style: none;
+        }
+
+        .timeline-list li {
+            margin-bottom: 10px;
+            padding-left: 25px;
+            position: relative;
+            color: #4a5568;
+        }
+
+        .timeline-list li::before {
+            content: '•';
+            color: var(--accent-color);
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+            font-size: 1.2em;
+            line-height: 1;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .profile-section {
+                grid-template-columns: 1fr;
+                gap: 30px;
+                text-align: center;
+            }
+
+            .profile-image-container {
+                margin-bottom: 20px;
+            }
+
+            .journey-list li {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .journey-list i {
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+
+            .timeline::before {
+                left: 20px;
+            }
+
+            .timeline-item {
+                padding-left: 60px;
+            }
+
+            .timeline-marker {
+                left: 6px;
+            }
+
+            .nav-links a {
+                margin: 5px;
+                padding: 8px 15px;
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-water"></i> HydrAI-SWE</h1>
+            <p>Intelligent Snow Water Equivalent Prediction System</p>
+        </div>
+
+        <div class="nav-links">
+            <a href="/home"><i class="fas fa-home"></i> Home</a>
+            <a href="/ui"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            <a href="/model"><i class="fas fa-robot"></i> Training</a>
+            <a href="/analysis"><i class="fas fa-chart-line"></i> Analysis</a>
+            <a href="/about" class="active"><i class="fas fa-info-circle"></i> About</a>
+        </div>
+
+        <div class="card">
+            <div class="profile-section">
+                <div class="profile-image-container">
+                    <img src="/static/img/profile.jpg" alt="Xiao Li" class="profile-image">
+                </div>
+                <div class="profile-content">
+                    <h2>Xiao Li</h2>
+                    <span class="profile-role">Senior AI Product Leader</span>
+
+                    <p class="profile-bio">
+                        With 20+ years of experience bridging high-level commercial strategy with hands-on technical
+                        execution, I possess a unique career arc: from monetizing data for major ad networks to founding
+                        an AI/ML SaaS platform, and now, developing production-grade Deep Learning systems.
+                    </p>
+
+                    <ul class="journey-list">
+                        <li>
+                            <i class="fas fa-briefcase"></i>
+                            <div>
+                                <span class="journey-title">Business Leadership</span>
+                                <span class="journey-desc">Leading teams, building data ecosystems, and holding P&L
+                                    responsibility for 80M+ CNY revenue streams in mobile, ad-tech, and VR.</span>
+                            </div>
+                        </li>
+                        <li>
+                            <i class="fas fa-rocket"></i>
+                            <div>
+                                <span class="journey-title">Entrepreneurial Execution</span>
+                                <span class="journey-desc">Independently designed, built, and launched a complete
+                                    data-driven SaaS platform, leading its technical pivot to modern LLM-based
+                                    AI.</span>
+                            </div>
+                        </li>
+                        <li>
+                            <i class="fas fa-graduation-cap"></i>
+                            <div>
+                                <span class="journey-title">Technical Upskilling</span>
+                                <span class="journey-desc">Advanced AI Diploma at PACE, UWinnipeg. Expertise in Deep
+                                    Learning (GRU, LSTM) and full-stack AI (Python, FastAPI, Docker).</span>
+                            </div>
+                        </li>
+                    </ul>
+
+                    <p style="margin-bottom: 30px; color: #4a5568; font-style: italic;">
+                        Seeking a senior role in AI Product Management or AI Solutions Architecture in Canada to deliver
+                        significant business impact.
+                    </p>
+
+                    <a href="https://www.linkedin.com/in/lixiaowww/" target="_blank" class="contact-btn">
+                        <i class="fab fa-linkedin"></i> Connect on LinkedIn
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="milestones-section">
+                <h2>🚀 Project Milestones</h2>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <span class="timeline-date-badge">January 2025</span>
+                            <div class="timeline-title">Production Readiness & Advanced AI Integration</div>
+                            <ul class="timeline-list">
+                                <li><strong>Bayesian Network Integration:</strong> Implemented a 7-node causal network
+                                    for probabilistic SWE inference.</li>
+                                <li><strong>Comprehensive Data Strategy:</strong> Established a robust pipeline merging
+                                    historical (2010-2020), simulated (2021-2024), and real-time (2025) data.</li>
+                                <li><strong>Enhanced Preprocessing:</strong> Deployed advanced imputation, outlier
+                                    detection, and feature engineering with 15+ new metrics.</li>
+                                <li><strong>GitHub Standardization:</strong> Achieved full compliance with GitHub Spec
+                                    Kit, including CI/CD pipelines and automated testing.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <span class="timeline-date-badge">September 2025</span>
+                            <div class="timeline-title">Model Excellence & Real-time Compliance</div>
+                            <ul class="timeline-list">
+                                <li><strong>100% Real Data Compliance:</strong> Eliminated all hardcoded data,
+                                    integrating live OpenWeatherMap API feeds from 8 monitoring stations.</li>
+                                <li><strong>GRU Ensemble Success:</strong> Achieved 88.52% R² score with an optimized
+                                    GRU ensemble model, outperforming single models.</li>
+                                <li><strong>Production UI Redesign:</strong> Launched a professional, two-column
+                                    dashboard with real-time charts and provenance tracking.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <span class="timeline-date-badge">Initial Phase</span>
+                            <div class="timeline-title">Foundation & Core Development</div>
+                            <ul class="timeline-list">
+                                <li><strong>System Architecture:</strong> Designed the scalable FastAPI backend and
+                                    React/Vanilla JS frontend architecture.</li>
+                                <li><strong>Data Pipeline:</strong> Built the initial high-resolution data pipeline for
+                                    Sentinel-2 and DEM data processing.</li>
+                                <li><strong>MVP Launch:</strong> Successfully deployed the initial version of the
+                                    HydrAI-SWE system for the Red River Basin.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
