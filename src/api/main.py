@@ -1,8 +1,9 @@
 # 必须在任何导入之前设置Python路径
 import os
 import sys
-sys.path.append('/home/sean/hydrai_swe/src')
-sys.path.append('/home/sean/hydrai_swe/src/models')
+sys.path.append('/home/sean/hydrai-swe/src')
+sys.path.append('/home/sean/hydrai-swe/src/models')
+sys.path.append('/home/sean/hydrai-swe/src/api')
 
 from dotenv import load_dotenv
 # Load environment variables from .env file
@@ -327,14 +328,14 @@ def health_check():
     return {"status": "healthy", "message": "HydrAI-SWE API is running"}
 
 # Use absolute paths from project root
-templates = Jinja2Templates(directory="/home/sean/hydrai_swe/templates")
+templates = Jinja2Templates(directory="/home/sean/hydrai-swe/templates")
 
 # Mount static files for UI assets
-app.mount("/static", StaticFiles(directory="/home/sean/hydrai_swe/templates/ui"), name="ui_static")
+app.mount("/static", StaticFiles(directory="/home/sean/hydrai-swe/templates/ui"), name="ui_static")
 
 # Serve generated analysis visualizations (HTML files)
-if os.path.isdir("/home/sean/hydrai_swe/analysis_results"):
-    app.mount("/analysis_results", StaticFiles(directory="/home/sean/hydrai_swe/analysis_results"), name="analysis_results")
+if os.path.isdir("/home/sean/hydrai-swe/analysis_results"):
+    app.mount("/analysis_results", StaticFiles(directory="/home/sean/hydrai-swe/analysis_results"), name="analysis_results")
 
 @app.get('/favicon.ico')
 def favicon():

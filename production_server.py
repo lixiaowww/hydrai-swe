@@ -591,7 +591,8 @@ async def get_model_performance(model_name: str):
                 "recall": base_acc + 0.01 + (i * 0.001),
                 "f1_score": base_acc + (i * 0.001),
                 "rmse": 0.5 - (i * 0.005),
-                "loss": 0.5 - (i * 0.01)
+                "loss": 0.5 - (i * 0.01),
+                "r2_score": 0.8 + (i * 0.002)
             } 
             for i, d in enumerate(dates)
         ]
@@ -686,19 +687,59 @@ async def get_relation_analysis():
 @app.get("/api/sync/status")
 async def get_sync_status():
     """Get data source sync status"""
-    return {
-        "status": "idle",
-        "last_sync": datetime.now().isoformat(),
-        "sources": {
-            "noaa": {"status": "success", "last_update": datetime.now().isoformat()},
-            "manitoba_gov": {"status": "success", "last_update": datetime.now().isoformat()},
-            "open_meteo": {"status": "success", "last_update": datetime.now().isoformat()},
-            "mb_flood_alerts": {"status": "success", "last_update": datetime.now().isoformat()},
-            "rdps_precip": {"status": "success", "last_update": datetime.now().isoformat()},
-            "wpg_river_levels": {"status": "success", "last_update": datetime.now().isoformat()},
-            "wpg_water_quality": {"status": "success", "last_update": "2024-11-25T00:00:00"}
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        
+        # Get latest data date
+        cursor.execute("SELECT MAX(timestamp) FROM swe_data")
+        latest_date = cursor.fetchone()[0]
+        
+        # Get total records
+        cursor.execute("SELECT COUNT(*) FROM swe_data")
+        total_records = cursor.fetchone()[0]
+        
+        # Get source statistics
+        cursor.execute("SELECT data_source, COUNT(*), MAX(timestamp) FROM swe_data GROUP BY data_source")
+        source_stats = {}
+        for row in cursor.fetchall():
+            source_stats[row[0]] = {
+                "count": row[1],
+                "latest_date": row[2]
+            }
+            
+        conn.close()
+        
+        # Calculate days behind
+        days_behind = 0
+        if latest_date:
+            latest_dt = datetime.strptime(latest_date, '%Y-%m-%d')
+            days_behind = (datetime.now() - latest_dt).days
+            
+        return {
+            "status": "success",
+            "last_sync": datetime.now().isoformat(),
+            "latest_date": latest_date,
+            "current_date": datetime.now().strftime('%Y-%m-%d'),
+            "days_behind": days_behind,
+            "total_records": total_records,
+            "source_statistics": source_stats,
+            "sources": {
+                "noaa": {"status": "success", "last_update": datetime.now().isoformat()},
+                "manitoba_gov": {"status": "success", "last_update": datetime.now().isoformat()},
+                "open_meteo": {"status": "success", "last_update": datetime.now().isoformat()},
+                "mb_flood_alerts": {"status": "success", "last_update": datetime.now().isoformat()},
+                "rdps_precip": {"status": "success", "last_update": datetime.now().isoformat()},
+                "wpg_river_levels": {"status": "success", "last_update": datetime.now().isoformat()},
+                "wpg_water_quality": {"status": "success", "last_update": "2024-11-25T00:00:00"}
+            }
         }
-    }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": str(e),
+            "last_sync": datetime.now().isoformat()
+        }
 
 @app.post("/api/sync/force-sync")
 async def force_sync():
