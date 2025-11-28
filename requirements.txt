@@ -5,7 +5,7 @@ geopandas
 rasterio
 numpy
 scikit-learn
-tensorflow
+tensorflow-cpu
 psycopg2-binary
 python-dotenv
 uvicorn

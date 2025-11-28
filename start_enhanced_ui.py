@@ -33,12 +33,19 @@ def start_server():
     
     try:
         # 启动uvicorn服务器
+        # Old server (commented out as per request)
+        # cmd = [
+        #     "python3", "-m", "uvicorn", 
+        #     "src.api.main:app", 
+        #     "--host", "0.0.0.0", 
+        #     "--port", "8000", 
+        #     "--reload"
+        # ]
+        
+        # New Production Server
         cmd = [
-            "python3", "-m", "uvicorn", 
-            "src.api.main:app", 
-            "--host", "0.0.0.0", 
-            "--port", "8000", 
-            "--reload"
+            sys.executable, 
+            "production_server.py"
         ]
         
         print("📡 正在启动API服务器...")
@@ -56,12 +63,12 @@ def start_server():
         print("🎉 HydrAI-SWE 增强版系统已启动!")
         print("=" * 60)
         print("🌐 Available User Interfaces:")
-        print("   • End User Interface: http://localhost:8000/ui (English)")
-        print("   • French Interface:   http://localhost:8000/ui/francais (Français)")
-        print("   • Model Training:     http://localhost:8000/model")
+        print("   • End User Interface: http://localhost:8001/ui (English)")
+        print("   • French Interface:   http://localhost:8001/ui/francais (Français)")
+        print("   • Model Training:     http://localhost:8001/model")
         print("   • Chinese Interface:  [REMOVED - Deprecated]")
-        print("   • Next-Gen UI:        http://localhost:8000/ui/vnext")
-        print("   • API Documentation:  http://localhost:8000/docs")
+        print("   • Next-Gen UI:        http://localhost:8001/ui/vnext")
+        print("   • API Documentation:  http://localhost:8001/docs")
         print("=" * 60)
         print("🔧 增强版功能亮点:")
         print("   ✨ SWE积雪水当量预测 (95%完成度, 生产就绪)")
@@ -80,7 +87,7 @@ def start_server():
         
         # 自动打开浏览器
         try:
-            webbrowser.open("http://localhost:8000/ui")
+            webbrowser.open("http://localhost:8001/ui")
             print("🌐 已自动打开主界面")
         except Exception as e:
             print(f"⚠️  无法自动打开浏览器: {e}")
@@ -105,9 +112,9 @@ def main():
     print("积雪水当量预测与径流分析 | 基于深度学习的智能水文建模")
     print()
     print("🌐 界面组织结构:")
-    print("   End User Interface:  http://localhost:8000/ui (English)")
-    print("   French Interface:    http://localhost:8000/ui/francais (Français)")
-    print("   Model Training:      http://localhost:8000/model")
+    print("   End User Interface:  http://localhost:8001/ui (English)")
+    print("   French Interface:    http://localhost:8001/ui/francais (Français)")
+    print("   Model Training:      http://localhost:8001/model")
     print("   Chinese Interface:   [REMOVED - Deprecated]")
     print()
     

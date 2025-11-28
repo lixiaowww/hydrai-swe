@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,30 +9,34 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        .main-container { 
-            min-height: 100vh; 
+        .main-container {
+            min-height: 100vh;
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
         }
-        .chart-section { 
-            background: white; 
-            border-radius: 15px; 
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+
+        .chart-section {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
             margin: 20px 0;
             padding: 25px;
         }
-        .interpretation-section { 
-            background: white; 
-            border-radius: 15px; 
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+
+        .interpretation-section {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
             margin: 20px 0;
             padding: 25px;
             height: fit-content;
         }
+
         .chart-container {
             position: relative;
             height: 400px;
             margin: 20px 0;
         }
+
         .interpretation-content {
             background: #f8f9fa;
             border-left: 4px solid #007bff;
@@ -39,6 +44,7 @@
             border-radius: 8px;
             margin: 15px 0;
         }
+
         .analysis-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -47,37 +53,44 @@
             margin-bottom: 30px;
             text-align: center;
         }
+
         .metric-card {
             background: white;
             border-radius: 10px;
             padding: 15px;
             margin: 10px 0;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             border-left: 4px solid #28a745;
         }
+
         .metric-value {
             font-size: 1.5em;
             font-weight: bold;
             color: #007bff;
         }
+
         .metric-label {
             color: #6c757d;
             font-size: 0.9em;
         }
+
         .nav-tabs .nav-link {
             border-radius: 10px 10px 0 0;
             margin-right: 5px;
         }
+
         .nav-tabs .nav-link.active {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
         }
+
         .loading-spinner {
             display: none;
             text-align: center;
             padding: 20px;
         }
+
         .error-message {
             background: #f8d7da;
             border: 1px solid #f5c6cb;
@@ -87,6 +100,7 @@
             margin: 15px 0;
             display: none;
         }
+
         .success-message {
             background: #d4edda;
             border: 1px solid #c3e6cb;
@@ -96,6 +110,7 @@
             margin: 15px 0;
             display: none;
         }
+
         .run-analysis-btn {
             background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
             color: white;
@@ -105,20 +120,60 @@
             font-weight: bold;
             margin-bottom: 20px;
         }
+
         .run-analysis-btn:hover {
             background: linear-gradient(135deg, #20c997 0%, #28a745 100%);
             color: white;
         }
+
+        .nav-links {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            margin: 0 10px;
+            padding: 8px 20px;
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            display: inline-block;
+            font-weight: 500;
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            color: white;
+        }
+
+        .nav-links a.active {
+            background: white;
+            color: #667eea;
+            font-weight: bold;
+        }
     </style>
 </head>
+
 <body>
     <div class="main-container">
         <div class="container-fluid">
             <!-- Header -->
             <div class="analysis-header">
+                <div class="nav-links">
+                    <a href="/home"><i class="fas fa-home"></i> Home</a>
+                    <a href="/dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                    <a href="/analysis" class="active"><i class="fas fa-chart-line"></i> Analysis</a>
+                    <a href="/model"><i class="fas fa-robot"></i> Training</a>
+                    <a href="/knowledge"><i class="fas fa-book"></i> Knowledge Base</a>
+                    <a href="/about"><i class="fas fa-info-circle"></i> About</a>
+                </div>
                 <h1><i class="fas fa-water"></i> Hydrology Factors Analysis Dashboard</h1>
-                <p class="mb-0">Real-time Snow Water Equivalent (SWE) Analysis with AI-powered Unsupervised Learning & Professional Interpretations</p>
-                
+                <p class="mb-0">Real-time Snow Water Equivalent (SWE) Analysis with AI-powered Unsupervised Learning &
+                    Professional Interpretations</p>
+
                 <!-- Run Analysis Button -->
                 <button class="run-analysis-btn mt-3" onclick="runRealAnalysis()">
                     <i class="fas fa-play-circle"></i> Run Real Data Analysis
@@ -136,27 +191,32 @@
             <!-- Navigation Tabs -->
             <ul class="nav nav-tabs" id="analysisTabs" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="decomposition-tab" data-bs-toggle="tab" data-bs-target="#decomposition" type="button" role="tab">
+                    <button class="nav-link active" id="decomposition-tab" data-bs-toggle="tab"
+                        data-bs-target="#decomposition" type="button" role="tab">
                         <i class="fas fa-layer-group"></i> Time Series Decomposition
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="anomaly-tab" data-bs-toggle="tab" data-bs-target="#anomaly" type="button" role="tab">
+                    <button class="nav-link" id="anomaly-tab" data-bs-toggle="tab" data-bs-target="#anomaly"
+                        type="button" role="tab">
                         <i class="fas fa-exclamation-triangle"></i> Anomaly Detection
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="clustering-tab" data-bs-toggle="tab" data-bs-target="#clustering" type="button" role="tab">
+                    <button class="nav-link" id="clustering-tab" data-bs-toggle="tab" data-bs-target="#clustering"
+                        type="button" role="tab">
                         <i class="fas fa-sitemap"></i> Clustering Analysis
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="statistical-tab" data-bs-toggle="tab" data-bs-target="#statistical" type="button" role="tab">
+                    <button class="nav-link" id="statistical-tab" data-bs-toggle="tab" data-bs-target="#statistical"
+                        type="button" role="tab">
                         <i class="fas fa-chart-bar"></i> Statistical Tests
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="unsupervised-tab" data-bs-toggle="tab" data-bs-target="#unsupervised" type="button" role="tab">
+                    <button class="nav-link" id="unsupervised-tab" data-bs-toggle="tab" data-bs-target="#unsupervised"
+                        type="button" role="tab">
                         <i class="fas fa-search"></i> Unsupervised Insights
                     </button>
                 </li>
@@ -164,14 +224,15 @@
 
             <!-- Tab Content -->
             <div class="tab-content" id="analysisTabContent">
-                
+
                 <!-- Time Series Decomposition Tab -->
                 <div class="tab-pane fade show active" id="decomposition" role="tabpanel">
                     <div class="row">
                         <!-- Left: Charts -->
                         <div class="col-lg-8">
                             <div class="chart-section">
-                                <h3><i class="fas fa-layer-group text-primary"></i> Time Series Decomposition Analysis</h3>
+                                <h3><i class="fas fa-layer-group text-primary"></i> Time Series Decomposition Analysis
+                                </h3>
                                 <div class="chart-container">
                                     <canvas id="decompositionChart"></canvas>
                                 </div>
@@ -180,14 +241,15 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Right: Interpretation -->
                         <div class="col-lg-4">
                             <div class="interpretation-section">
                                 <h4><i class="fas fa-brain text-info"></i> AI-Powered Professional Interpretation</h4>
                                 <div id="decomposition-interpretation" class="interpretation-content">
                                     <div id="decomposition-dynamic-content">
-                                        <p class="text-muted">Click "Run Real Data Analysis" to generate professional hydrological insights based on real data.</p>
+                                        <p class="text-muted">Click "Run Real Data Analysis" to generate professional
+                                            hydrological insights based on real data.</p>
                                     </div>
                                 </div>
                             </div>
@@ -201,7 +263,8 @@
                         <!-- Left: Charts -->
                         <div class="col-lg-8">
                             <div class="chart-section">
-                                <h3><i class="fas fa-exclamation-triangle text-warning"></i> Advanced Anomaly Detection</h3>
+                                <h3><i class="fas fa-exclamation-triangle text-warning"></i> Advanced Anomaly Detection
+                                </h3>
                                 <div class="chart-container">
                                     <canvas id="anomalyChart"></canvas>
                                 </div>
@@ -210,14 +273,15 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Right: Interpretation -->
                         <div class="col-lg-4">
                             <div class="interpretation-section">
                                 <h4><i class="fas fa-brain text-info"></i> AI-Powered Professional Interpretation</h4>
                                 <div id="anomaly-interpretation" class="interpretation-content">
                                     <div id="anomaly-dynamic-content">
-                                        <p class="text-muted">Real anomaly detection analysis with machine learning algorithms will appear here.</p>
+                                        <p class="text-muted">Real anomaly detection analysis with machine learning
+                                            algorithms will appear here.</p>
                                     </div>
                                 </div>
                             </div>
@@ -240,14 +304,15 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Right: Interpretation -->
                         <div class="col-lg-4">
                             <div class="interpretation-section">
                                 <h4><i class="fas fa-brain text-info"></i> AI-Powered Professional Interpretation</h4>
                                 <div id="clustering-interpretation" class="interpretation-content">
                                     <div id="clustering-dynamic-content">
-                                        <p class="text-muted">Advanced clustering patterns and hydrological regime identification will appear here.</p>
+                                        <p class="text-muted">Advanced clustering patterns and hydrological regime
+                                            identification will appear here.</p>
                                     </div>
                                 </div>
                             </div>
@@ -270,14 +335,15 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Right: Interpretation -->
                         <div class="col-lg-4">
                             <div class="interpretation-section">
                                 <h4><i class="fas fa-brain text-info"></i> AI-Powered Professional Interpretation</h4>
                                 <div id="statistical-interpretation" class="interpretation-content">
                                     <div id="statistical-dynamic-content">
-                                        <p class="text-muted">Professional statistical test results and significance analysis will appear here.</p>
+                                        <p class="text-muted">Professional statistical test results and significance
+                                            analysis will appear here.</p>
                                     </div>
                                 </div>
                             </div>
@@ -291,7 +357,8 @@
                         <!-- Left: Charts -->
                         <div class="col-lg-8">
                             <div class="chart-section">
-                                <h3><i class="fas fa-search text-primary"></i> AI-Powered Unsupervised Learning Insights</h3>
+                                <h3><i class="fas fa-search text-primary"></i> AI-Powered Unsupervised Learning Insights
+                                </h3>
                                 <div class="chart-container">
                                     <canvas id="unsupervisedChart"></canvas>
                                 </div>
@@ -300,14 +367,15 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Right: Interpretation -->
                         <div class="col-lg-4">
                             <div class="interpretation-section">
                                 <h4><i class="fas fa-brain text-info"></i> AI-Powered Professional Interpretation</h4>
                                 <div id="unsupervised-interpretation" class="interpretation-content">
                                     <div id="unsupervised-dynamic-content">
-                                        <p class="text-muted">Deep unsupervised learning insights and hidden pattern discovery will appear here.</p>
+                                        <p class="text-muted">Deep unsupervised learning insights and hidden pattern
+                                            discovery will appear here.</p>
                                     </div>
                                 </div>
                             </div>
@@ -323,53 +391,53 @@
         // Global variables to store real analysis results
         let realAnalysisResults = null;
         let analysisId = null;
-        
+
         // API base URL - adjust as needed
         const API_BASE_URL = 'http://localhost:8000/api/v1/data-science';
-        
+
         // Show/hide messages
         function showMessage(type, message) {
             hideAllMessages();
             const messageDiv = document.getElementById(type + 'Message');
             messageDiv.textContent = message;
             messageDiv.style.display = 'block';
-            
+
             if (type === 'success') {
                 setTimeout(() => {
                     messageDiv.style.display = 'none';
                 }, 5000);
             }
         }
-        
+
         function hideAllMessages() {
             document.getElementById('successMessage').style.display = 'none';
             document.getElementById('errorMessage').style.display = 'none';
             document.getElementById('loadingSpinner').style.display = 'none';
         }
-        
+
         // Run real data analysis
         async function runRealAnalysis() {
             try {
                 // Show loading
                 hideAllMessages();
                 document.getElementById('loadingSpinner').style.display = 'block';
-                
+
                 // First test simple endpoint
                 console.log('Testing API health...');
                 const healthResponse = await fetch(`${API_BASE_URL}/health`);
                 if (!healthResponse.ok) {
                     throw new Error('API service is not available');
                 }
-                
+
                 // Get data info first
                 console.log('Getting data info...');
                 const dataInfoResponse = await fetch(`${API_BASE_URL}/data-info`);
                 const dataInfo = await dataInfoResponse.json();
                 console.log('Data info:', dataInfo);
-                
+
                 // Run individual analyses instead of comprehensive
                 const results = {};
-                
+
                 // 1. Anomaly Detection
                 console.log('Running anomaly detection...');
                 try {
@@ -381,7 +449,7 @@
                 } catch (e) {
                     console.warn('Anomaly detection failed:', e);
                 }
-                
+
                 // 2. Statistical Tests
                 console.log('Running statistical tests...');
                 try {
@@ -393,7 +461,7 @@
                 } catch (e) {
                     console.warn('Statistical tests failed:', e);
                 }
-                
+
                 // 3. Time Series Decomposition
                 console.log('Running time series decomposition...');
                 try {
@@ -405,7 +473,7 @@
                 } catch (e) {
                     console.warn('Time series decomposition failed:', e);
                 }
-                
+
                 // 4. Clustering
                 console.log('Running clustering...');
                 try {
@@ -417,7 +485,7 @@
                 } catch (e) {
                     console.warn('Clustering failed:', e);
                 }
-                
+
                 // 5. Unsupervised Insights
                 console.log('Running unsupervised insights...');
                 try {
@@ -429,16 +497,16 @@
                 } catch (e) {
                     console.warn('Unsupervised insights failed:', e);
                 }
-                
+
                 console.log('All analyses completed:', results);
-                
+
                 // Create analysis summary
                 const successful = Object.keys(results).length;
                 const failed = 5 - successful; // We attempt 5 analyses
-                
+
                 realAnalysisResults = results;
                 analysisId = `manual_${Date.now()}`;
-                
+
                 // Hide loading and show appropriate message
                 hideAllMessages();
                 if (successful === 5) {
@@ -448,70 +516,70 @@
                 } else {
                     throw new Error('All analysis endpoints failed. Please check the API service.');
                 }
-                
+
                 // Update all charts and interpretations with real data
                 updateAllChartsWithRealData(realAnalysisResults);
                 generateRealInterpretations(realAnalysisResults);
-                
+
                 // Show status for missing analyses
                 displayMissingAnalyses(results);
-                
+
             } catch (error) {
                 console.error('Analysis failed:', error);
                 hideAllMessages();
                 showMessage('error', `Analysis failed: ${error.message}. Please check if the API service is running.`);
             }
         }
-        
+
         // Update all charts with real data
         function updateAllChartsWithRealData(results) {
             console.log('Updating charts with real data:', results);
-            
+
             if (results.decomposition) {
                 updateDecompositionChart(results.decomposition);
             }
-            
+
             if (results.anomaly_detection) {
                 updateAnomalyChart(results.anomaly_detection);
             }
-            
+
             if (results.clustering) {
                 updateClusteringChart(results.clustering);
             }
-            
+
             if (results.statistical_tests) {
                 updateStatisticalChart(results.statistical_tests);
             }
-            
+
             if (results.unsupervised_insights) {
                 updateUnsupervisedChart(results.unsupervised_insights);
             }
         }
-        
+
         // Update decomposition chart with real data
         function updateDecompositionChart(decompositionData) {
             const canvas = document.getElementById('decompositionChart');
             if (!canvas) return;
-            
+
             const ctx = canvas.getContext('2d');
-            
+
             // Clear existing chart
             if (window.decompositionChartInstance) {
                 window.decompositionChartInstance.destroy();
             }
-            
+
             // Extract real time series data
             let chartData = {
                 labels: [],
                 datasets: []
             };
-            
+
             if (decompositionData.stl_decomposition) {
                 const stlData = decompositionData.stl_decomposition;
-                
+
                 if (stlData.trend && stlData.trend.index) {
                     chartData.labels = stlData.trend.index.map(date => new Date(date).toLocaleDateString());
-                    
+
                     chartData.datasets.push({
                         label: 'Trend',
                         data: stlData.trend.values,
@@ -520,7 +588,7 @@
                         tension: 0.4
                     });
                 }
-                
+
                 if (stlData.seasonal && stlData.seasonal.values) {
                     chartData.datasets.push({
                         label: 'Seasonal',
@@ -530,7 +598,7 @@
                         tension: 0.4
                     });
                 }
-                
+
                 if (stlData.resid && stlData.resid.values) {
                     chartData.datasets.push({
                         label: 'Residual',
@@ -541,7 +609,7 @@
                     });
                 }
             }
-            
+
             // Create chart with real data
             window.decompositionChartInstance = new Chart(ctx, {
                 type: 'line',
@@ -566,51 +634,51 @@
                     }
                 }
             });
-            
+
             // Update metrics with real data
             updateDecompositionMetrics(decompositionData);
         }
-        
+
         // Update anomaly chart with real data
         function updateAnomalyChart(anomalyData) {
             const canvas = document.getElementById('anomalyChart');
             if (!canvas) return;
-            
+
             const ctx = canvas.getContext('2d');
-            
+
             // Clear existing chart
             if (window.anomalyChartInstance) {
                 window.anomalyChartInstance.destroy();
             }
-            
+
             let chartData = {
                 datasets: []
             };
-            
+
             // Create scatter plot with real anomaly data
             if (anomalyData.ensemble && anomalyData.ensemble.ensemble_scores) {
                 const scores = anomalyData.ensemble.ensemble_scores;
                 const anomalies = anomalyData.ensemble.ensemble_anomalies;
-                
+
                 const normalPoints = [];
                 const anomalyPoints = [];
-                
+
                 scores.forEach((score, index) => {
-                    const point = {x: index, y: score};
+                    const point = { x: index, y: score };
                     if (anomalies && anomalies[index]) {
                         anomalyPoints.push(point);
                     } else {
                         normalPoints.push(point);
                     }
                 });
-                
+
                 chartData.datasets.push({
                     label: 'Normal Data',
                     data: normalPoints,
                     backgroundColor: '#007bff',
                     pointRadius: 4
                 });
-                
+
                 chartData.datasets.push({
                     label: 'Anomalies',
                     data: anomalyPoints,
@@ -618,7 +686,7 @@
                     pointRadius: 6
                 });
             }
-            
+
             // Create chart
             window.anomalyChartInstance = new Chart(ctx, {
                 type: 'scatter',
@@ -648,36 +716,36 @@
                     }
                 }
             });
-            
+
             // Update metrics
             updateAnomalyMetrics(anomalyData);
         }
-        
+
         // Update clustering chart with real data
         function updateClusteringChart(clusteringData) {
             const canvas = document.getElementById('clusteringChart');
             if (!canvas) return;
-            
+
             const ctx = canvas.getContext('2d');
-            
+
             // Clear existing chart
             if (window.clusteringChartInstance) {
                 window.clusteringChartInstance.destroy();
             }
-            
+
             let chartData = {
                 datasets: []
             };
-            
+
             // Use real clustering results
             if (clusteringData.kmeans && clusteringData.kmeans.labels) {
                 const labels = clusteringData.kmeans.labels;
                 const uniqueLabels = [...new Set(labels)];
                 const colors = ['#007bff', '#28a745', '#ffc107', '#dc3545', '#6f42c1', '#20c997'];
-                
+
                 uniqueLabels.forEach((label, index) => {
-                    const points = labels.map((l, i) => l === label ? {x: i % 50, y: Math.floor(i / 50)} : null).filter(p => p !== null);
-                    
+                    const points = labels.map((l, i) => l === label ? { x: i % 50, y: Math.floor(i / 50) } : null).filter(p => p !== null);
+
                     chartData.datasets.push({
                         label: `Cluster ${label}`,
                         data: points,
@@ -686,7 +754,7 @@
                     });
                 });
             }
-            
+
             // Create chart
             window.clusteringChartInstance = new Chart(ctx, {
                 type: 'scatter',
@@ -716,42 +784,42 @@
                     }
                 }
             });
-            
+
             // Update metrics
             updateClusteringMetrics(clusteringData);
         }
-        
+
         // Update unsupervised insights chart with real data
         function updateUnsupervisedChart(unsupervisedData) {
             const canvas = document.getElementById('unsupervisedChart');
             if (!canvas) return;
-            
+
             console.log('Updating unsupervised chart with data:', unsupervisedData);
-            
+
             const ctx = canvas.getContext('2d');
-            
+
             // Clear existing chart
             if (window.unsupervisedChartInstance) {
                 window.unsupervisedChartInstance.destroy();
             }
-            
+
             let chartData = {
                 datasets: []
             };
-            
+
             // Access the data through the insights wrapper
             const insights = unsupervisedData.insights || unsupervisedData;
-            
+
             // Use PCA data if available for visualization
             if (insights.pca_analysis && insights.pca_analysis.transformed_data) {
                 const pcaData = insights.pca_analysis.transformed_data;
                 const clusterLabels = insights.clustering?.labels;
-                
+
                 if (clusterLabels) {
                     // Color-coded scatter plot based on clusters
                     const uniqueLabels = [...new Set(clusterLabels)];
                     const colors = ['#007bff', '#28a745', '#ffc107', '#dc3545', '#6f42c1', '#20c997'];
-                    
+
                     uniqueLabels.forEach((label, index) => {
                         const points = [];
                         clusterLabels.forEach((l, i) => {
@@ -762,7 +830,7 @@
                                 });
                             }
                         });
-                        
+
                         chartData.datasets.push({
                             label: `Cluster ${label}`,
                             data: points,
@@ -776,7 +844,7 @@
                         x: point[0],
                         y: point[1]
                     }));
-                    
+
                     chartData.datasets.push({
                         label: 'PCA Components',
                         data: points,
@@ -789,7 +857,7 @@
                 const anomalyFeatures = insights.anomalies.anomaly_features || {};
                 const features = Object.keys(anomalyFeatures).slice(0, 6); // Show top 6 features
                 const deviations = features.map(f => Math.abs(anomalyFeatures[f]?.deviation || 0));
-                
+
                 chartData = {
                     labels: features.map(f => f.replace('_', ' ')),
                     datasets: [{
@@ -802,7 +870,7 @@
                         borderWidth: 2
                     }]
                 };
-                
+
                 // Create bar chart instead
                 window.unsupervisedChartInstance = new Chart(ctx, {
                     type: 'bar',
@@ -835,20 +903,20 @@
                         }
                     }
                 });
-                
+
                 // Update metrics and return early
                 updateUnsupervisedMetrics(unsupervisedData);
                 return;
             }
-            
+
             // If no specific data structure found, create a simple placeholder
             if (chartData.datasets.length === 0) {
                 // Create a sample visualization showing that analysis completed
-                const sampleData = Array.from({length: 50}, (_, i) => ({
+                const sampleData = Array.from({ length: 50 }, (_, i) => ({
                     x: Math.random() * 10 - 5,
                     y: Math.random() * 10 - 5
                 }));
-                
+
                 chartData.datasets.push({
                     label: 'Unsupervised Analysis Results',
                     data: sampleData,
@@ -856,7 +924,7 @@
                     pointRadius: 4
                 });
             }
-            
+
             // Create scatter chart
             window.unsupervisedChartInstance = new Chart(ctx, {
                 type: 'scatter',
@@ -890,23 +958,23 @@
                     }
                 }
             });
-            
+
             // Update metrics
             updateUnsupervisedMetrics(unsupervisedData);
         }
-        
+
         // Update statistical chart with real data
         function updateStatisticalChart(statisticalData) {
             const canvas = document.getElementById('statisticalChart');
             if (!canvas) return;
-            
+
             const ctx = canvas.getContext('2d');
-            
+
             // Clear existing chart
             if (window.statisticalChartInstance) {
                 window.statisticalChartInstance.destroy();
             }
-            
+
             let chartData = {
                 labels: [],
                 datasets: [{
@@ -917,21 +985,21 @@
                     borderWidth: 2
                 }]
             };
-            
+
             // Extract real statistical test results
             if (statisticalData.test_names && statisticalData.original_p) {
                 chartData.labels = statisticalData.test_names;
                 chartData.datasets[0].data = statisticalData.original_p;
-                
+
                 // Color code based on significance
-                chartData.datasets[0].backgroundColor = statisticalData.original_p.map(p => 
+                chartData.datasets[0].backgroundColor = statisticalData.original_p.map(p =>
                     p < 0.05 ? 'rgba(220, 53, 69, 0.8)' : 'rgba(40, 167, 69, 0.8)'
                 );
-                chartData.datasets[0].borderColor = statisticalData.original_p.map(p => 
+                chartData.datasets[0].borderColor = statisticalData.original_p.map(p =>
                     p < 0.05 ? '#dc3545' : '#28a745'
                 );
             }
-            
+
             // Create chart
             window.statisticalChartInstance = new Chart(ctx, {
                 type: 'bar',
@@ -957,16 +1025,16 @@
                     }
                 }
             });
-            
+
             // Update metrics
             updateStatisticalMetrics(statisticalData);
         }
-        
+
         // Update metrics functions
         function updateDecompositionMetrics(data) {
             const metricsDiv = document.getElementById('decompositionMetrics');
             if (!metricsDiv) return;
-            
+
             metricsDiv.innerHTML = `
                 <div class="col-md-4">
                     <div class="metric-card">
@@ -988,15 +1056,15 @@
                 </div>
             `;
         }
-        
+
         function updateAnomalyMetrics(data) {
             const metricsDiv = document.getElementById('anomalyMetrics');
             if (!metricsDiv) return;
-            
+
             const threshold = data.ensemble?.threshold || 'N/A';
             const nMethods = data.ensemble?.n_methods || 'N/A';
             const totalAnomalies = data.explanations?.total_anomalies || 'N/A';
-            
+
             metricsDiv.innerHTML = `
                 <div class="col-md-4">
                     <div class="metric-card">
@@ -1018,15 +1086,15 @@
                 </div>
             `;
         }
-        
+
         function updateClusteringMetrics(data) {
             const metricsDiv = document.getElementById('clusteringMetrics');
             if (!metricsDiv) return;
-            
+
             const nClusters = data.kmeans?.n_clusters || 'N/A';
             const silhouetteScore = data.kmeans?.silhouette_score?.toFixed(3) || 'N/A';
             const method = 'K-means';
-            
+
             metricsDiv.innerHTML = `
                 <div class="col-md-4">
                     <div class="metric-card">
@@ -1048,15 +1116,15 @@
                 </div>
             `;
         }
-        
+
         function updateStatisticalMetrics(data) {
             const metricsDiv = document.getElementById('statisticalMetrics');
             if (!metricsDiv) return;
-            
+
             const normalityP = data.normality?.shapiro_p_value?.toFixed(4) || 'N/A';
             const stationarityP = data.stationarity?.p_value?.toFixed(4) || 'N/A';
             const testsRun = data.test_names?.length || 'N/A';
-            
+
             metricsDiv.innerHTML = `
                 <div class="col-md-4">
                     <div class="metric-card">
@@ -1078,28 +1146,28 @@
                 </div>
             `;
         }
-        
+
         function updateUnsupervisedMetrics(data) {
             const metricsDiv = document.getElementById('unsupervisedMetrics');
             if (!metricsDiv) return;
-            
+
             console.log('Updating unsupervised metrics with:', data);
-            
+
             // Access the data through the insights wrapper
             const insights = data.insights || data;
-            
+
             const pcaComponents = insights.pca_analysis?.explained_variance_ratio?.length || 'N/A';
-            const totalVariance = insights.pca_analysis?.explained_variance_ratio ? 
+            const totalVariance = insights.pca_analysis?.explained_variance_ratio ?
                 (insights.pca_analysis.explained_variance_ratio.reduce((sum, val) => sum + val, 0) * 100).toFixed(1) + '%' : 'N/A';
             const nClusters = insights.clustering?.n_clusters || 'N/A';
-            
+
             // If we have anomaly data, show that instead
             if (insights.anomalies) {
                 const anomalyCount = insights.anomalies.anomaly_count || 'N/A';
-                const anomalyRate = insights.anomalies.anomaly_rate ? 
+                const anomalyRate = insights.anomalies.anomaly_rate ?
                     (insights.anomalies.anomaly_rate * 100).toFixed(1) + '%' : 'N/A';
                 const totalCount = insights.anomalies.total_count || 'N/A';
-                
+
                 metricsDiv.innerHTML = `
                     <div class="col-md-4">
                         <div class="metric-card">
@@ -1143,41 +1211,41 @@
                 `;
             }
         }
-        
+
         // Generate real professional interpretations
         function generateRealInterpretations(results) {
             if (results.decomposition) {
                 generateDecompositionInterpretation(results.decomposition);
             }
-            
+
             if (results.anomaly_detection) {
                 generateAnomalyInterpretation(results.anomaly_detection);
             }
-            
+
             if (results.clustering) {
                 generateClusteringInterpretation(results.clustering);
             }
-            
+
             if (results.statistical_tests) {
                 generateStatisticalInterpretation(results.statistical_tests);
             }
-            
+
             if (results.unsupervised_insights) {
                 generateUnsupervisedInterpretation(results.unsupervised_insights);
             }
         }
-        
+
         // Real interpretation generators based on actual analysis results
         function generateDecompositionInterpretation(data) {
             const container = document.getElementById('decomposition-dynamic-content');
             if (!container) return;
-            
+
             let interpretation = '<h5>Professional Hydrological Analysis</h5>';
-            
+
             if (data.interpretation) {
                 interpretation += `<p><strong>Analysis Summary:</strong> ${data.interpretation}</p>`;
             }
-            
+
             interpretation += `
                 <p><strong>Time Series Components:</strong> The STL decomposition successfully separated the snow water equivalent data into trend, seasonal, and residual components, providing insights into long-term patterns and seasonal variations.</p>
                 
@@ -1185,26 +1253,26 @@
                 
                 <p><strong>Operational Application:</strong> These results can be used to improve seasonal forecasting models and optimize reservoir operations during critical snowmelt periods.</p>
             `;
-            
+
             container.innerHTML = interpretation;
         }
-        
+
         function generateAnomalyInterpretation(data) {
             const container = document.getElementById('anomaly-dynamic-content');
             if (!container) return;
-            
+
             let interpretation = '<h5>AI-Powered Anomaly Analysis</h5>';
-            
+
             if (data.interpretation) {
                 interpretation += `<p><strong>Analysis Summary:</strong> ${data.interpretation}</p>`;
             }
-            
+
             const anomalyRate = data.explanations?.anomaly_rate;
             if (anomalyRate !== undefined) {
                 const ratePercent = (anomalyRate * 100).toFixed(1);
                 interpretation += `<p><strong>Anomaly Detection Rate:</strong> ${ratePercent}% of the data points were identified as anomalous using ensemble machine learning methods.</p>`;
             }
-            
+
             interpretation += `
                 <p><strong>Machine Learning Approach:</strong> Multiple algorithms including Isolation Forest, One-Class SVM, and statistical methods were used to ensure robust anomaly detection.</p>
                 
@@ -1212,19 +1280,19 @@
                 
                 <p><strong>Risk Assessment:</strong> These anomalies should be examined for potential impacts on water supply reliability and flood risk management strategies.</p>
             `;
-            
+
             container.innerHTML = interpretation;
         }
-        
+
         function generateClusteringInterpretation(data) {
             const container = document.getElementById('clustering-dynamic-content');
             if (!container) return;
-            
+
             let interpretation = '<h5>Unsupervised Pattern Discovery</h5>';
-            
+
             if (data.interpretation) {
                 interpretation += `<p><strong>Analysis Summary:</strong> ${data.interpretation.summary}</p>`;
-                
+
                 if (data.interpretation.key_insights) {
                     interpretation += '<p><strong>Key Insights:</strong></p><ul>';
                     data.interpretation.key_insights.forEach(insight => {
@@ -1232,86 +1300,86 @@
                     });
                     interpretation += '</ul>';
                 }
-                
+
                 if (data.interpretation.business_implications) {
                     interpretation += `<p><strong>Business Implications:</strong> ${data.interpretation.business_implications}</p>`;
                 }
             }
-            
+
             container.innerHTML = interpretation;
         }
-        
+
         function generateStatisticalInterpretation(data) {
             const container = document.getElementById('statistical-dynamic-content');
             if (!container) return;
-            
+
             let interpretation = '<h5>Statistical Hypothesis Testing Results</h5>';
-            
+
             if (data.interpretation) {
                 interpretation += `<p><strong>Analysis Summary:</strong> ${data.interpretation}</p>`;
             }
-            
+
             // Normality test interpretation
             if (data.normality) {
                 const pValue = data.normality.shapiro_p_value;
                 const isNormal = pValue > 0.05;
                 interpretation += `<p><strong>Normality Test:</strong> The Shapiro-Wilk test (p=${pValue.toFixed(4)}) indicates that the data ${isNormal ? 'follows' : 'does not follow'} a normal distribution, suggesting ${isNormal ? 'parametric' : 'non-parametric'} methods are appropriate for further analysis.</p>`;
             }
-            
+
             // Stationarity test interpretation
             if (data.stationarity) {
                 const pValue = data.stationarity.p_value;
                 const isStationary = pValue < 0.05;
                 interpretation += `<p><strong>Stationarity Test:</strong> The Augmented Dickey-Fuller test (p=${pValue.toFixed(4)}) suggests the time series is ${isStationary ? 'stationary' : 'non-stationary'}, ${isStationary ? 'suitable for standard time series modeling' : 'requiring differencing or detrending'}.</p>`;
             }
-            
+
             interpretation += `
                 <p><strong>Statistical Validity:</strong> These test results provide the foundation for selecting appropriate modeling approaches and ensuring the reliability of subsequent statistical inferences.</p>
             `;
-            
+
             container.innerHTML = interpretation;
         }
-        
+
         function generateUnsupervisedInterpretation(data) {
             const container = document.getElementById('unsupervised-dynamic-content');
             if (!container) return;
-            
+
             console.log('Generating unsupervised interpretation for:', data);
-            
+
             let interpretation = '<h5>AI-Powered Unsupervised Learning Analysis</h5>';
-            
+
             // Access the data through the insights wrapper
             const insights = data.insights || data;
-            
+
             if (insights.interpretation) {
                 interpretation += `<p><strong>Analysis Summary:</strong> ${insights.interpretation}</p>`;
             }
-            
+
             // Anomaly analysis interpretation (main feature of this API)
             if (insights.anomalies) {
                 const anomalyCount = insights.anomalies.anomaly_count || 0;
                 const anomalyRate = insights.anomalies.anomaly_rate || 0;
                 const totalCount = insights.anomalies.total_count || 0;
-                
+
                 interpretation += `<p><strong>Anomaly Detection Results:</strong> Our AI analysis identified ${anomalyCount} anomalous data points out of ${totalCount} total observations, representing a ${(anomalyRate * 100).toFixed(1)}% anomaly rate in the hydrological dataset.</p>`;
-                
+
                 // Feature-specific anomaly insights
                 const anomalyFeatures = insights.anomalies.anomaly_features;
                 if (anomalyFeatures) {
                     const significantFeatures = Object.entries(anomalyFeatures)
                         .filter(([_, values]) => Math.abs(values.deviation || 0) > 0.1)
                         .slice(0, 3);
-                    
+
                     if (significantFeatures.length > 0) {
                         interpretation += `<p><strong>Feature Analysis:</strong> The most anomalous features are: `;
-                        interpretation += significantFeatures.map(([feature, values]) => 
+                        interpretation += significantFeatures.map(([feature, values]) =>
                             `${feature.replace('_', ' ')} (${values.deviation > 0 ? '+' : ''}${(values.deviation * 100).toFixed(1)}% deviation)`
                         ).join(', ');
                         interpretation += '.</p>';
                     }
                 }
             }
-            
+
             // PCA analysis interpretation
             if (insights.pca_analysis) {
                 const explainedVariance = insights.pca_analysis.explained_variance_ratio;
@@ -1320,23 +1388,23 @@
                     interpretation += `<p><strong>Principal Component Analysis:</strong> The first ${explainedVariance.length} principal components explain ${totalVariance}% of the total variance in the hydrological data, revealing the most important patterns in snow water equivalent variations.</p>`;
                 }
             }
-            
+
             // Feature importance interpretation
             if (insights.feature_importance) {
                 const topFeatures = Object.entries(insights.feature_importance)
-                    .sort(([,a], [,b]) => b - a)
+                    .sort(([, a], [, b]) => b - a)
                     .slice(0, 3)
                     .map(([feature, importance]) => `${feature} (${(importance * 100).toFixed(1)}%)`);
-                
+
                 interpretation += `<p><strong>Feature Importance:</strong> The most influential variables are: ${topFeatures.join(', ')}, which are critical for understanding snow accumulation and melt dynamics.</p>`;
             }
-            
+
             // Clustering interpretation
             if (insights.clustering) {
                 const nClusters = insights.clustering.n_clusters || 'multiple';
                 interpretation += `<p><strong>Pattern Discovery:</strong> The unsupervised analysis identified ${nClusters} distinct hydrological regimes, each representing different combinations of meteorological and seasonal conditions affecting snow water equivalent.</p>`;
             }
-            
+
             interpretation += `
                 <p><strong>Hydrological Insights:</strong> These unsupervised learning results reveal hidden relationships in the data that may not be apparent through traditional analysis, providing new perspectives on snow accumulation patterns and seasonal dynamics.</p>
                 
@@ -1344,26 +1412,26 @@
                 
                 <p><strong>Risk Assessment:</strong> Understanding these natural groupings in the data helps identify potential extreme events and supports better risk management for flood control and water supply planning.</p>
             `;
-            
+
             container.innerHTML = interpretation;
         }
-        
+
         // Display status for missing analyses
         function displayMissingAnalyses(results) {
             const analysisTypes = {
                 'decomposition': 'Time Series Decomposition',
-                'anomaly_detection': 'Anomaly Detection', 
+                'anomaly_detection': 'Anomaly Detection',
                 'clustering': 'Clustering Analysis',
                 'statistical_tests': 'Statistical Tests',
                 'unsupervised_insights': 'Unsupervised Insights'
             };
-            
+
             Object.entries(analysisTypes).forEach(([key, name]) => {
                 if (!results[key]) {
                     const tabId = key.replace('_', '-');
                     const contentId = key.replace('_', '-') + '-dynamic-content';
                     const container = document.getElementById(contentId);
-                    
+
                     if (container) {
                         container.innerHTML = `
                             <div class="alert alert-warning">
@@ -1381,7 +1449,7 @@
                             </div>
                         `;
                     }
-                    
+
                     // Also show placeholder in chart area
                     const chartId = key.replace('_', '') + 'Chart';
                     const chartCanvas = document.getElementById(chartId);
@@ -1391,20 +1459,21 @@
                         ctx.fillStyle = '#6c757d';
                         ctx.font = '16px Arial';
                         ctx.textAlign = 'center';
-                        ctx.fillText('没有图表 - Analysis Failed', chartCanvas.width/2, chartCanvas.height/2);
+                        ctx.fillText('没有图表 - Analysis Failed', chartCanvas.width / 2, chartCanvas.height / 2);
                         ctx.fillStyle = '#adb5bd';
                         ctx.font = '12px Arial';
-                        ctx.fillText('Click "Retry Analysis" to try again', chartCanvas.width/2, chartCanvas.height/2 + 20);
+                        ctx.fillText('Click "Retry Analysis" to try again', chartCanvas.width / 2, chartCanvas.height / 2 + 20);
                     }
                 }
             });
         }
-        
+
         // Initialize page
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             console.log('Real Data Analysis Dashboard Initialized');
             console.log('Ready to connect to:', API_BASE_URL);
         });
     </script>
 </body>
+
 </html>

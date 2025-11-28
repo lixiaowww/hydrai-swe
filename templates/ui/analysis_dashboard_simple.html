@@ -141,32 +141,7 @@
 
         .featured-card {
             grid-column: 1 / -1;
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            color: white;
-            border: none;
-        }
-
-        .featured-card .data-card-header h3 {
-            color: white;
-        }
-
-        .featured-card .metric-row {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .featured-card .metric-label {
-            color: rgba(255, 255, 255, 0.7);
-        }
-
-        .featured-card .metric-value {
-            color: white;
-        }
-
-        .featured-card .data-source {
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-            backdrop-filter: blur(4px);
+            border: 2px solid var(--primary);
         }
 
         .data-card-header {
@@ -320,41 +295,8 @@
         <div class="analysis-section">
             <h2>Real-time Analysis</h2>
             <div class="analysis-grid">
-                <!-- Regional Forecast Analysis Card - FEATURED -->
+                <!-- SWE Trend Analysis Card - FEATURED -->
                 <div class="data-card featured-card">
-                    <div class="data-card-header">
-                        <h3>🌍 Regional Forecast Analysis</h3>
-                        <span class="data-source">Latest & Most Important</span>
-                    </div>
-                    <div class="data-card-content">
-                        <div class="analysis-metrics">
-                            <div class="metric-row">
-                                <span class="metric-label">Regional Coverage:</span>
-                                <span class="metric-value" id="regional-coverage">--</span>
-                                <span class="metric-unit">stations</span>
-                            </div>
-                            <div class="metric-row">
-                                <span class="metric-label">Risk Level:</span>
-                                <span class="metric-value" id="risk-level">--</span>
-                            </div>
-                            <div class="metric-row">
-                                <span class="metric-label">Confidence:</span>
-                                <span class="metric-value" id="forecast-confidence">--</span>
-                                <span class="metric-unit">%</span>
-                            </div>
-                            <div class="metric-row">
-                                <span class="metric-label">Update Time:</span>
-                                <span class="metric-value" id="last-update-time">--</span>
-                            </div>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="regional-forecast-chart"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SWE Trend Analysis Card -->
-                <div class="data-card">
                     <div class="data-card-header">
                         <h3>SWE Trend Analysis</h3>
                         <span class="data-source">Real Data Analysis</span>
@@ -383,6 +325,39 @@
                         </div>
                         <div class="chart-container">
                             <canvas id="swe-trend-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Regional Forecast Analysis Card -->
+                <div class="data-card">
+                    <div class="data-card-header">
+                        <h3>🌍 Regional Forecast Analysis</h3>
+                        <span class="data-source">Latest & Most Important</span>
+                    </div>
+                    <div class="data-card-content">
+                        <div class="analysis-metrics">
+                            <div class="metric-row">
+                                <span class="metric-label">Regional Coverage:</span>
+                                <span class="metric-value" id="regional-coverage">--</span>
+                                <span class="metric-unit">stations</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Risk Level:</span>
+                                <span class="metric-value" id="risk-level">--</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Confidence:</span>
+                                <span class="metric-value" id="forecast-confidence">--</span>
+                                <span class="metric-unit">%</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Update Time:</span>
+                                <span class="metric-value" id="last-update-time">--</span>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="regional-forecast-chart"></canvas>
                         </div>
                     </div>
                 </div>
@@ -682,8 +657,8 @@
             try {
                 const data = await apiRequest('/swe/regional-forecast');
                 document.getElementById('regional-coverage').textContent = Object.keys(data.regional_forecasts || {}).length;
-                document.getElementById('risk-level').textContent = '—';
-                document.getElementById('forecast-confidence').textContent = '—';
+                document.getElementById('risk-level').textContent = data.risk_level || '--';
+                document.getElementById('forecast-confidence').textContent = data.confidence_pct || '--';
                 document.getElementById('last-update-time').textContent = data.last_update || data.forecast_date || '--';
 
                 const regions = Object.values(data.regional_forecasts || {});
