@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HydrAI-SWE Hydrological Knowledge Base</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-links {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            margin: 0 15px;
+            padding: 10px 20px;
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .nav-links a.active {
+            background: rgba(255, 255, 255, 0.3);
+            font-weight: bold;
+        }
+
+        .search-container {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .category-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .category-tab {
+            padding: 10px 20px;
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .category-tab.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .knowledge-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .knowledge-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .knowledge-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .card-icon {
+            font-size: 1.5rem;
+            margin-right: 10px;
+            color: #667eea;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .card-content {
+            line-height: 1.6;
+            color: #555;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        /* Chat Interface Styles */
+        .chat-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .chat-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .chat-header h2 {
+            font-size: 1.5rem;
+            color: #333;
+            display: flex;
+            align-items: center;
+        }
+
+        .chat-header i {
+            margin-right: 10px;
+            color: #667eea;
+        }
+
+        .chat-messages {
+            height: 300px;
+            overflow-y: auto;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 15px;
+            line-height: 1.5;
+            position: relative;
+        }
+
+        .message.user {
+            background: #667eea;
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 5px;
+        }
+
+        .message.bot {
+            background: white;
+            color: #333;
+            margin-right: auto;
+            border-bottom-left-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            border: 1px solid #eee;
+        }
+
+        .chat-input-area {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .send-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 0 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s;
+        }
+
+        .send-btn:hover {
+            background: #5a6fd1;
+        }
+
+        .send-btn:disabled {
+            background: #a0aec0;
+            cursor: not-allowed;
+        }
+
+        .typing-indicator {
+            display: inline-block;
+            padding: 10px 15px;
+            background: white;
+            border-radius: 15px;
+            border-bottom-left-radius: 5px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            border: 1px solid #eee;
+        }
+
+        .dot {
+            height: 8px;
+            width: 8px;
+            background-color: #bbb;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 2px;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .dot:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .dot:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            80%,
+            100% {
+                transform: scale(0);
+            }
+
+            40% {
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-water"></i> HydrAI-SWE</h1>
+            <p>Intelligent Snow Water Equivalent Prediction System</p>
+        </div>
+
+        <div class="nav-links">
+            <a href="/home"><i class="fas fa-home"></i> Home</a>
+            <a href="/ui"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            <a href="/model"><i class="fas fa-robot"></i> Training</a>
+            <a href="/analysis"><i class="fas fa-chart-line"></i> Analysis</a>
+            <a href="/about"><i class="fas fa-info-circle"></i> About</a>
+        </div>
+
+        <div class="chat-section">
+            <div class="chat-header">
+                <h2><i class="fas fa-robot"></i> AI Knowledge Assistant</h2>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="message bot">
+                    Hello! I'm your HydrAI assistant. Ask me anything about hydrology, SWE, or our data models.
+                </div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="chatInput" class="chat-input"
+                    placeholder="Ask a question (e.g., 'What is SWE?')..." onkeypress="handleKeyPress(event)">
+                <button id="sendBtn" class="send-btn" onclick="sendMessage()"><i
+                        class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+
+        <div class="search-container">
+            <input type="text" id="searchInput" class="search-box"
+                placeholder="Search hydrology terms, concepts, or methods...">
+
+            <div class="category-tabs">
+                <div class="category-tab active" data-category="all">All</div>
+                <div class="category-tab" data-category="swe">SWE</div>
+                <div class="category-tab" data-category="hydrology">Hydrology</div>
+                <div class="category-tab" data-category="meteorology">Meteorology</div>
+                <div class="category-tab" data-category="analysis">Analysis</div>
+                <div class="category-tab" data-category="prediction">Prediction</div>
+            </div>
+        </div>
+
+        <div class="knowledge-grid" id="knowledgeGrid">
+            <!-- Knowledge cards will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        const knowledgeBase = [
+            {
+                id: 1,
+                title: "Snow Water Equivalent (SWE)",
+                category: "swe",
+                content: "Water contained in snowpack if melted, in millimeters. A core driver for flood forecasting and water resources.",
+                keywords: ["SWE", "snow", "water equivalent", "snowmelt"]
+            },
+            {
+                id: 2,
+                title: "Snow Density",
+                category: "swe",
+                content: "Mass per unit volume of snow (kg/m³). New snow: ~50–200; aged snow: ~200–500.",
+                keywords: ["density", "mass", "volume", "new snow", "aged snow"]
+            },
+            {
+                id: 3,
+                title: "Snow Depth",
+                category: "swe",
+                content: "Vertical distance from ground to snow surface (cm). Relationship with SWE depends on density.",
+                keywords: ["snow depth", "depth"]
+            },
+            {
+                id: 4,
+                title: "Snowmelt Runoff",
+                category: "hydrology",
+                content: "Runoff generated from melting snow, a major spring flood driver. Influenced by temperature, radiation, wind, and humidity.",
+                keywords: ["snowmelt", "runoff", "spring flood"]
+            },
+            {
+                id: 5,
+                title: "Degree-Day Factor",
+                category: "analysis",
+                content: "Empirical melt coefficient (mm per °C·day) used to estimate snowmelt, typically 2–6 mm/°C·day.",
+                keywords: ["degree-day", "melt", "coefficient"]
+            },
+            {
+                id: 6,
+                title: "Snow Cover Fraction",
+                category: "swe",
+                content: "Area fraction covered by snow within a region (%). Affects albedo and surface energy balance.",
+                keywords: ["snow cover", "fraction", "albedo", "energy balance"]
+            },
+            {
+                id: 7,
+                title: "Frozen Ground",
+                category: "hydrology",
+                content: "Soils at or below 0°C. Reduces infiltration and increases surface runoff during melt events.",
+                keywords: ["frozen ground", "infiltration", "runoff"]
+            },
+            {
+                id: 8,
+                title: "Albedo",
+                category: "meteorology",
+                content: "Ratio of reflected to incoming solar radiation. Fresh snow has high albedo (~0.8–0.9).",
+                keywords: ["albedo", "solar radiation", "reflection"]
+            },
+            {
+                id: 9,
+                title: "Time Series Analysis",
+                category: "analysis",
+                content: "Methods for temporal data: trend analysis, seasonal decomposition, autocorrelation, etc.",
+                keywords: ["time series", "trend", "seasonality", "autocorrelation"]
+            },
+            {
+                id: 10,
+                title: "Random Forest",
+                category: "prediction",
+                content: "Ensemble of decision trees with voting. Strong at capturing nonlinear relationships for SWE prediction.",
+                keywords: ["random forest", "decision tree", "ensemble", "prediction"]
+            },
+            {
+                id: 11,
+                title: "Manitoba Hydrologic Characteristics",
+                category: "hydrology",
+                content: "Prairie climate, long snow season, spring snowmelt dominates runoff. Flat terrain and wetlands modulate storage and flow.",
+                keywords: ["Manitoba", "prairie", "snow season", "wetlands", "runoff"]
+            },
+            {
+                id: 12,
+                title: "Flood Warning Systems",
+                category: "prediction",
+                content: "Risk assessment and alerting using SWE, precipitation, temperature and river data for decision support.",
+                keywords: ["flood warning", "risk", "decision support"]
+            }
+        ];
+
+        let currentCategory = 'all';
+        let searchTerm = '';
+
+        function filterKnowledge() {
+            const grid = document.getElementById('knowledgeGrid');
+            const filtered = knowledgeBase.filter(item => {
+                const matchesCategory = currentCategory === 'all' || item.category === currentCategory;
+                const matchesSearch = searchTerm === '' ||
+                    item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    item.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    item.keywords.some(keyword => keyword.toLowerCase().includes(searchTerm.toLowerCase()));
+                return matchesCategory && matchesSearch;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '<div class="no-results">No results. Try different keywords.</div>';
+                return;
+            }
+
+            grid.innerHTML = filtered.map(item => `
+                <div class="knowledge-card">
+                    <div class="card-header">
+                        <i class="fas fa-${getCategoryIcon(item.category)} card-icon"></i>
+                        <div class="card-title">${highlightText(item.title, searchTerm)}</div>
+                    </div>
+                    <div class="card-content">${highlightText(item.content, searchTerm)}</div>
+                </div>
+            `).join('');
+        }
+
+        function getCategoryIcon(category) {
+            const icons = {
+                'swe': 'snowflake',
+                'hydrology': 'tint',
+                'meteorology': 'cloud-sun',
+                'analysis': 'chart-line',
+                'prediction': 'crystal-ball'
+            };
+            return icons[category] || 'book';
+        }
+
+        function highlightText(text, searchTerm) {
+            if (!searchTerm) return text;
+            const regex = new RegExp(`(${searchTerm})`, 'gi');
+            return text.replace(regex, '<span class="highlight">$1</span>');
+        }
+
+        // Event listeners
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            searchTerm = e.target.value;
+            filterKnowledge();
+        });
+
+        document.querySelectorAll('.category-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                currentCategory = tab.dataset.category;
+                filterKnowledge();
+            });
+        });
+
+        // Chat Functionality
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const sendBtn = document.getElementById('sendBtn');
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        async function sendMessage() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            // Add User Message
+            addMessage(message, 'user');
+            chatInput.value = '';
+            chatInput.disabled = true;
+            sendBtn.disabled = true;
+
+            // Add Typing Indicator
+            const typingId = addTypingIndicator();
+
+            try {
+                const response = await fetch('/api/knowledge/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+
+                // Remove Typing Indicator
+                removeMessage(typingId);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    addMessage(data.response, 'bot');
+                } else {
+                    addMessage("I'm sorry, I couldn't reach the server. Please try again.", 'bot');
+                }
+            } catch (error) {
+                removeMessage(typingId);
+                addMessage("Network error. Please check your connection.", 'bot');
+                console.error('Chat Error:', error);
+            } finally {
+                chatInput.disabled = false;
+                sendBtn.disabled = false;
+                chatInput.focus();
+            }
+        }
+
+        function addMessage(text, sender) {
+            const div = document.createElement('div');
+            div.className = `message ${sender}`;
+
+            // Convert simple markdown to HTML (bold and newlines)
+            let formattedText = text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\n/g, '<br>');
+
+            div.innerHTML = formattedText;
+            chatMessages.appendChild(div);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return div.id = 'msg-' + Date.now();
+        }
+
+        function addTypingIndicator() {
+            const div = document.createElement('div');
+            div.className = 'typing-indicator';
+            div.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+            div.id = 'typing-' + Date.now();
+            chatMessages.appendChild(div);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return div.id;
+        }
+
+        function removeMessage(id) {
+            const el = document.getElementById(id);
+            if (el) el.remove();
+        }
+
+        // Initialize
+        filterKnowledge();
+    </script>
+</body>
+
+</html>
