@@ -1,9 +1,9 @@
 # 必须在任何导入之前设置Python路径
 import os
 import sys
-sys.path.append('/home/sean/hydrai-swe/src')
-sys.path.append('/home/sean/hydrai-swe/src/models')
-sys.path.append('/home/sean/hydrai-swe/src/api')
+# sys.path.append('/home/sean/hydrai-swe/src')
+# sys.path.append('/home/sean/hydrai-swe/src/models')
+# sys.path.append('/home/sean/hydrai-swe/src/api')
 
 from dotenv import load_dotenv
 # Load environment variables from .env file
@@ -12,7 +12,7 @@ load_dotenv()
 from fastapi import FastAPI, Request, Body, HTTPException
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from datetime import datetime
@@ -141,6 +141,11 @@ if ENHANCED_INTERPRETATION_AVAILABLE:
 # 包含天气API路由
 if WEATHER_API_AVAILABLE:
     app.include_router(weather.router, prefix="/api/v1", tags=["weather"])
+
+# Fallback routes for lightweight mode
+# Import fallback routes
+from src.api import fallback_routes
+app.include_router(fallback_routes.router, tags=["fallback"])
 
 # 添加水文学解释端点 - 直接在主应用中定义
 @app.post("/api/v1/hydrology/interpretation")
@@ -328,14 +333,23 @@ def health_check():
     return {"status": "healthy", "message": "HydrAI-SWE API is running"}
 
 # Use absolute paths from project root
-templates = Jinja2Templates(directory="/home/sean/hydrai-swe/templates")
+import os
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
+UI_DIR = os.path.join(TEMPLATES_DIR, "ui")
+ANALYSIS_RESULTS_DIR = os.path.join(BASE_DIR, "analysis_results")
 
-# Mount static files for UI assets
-app.mount("/static", StaticFiles(directory="/home/sean/hydrai-swe/templates/ui"), name="ui_static")
+templates = Jinja2Templates(directory=TEMPLATES_DIR)
+
+# Mount static files
+if os.path.exists(UI_DIR):
+    app.mount("/static", StaticFiles(directory=UI_DIR), name="ui_static")
+else:
+    print(f"Warning: UI directory not found at {UI_DIR}")
 
 # Serve generated analysis visualizations (HTML files)
-if os.path.isdir("/home/sean/hydrai-swe/analysis_results"):
-    app.mount("/analysis_results", StaticFiles(directory="/home/sean/hydrai-swe/analysis_results"), name="analysis_results")
+if os.path.isdir(ANALYSIS_RESULTS_DIR):
+    app.mount("/analysis_results", StaticFiles(directory=ANALYSIS_RESULTS_DIR), name="analysis_results")
 
 @app.get('/favicon.ico')
 def favicon():
@@ -350,7 +364,7 @@ def favicon():
 @app.get("/ui", response_class=HTMLResponse)
 def ui(request: Request):
     # Main end-user interface - English enhanced version
-    return templates.TemplateResponse("ui/enhanced_en.html", {"request": request})
+    return templates.TemplateResponse("ui/enhanced_dashboard.html", {"request": request})
 
 @app.get("/water-resources-management", response_class=HTMLResponse)
 def water_resources_management(request: Request):
@@ -362,10 +376,11 @@ def ui_enhanced_english(request: Request):
     # Enhanced English UI - direct access
     return templates.TemplateResponse("ui/enhanced_en.html", {"request": request})
 
-@app.get("/model", response_class=HTMLResponse)
-def model_interface(request: Request):
-    # Model training, configuration, and technical settings interface
-    return templates.TemplateResponse("ui/model_interface.html", {"request": request})
+# @app.get("/model", response_class=HTMLResponse)
+# def model_interface(request: Request):
+#     # Model training, configuration, and technical settings interface
+#     # return templates.TemplateResponse("ui/model_interface.html", {"request": request})
+
 
 @app.get("/ui/legacy", response_class=HTMLResponse)
 def ui_legacy(request: Request):
@@ -462,3 +477,40 @@ def real_data_analysis_dashboard(request: Request):
     return templates.TemplateResponse("real_data_analysis_page.html", {"request": request})
 
 # Removed additional UI variants to avoid accidental use of heavy UIs
+
+# Navigation Routes matching production_server.py
+@app.get("/dashboard")
+async def dashboard_page():
+    """Dashboard Page"""
+    return FileResponse("templates/ui/enhanced_dashboard.html")
+
+@app.get("/home")
+async def home_page():
+    """Home Page"""
+    return FileResponse("templates/ui/home.html")
+
+@app.get("/knowledge")
+async def knowledge_page():
+    """Knowledge Base Page"""
+    return FileResponse("templates/ui/hydrological_knowledge_base.html")
+
+@app.get("/about")
+async def about_page():
+    """About Page"""
+    return FileResponse("templates/ui/about.html")
+
+@app.get("/model")
+async def model_page():
+    """Model Training Page"""
+    return FileResponse("templates/ui/model_training_dashboard.html")
+
+@app.get("/analysis")
+async def analysis_page():
+    """Data Analysis Page"""
+    # Check for best available analysis template
+    if os.path.exists("templates/ui/analysis_dashboard_simple.html"):
+        return FileResponse("templates/ui/analysis_dashboard_simple.html")
+    elif os.path.exists("templates/real_data_analysis_page.html"):
+        return FileResponse("templates/real_data_analysis_page.html")
+    else:
+        return HTMLResponse("<h1>Analysis Dashboard Not Found</h1>")

@@ -5,7 +5,7 @@ geopandas
 rasterio
 numpy
 scikit-learn
-tensorflow-cpu
+# tensorflow-cpu  # Removed to avoid conflicts with torch
 psycopg2-binary
 python-dotenv
 uvicorn
@@ -16,3 +16,9 @@ xarray
 cfgrib
 neuralhydrology
 rioxarray
+google-generativeai
+torch==2.4.0
+absl-py>=2.0.0
+protobuf>=4.25.0
+tensorboard>=2.15.0
+numpy<2.0.0

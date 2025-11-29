@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+gunicorn
+jinja2
+python-dotenv
+pandas
+numpy<2.0.0
+requests
+google-generativeai
+httpx
+scipy
+# Exclude heavy ML libraries to ensure fast deployment of frontend
+# torch
+# neuralhydrology
+# tensorflow
